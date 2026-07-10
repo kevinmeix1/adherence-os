@@ -1,0 +1,54 @@
+import { evaluateCheckIn, getPatientInsights } from "./careEngine";
+import { scorePatientRisk } from "./edgeModel";
+import type { CheckInInput, Patient, RiskLevel } from "./types";
+
+export type PatientDashboardRow = {
+  patient: Patient;
+  adherencePct: number;
+  missedCheckIns: number;
+  riskLevel: RiskLevel;
+  modelRisk: number;
+  nextAction: string;
+  weightChangeKg: number;
+  lastCheckInDate: string;
+};
+
+export function buildPatientDashboardRows(patients: Patient[]): PatientDashboardRow[] {
+  return patients.map((patient) => {
+    const checkIn = buildLatestCheckIn(patient);
+    const insights = getPatientInsights(patient);
+    const plan = evaluateCheckIn(patient, checkIn);
+    const edgeRisk = scorePatientRisk(patient, checkIn);
+
+    return {
+      patient,
+      adherencePct: Math.round(insights.adherenceAvg),
+      missedCheckIns: Math.max(0, patient.engagement.expectedCheckIns - patient.engagement.completedCheckIns),
+      riskLevel: plan.riskLevel,
+      modelRisk: edgeRisk.risk,
+      nextAction: plan.patientAction,
+      weightChangeKg: insights.weightDelta,
+      lastCheckInDate: insights.latest.date
+    };
+  });
+}
+
+export function buildLatestCheckIn(patient: Patient): CheckInInput {
+  const latest = patient.weeklyData[patient.weeklyData.length - 1];
+  const hydrationScore = Math.max(2, Math.min(10, Math.round(9 - latest.nauseaScore * 0.4)));
+
+  return {
+    patientId: patient.id,
+    date: latest.date,
+    scenario: "custom",
+    medicationTaken: latest.dosesTaken >= latest.dosesExpected,
+    nauseaScore: latest.nauseaScore,
+    appetiteScore: latest.appetiteScore,
+    energyScore: latest.energyScore,
+    hydrationScore,
+    mood: latest.mood,
+    sideEffects: latest.notes,
+    biomarkerNote: latest.biomarkers ? "Latest at-home biomarker snapshot received." : "No new biomarker snapshot this week.",
+    freeText: latest.notes
+  };
+}

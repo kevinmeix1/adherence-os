@@ -1,0 +1,515 @@
+[
+  {
+    "id": "maya-patel",
+    "name": "Maya Patel",
+    "age": 36,
+    "pronouns": "she/her",
+    "conditionFocus": "GLP-1 weight management",
+    "programme": "At-home metabolic care with medication adherence and side-effect support",
+    "startDate": "2026-05-20",
+    "currentWeek": 8,
+    "engagement": {
+      "expectedCheckIns": 8,
+      "completedCheckIns": 7
+    },
+    "preferredTone": "Calm, direct and encouraging",
+    "clinicalContext": [
+      "Started GLP-1 pathway after repeated weight regain",
+      "Works irregular hours and often misses breakfast",
+      "Nausea is the main adherence threat"
+    ],
+    "goals": [
+      "Stay adherent through the first 12 weeks",
+      "Reduce weight by 5% safely",
+      "Feel confident managing side effects at home"
+    ],
+    "baseline": {
+      "weightKg": 94.8,
+      "hba1cPct": 6.1,
+      "systolicBp": 132,
+      "diastolicBp": 84,
+      "restingHeartRate": 78
+    },
+    "riskFactors": [
+      "Dose anxiety",
+      "Shift work",
+      "Nausea-led missed meals"
+    ],
+    "latestBiomarkers": {
+      "hba1cPct": 5.8,
+      "fastingGlucoseMmol": 5.7,
+      "systolicBp": 126,
+      "diastolicBp": 80,
+      "restingHeartRate": 82
+    },
+    "weeklyData": [
+      {
+        "week": 1,
+        "date": "2026-05-20",
+        "weightKg": 94.8,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 2,
+        "appetiteScore": 7,
+        "energyScore": 6,
+        "mood": "hopeful",
+        "notes": "Started programme. Mild injection anxiety.",
+        "biomarkers": {
+          "hba1cPct": 6.1,
+          "fastingGlucoseMmol": 6.2,
+          "systolicBp": 132,
+          "diastolicBp": 84,
+          "restingHeartRate": 78
+        }
+      },
+      {
+        "week": 2,
+        "date": "2026-05-27",
+        "weightKg": 93.9,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 3,
+        "appetiteScore": 6,
+        "energyScore": 6,
+        "mood": "steady",
+        "notes": "Appetite lower. Reminder worked."
+      },
+      {
+        "week": 3,
+        "date": "2026-06-03",
+        "weightKg": 93.1,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 3,
+        "appetiteScore": 5,
+        "energyScore": 7,
+        "mood": "motivated",
+        "notes": "Tolerating smaller portions."
+      },
+      {
+        "week": 4,
+        "date": "2026-06-10",
+        "weightKg": 92.2,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 4,
+        "appetiteScore": 5,
+        "energyScore": 6,
+        "mood": "steady",
+        "notes": "Mild nausea after lunch."
+      },
+      {
+        "week": 5,
+        "date": "2026-06-17",
+        "weightKg": 91.4,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 5,
+        "appetiteScore": 4,
+        "energyScore": 5,
+        "mood": "tired",
+        "notes": "Missed one daily habit task during night shifts.",
+        "biomarkers": {
+          "hba1cPct": 5.9,
+          "fastingGlucoseMmol": 5.9,
+          "systolicBp": 129,
+          "diastolicBp": 82,
+          "restingHeartRate": 80
+        }
+      },
+      {
+        "week": 6,
+        "date": "2026-06-24",
+        "weightKg": 90.8,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 6,
+        "appetiteScore": 3,
+        "energyScore": 5,
+        "mood": "frustrated",
+        "notes": "Nearly skipped medication due to nausea."
+      },
+      {
+        "week": 7,
+        "date": "2026-07-01",
+        "weightKg": 90.2,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 4,
+        "appetiteScore": 4,
+        "energyScore": 6,
+        "mood": "reassured",
+        "notes": "Care-team message helped reset meal timing."
+      },
+      {
+        "week": 8,
+        "date": "2026-07-08",
+        "weightKg": 89.9,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 5,
+        "appetiteScore": 4,
+        "energyScore": 5,
+        "mood": "cautious",
+        "notes": "Hectic week. Mild return of nausea.",
+        "biomarkers": {
+          "hba1cPct": 5.8,
+          "fastingGlucoseMmol": 5.7,
+          "systolicBp": 126,
+          "diastolicBp": 80,
+          "restingHeartRate": 82
+        }
+      }
+    ]
+  },
+  {
+    "id": "james-oconnor",
+    "name": "James O'Connor",
+    "age": 52,
+    "pronouns": "he/him",
+    "conditionFocus": "Type 2 diabetes and GLP-1 metabolic support",
+    "programme": "At-home diabetes risk reduction with adherence and biomarker monitoring",
+    "startDate": "2026-05-20",
+    "currentWeek": 8,
+    "engagement": {
+      "expectedCheckIns": 8,
+      "completedCheckIns": 7
+    },
+    "preferredTone": "Practical, brief and numbers-led",
+    "clinicalContext": [
+      "Travels frequently for work",
+      "HbA1c is improving but adherence drops during travel",
+      "Wants fewer clinic visits"
+    ],
+    "goals": [
+      "Bring HbA1c below 7.5%",
+      "Avoid missed doses during travel",
+      "Improve blood pressure trend"
+    ],
+    "baseline": {
+      "weightKg": 108.4,
+      "hba1cPct": 8.2,
+      "systolicBp": 144,
+      "diastolicBp": 91,
+      "restingHeartRate": 84
+    },
+    "riskFactors": [
+      "Travel disruption",
+      "Late meals",
+      "Hypertension history"
+    ],
+    "latestBiomarkers": {
+      "hba1cPct": 7.5,
+      "fastingGlucoseMmol": 7.4,
+      "systolicBp": 136,
+      "diastolicBp": 86,
+      "restingHeartRate": 80
+    },
+    "weeklyData": [
+      {
+        "week": 1,
+        "date": "2026-05-20",
+        "weightKg": 108.4,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 1,
+        "appetiteScore": 8,
+        "energyScore": 5,
+        "mood": "focused",
+        "notes": "Baseline at-home screen completed.",
+        "biomarkers": {
+          "hba1cPct": 8.2,
+          "fastingGlucoseMmol": 8.9,
+          "systolicBp": 144,
+          "diastolicBp": 91,
+          "restingHeartRate": 84
+        }
+      },
+      {
+        "week": 2,
+        "date": "2026-05-27",
+        "weightKg": 107.8,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 2,
+        "appetiteScore": 7,
+        "energyScore": 5,
+        "mood": "steady",
+        "notes": "No travel this week."
+      },
+      {
+        "week": 3,
+        "date": "2026-06-03",
+        "weightKg": 107.1,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 2,
+        "appetiteScore": 6,
+        "energyScore": 5,
+        "mood": "busy",
+        "notes": "Missed one dose while away overnight."
+      },
+      {
+        "week": 4,
+        "date": "2026-06-10",
+        "weightKg": 106.5,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 2,
+        "appetiteScore": 6,
+        "energyScore": 6,
+        "mood": "confident",
+        "notes": "Travel reminder pack helped."
+      },
+      {
+        "week": 5,
+        "date": "2026-06-17",
+        "weightKg": 105.9,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 3,
+        "appetiteScore": 5,
+        "energyScore": 6,
+        "mood": "steady",
+        "notes": "Home BP readings lower.",
+        "biomarkers": {
+          "hba1cPct": 7.8,
+          "fastingGlucoseMmol": 7.9,
+          "systolicBp": 139,
+          "diastolicBp": 88,
+          "restingHeartRate": 82
+        }
+      },
+      {
+        "week": 6,
+        "date": "2026-06-24",
+        "weightKg": 105.3,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 3,
+        "appetiteScore": 5,
+        "energyScore": 5,
+        "mood": "stretched",
+        "notes": "Late meals and one missed dose during travel."
+      },
+      {
+        "week": 7,
+        "date": "2026-07-01",
+        "weightKg": 104.7,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 4,
+        "appetiteScore": 5,
+        "energyScore": 5,
+        "mood": "tired",
+        "notes": "Second travel week, one dose late."
+      },
+      {
+        "week": 8,
+        "date": "2026-07-08",
+        "weightKg": 104.2,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 3,
+        "appetiteScore": 5,
+        "energyScore": 6,
+        "mood": "back on track",
+        "notes": "Returned home and completed check-ins.",
+        "biomarkers": {
+          "hba1cPct": 7.5,
+          "fastingGlucoseMmol": 7.4,
+          "systolicBp": 136,
+          "diastolicBp": 86,
+          "restingHeartRate": 80
+        }
+      }
+    ]
+  },
+  {
+    "id": "aisha-rahman",
+    "name": "Aisha Rahman",
+    "age": 29,
+    "pronouns": "she/her",
+    "conditionFocus": "PCOS-linked metabolic health",
+    "programme": "At-home metabolic coaching with symptom-cycle context",
+    "startDate": "2026-05-20",
+    "currentWeek": 8,
+    "engagement": {
+      "expectedCheckIns": 8,
+      "completedCheckIns": 8
+    },
+    "preferredTone": "Warm, validating and specific",
+    "clinicalContext": [
+      "PCOS symptoms affect hunger, mood and adherence",
+      "Feels dismissed when care is only weight-focused",
+      "Wants cycle-aware coaching"
+    ],
+    "goals": [
+      "Improve energy and hunger regulation",
+      "Keep adherence above 90%",
+      "Understand symptom patterns without extra appointments"
+    ],
+    "baseline": {
+      "weightKg": 86.2,
+      "hba1cPct": 5.9,
+      "systolicBp": 121,
+      "diastolicBp": 78,
+      "restingHeartRate": 76
+    },
+    "riskFactors": [
+      "Cycle-linked cravings",
+      "Mood dips",
+      "Prior poor experience with generic weight advice"
+    ],
+    "latestBiomarkers": {
+      "hba1cPct": 5.7,
+      "fastingGlucoseMmol": 5.5,
+      "systolicBp": 119,
+      "diastolicBp": 76,
+      "restingHeartRate": 74
+    },
+    "weeklyData": [
+      {
+        "week": 1,
+        "date": "2026-05-20",
+        "weightKg": 86.2,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 1,
+        "appetiteScore": 8,
+        "energyScore": 4,
+        "mood": "guarded",
+        "notes": "Wants support that accounts for PCOS.",
+        "biomarkers": {
+          "hba1cPct": 5.9,
+          "fastingGlucoseMmol": 5.9,
+          "systolicBp": 121,
+          "diastolicBp": 78,
+          "restingHeartRate": 76
+        }
+      },
+      {
+        "week": 2,
+        "date": "2026-05-27",
+        "weightKg": 85.8,
+        "adherencePct": 100,
+        "dosesTaken": 1,
+        "dosesExpected": 1,
+        "nauseaScore": 2,
+        "appetiteScore": 7,
+        "energyScore": 5,
+        "mood": "hopeful",
+        "notes": "Meal timing feels easier."
+      },
+      {
+        "week": 3,
+        "date": "2026-06-03",
+        "weightKg": 85.1,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 2,
+        "appetiteScore": 6,
+        "energyScore": 5,
+        "mood": "steady",
+        "notes": "Less evening snacking."
+      },
+      {
+        "week": 4,
+        "date": "2026-06-10",
+        "weightKg": 84.9,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 3,
+        "appetiteScore": 6,
+        "energyScore": 4,
+        "mood": "low",
+        "notes": "Cycle-related cravings and fatigue."
+      },
+      {
+        "week": 5,
+        "date": "2026-06-17",
+        "weightKg": 84.7,
+        "adherencePct": 86,
+        "dosesTaken": 6,
+        "dosesExpected": 7,
+        "nauseaScore": 3,
+        "appetiteScore": 7,
+        "energyScore": 4,
+        "mood": "discouraged",
+        "notes": "One missed habit check-in, weight plateau.",
+        "biomarkers": {
+          "hba1cPct": 5.8,
+          "fastingGlucoseMmol": 5.6,
+          "systolicBp": 120,
+          "diastolicBp": 77,
+          "restingHeartRate": 75
+        }
+      },
+      {
+        "week": 6,
+        "date": "2026-06-24",
+        "weightKg": 84.2,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 2,
+        "appetiteScore": 5,
+        "energyScore": 5,
+        "mood": "reassured",
+        "notes": "Cycle-aware coaching helped."
+      },
+      {
+        "week": 7,
+        "date": "2026-07-01",
+        "weightKg": 83.9,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 2,
+        "appetiteScore": 5,
+        "energyScore": 6,
+        "mood": "steady",
+        "notes": "Energy improved."
+      },
+      {
+        "week": 8,
+        "date": "2026-07-08",
+        "weightKg": 83.6,
+        "adherencePct": 100,
+        "dosesTaken": 7,
+        "dosesExpected": 7,
+        "nauseaScore": 2,
+        "appetiteScore": 5,
+        "energyScore": 6,
+        "mood": "confident",
+        "notes": "Feels listened to and consistent.",
+        "biomarkers": {
+          "hba1cPct": 5.7,
+          "fastingGlucoseMmol": 5.5,
+          "systolicBp": 119,
+          "diastolicBp": 76,
+          "restingHeartRate": 74
+        }
+      }
+    ]
+  }
+]
