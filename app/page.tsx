@@ -769,21 +769,22 @@ function ModelLabView({
   const maxSensitivitySpan = Math.max(...topSensitivityFeatures.map((feature) => feature.span), 0.001);
   const maxStepContribution = Math.max(...explanation.steps.map((step) => Math.abs(step.contribution)), 0.01);
   const sampleRows = getModelSampleRows().slice(0, 6);
-  const bestIntervention = edgeRisk.interventions[0];
+  const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
+  const modelSupported = edgeRisk.support.status === "supported";
 
   return (
     <div className="model-grid">
       <section className="panel wide-panel model-hero">
         <div>
           <p className="section-kicker">Model Lab</p>
-          <h2>Edge ML predicts 7-day adherence failure risk</h2>
+          <h2>Edge ML predicts next-week adherence interruption risk</h2>
           <p>
-            A monotonic logistic model scores structured home-care features in the browser, then the agentic layer turns the prediction into a safe rescue plan.
+            A leakage-safe monotonic model scores structured home-care features in the browser. Sixteen patient-bootstrap members expose model spread while deterministic rules own safety.
           </p>
         </div>
         <div className="risk-dial">
-          <span>{formatPercent(edgeRisk.risk)}</span>
-          <strong>{riskBand(edgeRisk.risk)}</strong>
+          <span>{modelSupported ? formatPercent(edgeRisk.risk) : "Abstained"}</span>
+          <strong>{modelSupported ? riskBand(edgeRisk.risk) : "Outside support"}</strong>
         </div>
       </section>
 
@@ -798,8 +799,8 @@ function ModelLabView({
         <div className="metric-row compact-metrics">
           <Metric icon={<UserRound size={18} />} label="Patients" value={String(artifact.cohort.patients)} />
           <Metric icon={<ClipboardCheck size={18} />} label="Samples" value={artifact.metrics.samples.toLocaleString()} />
-          <Metric icon={<TrendingDown size={18} />} label="Synthetic AUC" value={artifact.metrics.testAuc.toFixed(3)} />
-          <Metric icon={<Gauge size={18} />} label="Brier" value={artifact.metrics.testBrier.toFixed(3)} />
+          <Metric icon={<TrendingDown size={18} />} label="Synthetic AUPRC" value={artifact.metrics.testAuprc.toFixed(3)} />
+          <Metric icon={<Gauge size={18} />} label="Test recall" value={formatPercent(artifact.metrics.recallAtThreshold)} />
         </div>
         <p className="model-note">{artifact.cohort.description}</p>
         <div className="model-method-strip">
@@ -836,7 +837,9 @@ function ModelLabView({
             <p className="section-kicker">Current patient inference</p>
             <h2>{patient.name}</h2>
           </div>
-          <RiskPill level={edgeRisk.risk >= 0.55 ? "urgent" : edgeRisk.risk >= 0.35 ? "review" : edgeRisk.risk >= 0.18 ? "watch" : "steady"} />
+          <span className={`model-support-status ${modelSupported ? "supported" : "abstained"}`}>
+            {modelSupported ? "Within training support" : "Model abstained"}
+          </span>
         </div>
         <div className="inference-list">
           <span>Week {patient.currentWeek}</span>
@@ -847,8 +850,17 @@ function ModelLabView({
         <div className="prediction-box">
           <strong>Best simulated intervention</strong>
           <span>
-            {bestIntervention.label}: estimated {formatPercent(bestIntervention.absoluteReduction)} absolute risk reduction.
+            {bestIntervention.rankable && bestIntervention.absoluteReduction !== null
+              ? `${bestIntervention.label}: ${formatPercent(bestIntervention.absoluteReduction)} point scenario-score decrease.`
+              : "Numeric route ranking is disabled outside synthetic training support."}
           </span>
+        </div>
+        <div className="inference-list" aria-label="Bootstrap model spread">
+          <span>{artifact.ensemble.members.length} bootstrap members</span>
+          <span>
+            Spread {formatPercent(edgeRisk.modelSpread.p10)}-{formatPercent(edgeRisk.modelSpread.p90)}
+          </span>
+          <span>{edgeRisk.support.violations.length} support exceptions</span>
         </div>
       </section>
 
@@ -984,12 +996,14 @@ function ModelLabView({
             <article className="simulation-card" key={intervention.id}>
               <div className="simulation-card-head">
                 <strong>{intervention.label}</strong>
-                <span>-{formatPercent(intervention.absoluteReduction)}</span>
+                <span>
+                  {intervention.absoluteReduction === null ? "Not ranked" : `-${formatPercent(intervention.absoluteReduction)}`}
+                </span>
               </div>
               <p>{intervention.note}</p>
               <div className="sim-risk-row">
                 <small>New risk</small>
-                <strong>{formatPercent(intervention.risk)}</strong>
+                <strong>{intervention.risk === null ? "Outside support" : formatPercent(intervention.risk)}</strong>
               </div>
             </article>
           ))}
@@ -1095,7 +1109,7 @@ function KnowledgeGraphView({
   const [focusMode, setFocusMode] = useState<GraphFocusMode>("decision");
   const topMatch = graph.cohortMatches[0];
   const insights = getPatientInsights(patient);
-  const bestIntervention = edgeRisk.interventions[0];
+  const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
   const distanceToEscalation = graph.mlFeatures.find((feature) => feature.id === "distance_to_escalation");
   const firstName = patient.name.split(" ")[0];
   const selectedNode =
@@ -1166,15 +1180,33 @@ function KnowledgeGraphView({
       <section className="decision-metrics" aria-label="Current patient summary">
         <DecisionMetric
           label="ML dropout risk"
-          value={formatPercent(edgeRisk.risk)}
-          note={carePlan.escalation.needed ? "Safety rule overrides model" : riskBand(edgeRisk.risk)}
+          value={edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}
+          note={
+            edgeRisk.support.status === "supported"
+              ? carePlan.escalation.needed
+                ? "Safety rule overrides model"
+                : riskBand(edgeRisk.risk)
+              : "Outside synthetic support"
+          }
           tone={riskLevel}
         />
         <DecisionMetric label="Recent adherence" value={`${Math.round(insights.lastTwoAdherence)}%`} note="Last 2 weeks" tone="steady" />
         <DecisionMetric
           label="Simulated risk change"
-          value={graph.pathMode === "escalation" ? "Suppressed" : `-${formatPercent(bestIntervention.absoluteReduction)}`}
-          note={graph.pathMode === "escalation" ? "Safety override" : bestIntervention.label}
+          value={
+            graph.pathMode === "escalation"
+              ? "Suppressed"
+              : bestIntervention.absoluteReduction === null
+                ? "Not ranked"
+                : `-${formatPercent(bestIntervention.absoluteReduction)}`
+          }
+          note={
+            graph.pathMode === "escalation"
+              ? "Safety override"
+              : bestIntervention.rankable
+                ? bestIntervention.label
+                : "Outside synthetic support"
+          }
           tone={graph.pathMode === "escalation" ? "urgent" : "action"}
         />
         <DecisionMetric
@@ -1323,11 +1355,17 @@ function KnowledgeGraphView({
                   <span style={{ width: formatBarWidth(route.relativeStrength, 3) }} />
                 </div>
                 <div className="route-result">
-                  <strong>-{formatPercent(route.absoluteReduction)}</strong>
-                  <small>to {formatPercent(route.newRisk)}</small>
+                  <strong>{route.absoluteReduction === null ? "Not ranked" : `-${formatPercent(route.absoluteReduction)}`}</strong>
+                  <small>{route.newRisk === null ? "Outside support" : `to ${formatPercent(route.newRisk)}`}</small>
                 </div>
                 <span className="route-status">
-                  {route.status === "blocked-by-safety" ? "Blocked by safety" : route.status === "recommended" ? "Selected" : "Alternative"}
+                  {route.status === "blocked-by-safety"
+                    ? "Blocked by safety"
+                    : route.status === "not-ranked"
+                      ? "Model abstained"
+                      : route.status === "recommended"
+                        ? "Selected"
+                        : "Alternative"}
                 </span>
               </div>
             ))}
@@ -1385,12 +1423,12 @@ function GraphNodeInspector({
     <aside className={`graph-inspector decision-panel ${node.status}`}>
       <header className="decision-panel-head">
         <div>
-          <p className="section-kicker">AI decision</p>
+          <p className="section-kicker">Decision summary</p>
           <h2>{carePlan.headline}</h2>
         </div>
         <div className="decision-risk-score">
-          <strong>{formatPercent(edgeRisk.risk)}</strong>
-          <span>ML risk</span>
+          <strong>{edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}</strong>
+          <span>{edgeRisk.support.status === "supported" ? "Adherence risk" : "Outside support"}</span>
         </div>
       </header>
 

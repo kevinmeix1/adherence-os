@@ -60,9 +60,32 @@ export type RiskSensitivityAnalysis = {
 export type InterventionSimulation = {
   id: string;
   label: string;
-  risk: number;
-  absoluteReduction: number;
+  risk: number | null;
+  absoluteReduction: number | null;
+  rankable: boolean;
   note: string;
+};
+
+export type SupportViolation = {
+  name: string;
+  label: string;
+  value: number;
+  low: number;
+  high: number;
+};
+
+export type FeatureVectorScore = {
+  risk: number;
+  logit: number;
+  modelSpread: {
+    p10: number;
+    p90: number;
+    memberCount: number;
+  };
+  support: {
+    status: "supported" | "out-of-support";
+    violations: SupportViolation[];
+  };
 };
 
 export type EdgeRiskResult = {
@@ -72,6 +95,8 @@ export type EdgeRiskResult = {
   features: Record<string, number>;
   contributions: FeatureContribution[];
   interventions: InterventionSimulation[];
+  modelSpread: FeatureVectorScore["modelSpread"];
+  support: FeatureVectorScore["support"];
 };
 
 export function getModelArtifact() {
@@ -85,7 +110,7 @@ export function getModelSampleRows() {
 export function scorePatientRisk(patient: Patient, checkIn: CheckInInput): EdgeRiskResult {
   const artifact = adherenceModelData.artifact;
   const features = extractFeatures(patient, checkIn);
-  const baseScore = scoreFeatures(features, artifact);
+  const baseScore = scoreFeatureVector(features, artifact);
   const contributions = artifact.features
     .map((feature) => {
       const rawValue = features[feature.name] ?? feature.mean;
@@ -108,12 +133,59 @@ export function scorePatientRisk(patient: Patient, checkIn: CheckInInput): EdgeR
     logit: baseScore.logit,
     features,
     contributions,
-    interventions: simulateInterventions(features, artifact, baseScore.risk)
+    interventions: simulateInterventions(features, artifact, baseScore),
+    modelSpread: baseScore.modelSpread,
+    support: baseScore.support
+  };
+}
+
+export function scoreFeatureVector(
+  features: Record<string, number>,
+  artifact: ModelArtifact = adherenceModelData.artifact
+): FeatureVectorScore {
+  const consensus = scoreFeatures(features, artifact);
+  const memberScores = artifact.ensemble.members
+    .map((member) => {
+      const logit = artifact.features.reduce((sum, feature, index) => {
+        const rawValue = features[feature.name] ?? feature.mean;
+        return sum + ((rawValue - feature.mean) / feature.std) * member.weights[index];
+      }, member.intercept);
+      return sigmoid(logit);
+    })
+    .sort((a, b) => a - b);
+  const violations = artifact.features.flatMap((feature) => {
+    const value = features[feature.name] ?? feature.mean;
+    const outsideRange = value < feature.support.low || value > feature.support.high;
+    const outsideBinarySet = feature.support.kind === "binary" && value !== 0 && value !== 1;
+    return outsideRange || outsideBinarySet
+      ? [
+          {
+            name: feature.name,
+            label: feature.label,
+            value,
+            low: feature.support.low,
+            high: feature.support.high
+          }
+        ]
+      : [];
+  });
+
+  return {
+    ...consensus,
+    modelSpread: {
+      p10: quantile(memberScores, 0.1),
+      p90: quantile(memberScores, 0.9),
+      memberCount: memberScores.length
+    },
+    support: {
+      status: violations.length === 0 ? "supported" : "out-of-support",
+      violations
+    }
   };
 }
 
 export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskExplanation {
-  const ranked = result.contributions.filter((item) => Math.abs(item.contribution) >= 0.005);
+  const ranked = result.contributions;
   const top = ranked.slice(0, Math.max(1, maxFeatures));
   const remaining = ranked.slice(top.length);
   const totalAbsoluteContribution = ranked.reduce((sum, item) => sum + Math.abs(item.contribution), 0);
@@ -133,7 +205,7 @@ export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskE
   }));
   const remainingContribution = remaining.reduce((sum, item) => sum + item.contribution, 0);
 
-  if (remaining.length > 0 && Math.abs(remainingContribution) >= 0.005) {
+  if (remaining.length > 0) {
     orderedSteps.push({
       id: "other-features",
       label: `${remaining.length} other features`,
@@ -173,7 +245,7 @@ export function analyzeRiskSensitivity(
     .map((feature) => {
       const currentValue = result.features[feature.name] ?? feature.mean;
       const bounds = featureBounds(feature.name);
-      const isBinary = bounds[0] === 0 && bounds[1] === 1;
+      const isBinary = feature.support.kind === "binary";
       const lowValue = isBinary
         ? 0
         : clamp(currentValue - feature.std * perturbationStd, bounds[0], bounds[1]);
@@ -273,7 +345,7 @@ function scoreFeatures(features: Record<string, number>, artifact: ModelArtifact
 function simulateInterventions(
   features: Record<string, number>,
   artifact: ModelArtifact,
-  baselineRisk: number
+  baseline: FeatureVectorScore
 ): InterventionSimulation[] {
   const interventions = [
     {
@@ -322,16 +394,20 @@ function simulateInterventions(
     .map((intervention) => {
       const nextFeatures = { ...features };
       intervention.mutate(nextFeatures);
-      const nextRisk = scoreFeatures(nextFeatures, artifact).risk;
+      const nextScore = scoreFeatureVector(nextFeatures, artifact);
+      const rankable = baseline.support.status === "supported" && nextScore.support.status === "supported";
       return {
         id: intervention.id,
         label: intervention.label,
-        risk: nextRisk,
-        absoluteReduction: Math.max(0, baselineRisk - nextRisk),
-        note: intervention.note
+        risk: rankable ? nextScore.risk : null,
+        absoluteReduction: rankable ? Math.max(0, baseline.risk - nextScore.risk) : null,
+        rankable,
+        note: rankable
+          ? intervention.note
+          : `${intervention.note} Not ranked outside the synthetic training support.`
       };
     })
-    .sort((a, b) => b.absoluteReduction - a.absoluteReduction);
+    .sort((a, b) => (b.absoluteReduction ?? -1) - (a.absoluteReduction ?? -1));
 }
 
 function featureBounds(name: string): [number, number] {
@@ -354,4 +430,13 @@ function clamp(value: number, min: number, max: number) {
 
 function sigmoid(value: number) {
   return 1 / (1 + Math.exp(-Math.max(-35, Math.min(35, value))));
+}
+
+function quantile(sortedValues: number[], probability: number) {
+  if (sortedValues.length === 0) return 0;
+  const position = (sortedValues.length - 1) * probability;
+  const lowerIndex = Math.floor(position);
+  const upperIndex = Math.ceil(position);
+  const fraction = position - lowerIndex;
+  return sortedValues[lowerIndex] * (1 - fraction) + sortedValues[upperIndex] * fraction;
 }

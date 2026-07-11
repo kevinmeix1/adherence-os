@@ -10,10 +10,11 @@ flowchart LR
     H --> D["Knowledge graph builder"]
     C --> D
     B --> D
-    D --> E["Centrality + rescue path"]
-    C --> F["Sensitivity + what-if rescoring"]
+    D --> E["Weighted evidence path"]
+    C --> F["Bootstrap spread + support gate"]
+    F --> M["Sensitivity + bounded what-if rescoring"]
     E --> G["Patient care moment"]
-    F --> G
+    M --> G
     B --> I["Clinician handoff"]
     G --> J["Optional OpenAI structured output"]
     J --> K["Schema validation + safety override"]
@@ -25,20 +26,23 @@ flowchart LR
 
 ### 1. Edge ML
 
-- A monotonic logistic model is trained on 12,000 synthetic GLP-1 care sequences with projected-gradient sign constraints.
-- The model is exported to `data/adherence-model.json`.
+- Every index-week row predicts a planned adherence event in the following week; same-row outcomes cannot enter its features.
+- Patients are isolated into deterministic 70/15/15 training, validation, and test partitions.
+- A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic GLP-1 patient-weeks with projected-gradient sign constraints.
+- The model, bootstrap members, support bounds, held-out metrics, and parity fixtures are exported to `data/adherence-model.json`.
 - Inference runs locally in the browser over 14 structured features.
-- The UI exposes the intercept baseline, exact signed log-odds decomposition, one-feature-at-a-time sensitivity, calibration, and transparent what-if score changes.
+- The UI exposes exact signed log-odds decomposition, bootstrap model spread, one-feature-at-a-time sensitivity, reliability bins, and transparent what-if score changes.
+- Numeric route ranking abstains if the observed or simulated vector is outside the training-only 0.5th-99.5th percentile support bounds.
 
 ### 2. Knowledge Graph
 
 - Patient, symptom, routine, biomarker, risk, intervention, safety, and clinician nodes are assembled for the current check-in.
-- Weighted centrality identifies the most connected active driver.
+- Weighted graph scoring identifies the most connected active driver in this authored evidence map.
 - A rescue path connects that driver to the strongest what-if action or to the safety handoff.
 - Every node declares its provenance as model attribution, bounded simulation, deterministic rule, or patient context.
 - Decision-path, selected-neighbourhood, attribution, and all-signal modes keep the live graph readable during inspection.
-- All support routes are ranked by their rescored model assumptions; an active safety rule marks every simulated route as blocked.
-- Graph-derived features can feed a future temporal or graph model.
+- Support routes are ranked only when observed and simulated vectors remain inside synthetic support; an active safety rule marks every route as blocked.
+- This graph is an inspectable decision representation, not a learned graph model or causal graph.
 
 ### 3. Safety Engine
 
@@ -51,7 +55,7 @@ flowchart LR
 
 - The API asks OpenAI for schema-constrained care-plan output.
 - Zod validates the response shape.
-- Deterministic safety overrides are applied after generation.
+- The complete deterministic plan is recomputed after generation; provider wording does not survive the current MVP merge.
 - If the API is unavailable or invalid, the local engine returns a complete fallback plan.
 
 ## Demo Reliability
@@ -59,7 +63,7 @@ flowchart LR
 - All three patients and eight weeks of history are synthetic and checked into the repository.
 - Normal and escalation scenarios are deterministic.
 - The core demo works without a network connection or API key.
-- The optional OpenAI layer improves communication but does not own safety or risk scoring.
+- The optional OpenAI path demonstrates schema-constrained provider integration, but does not alter the user-facing plan in the current safety-first MVP.
 
 ## Prototype Limits
 

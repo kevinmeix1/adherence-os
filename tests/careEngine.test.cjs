@@ -68,26 +68,84 @@ test("escalation check-in routes red flags to urgent clinical review", () => {
   );
 });
 
-test("safety override removes unsafe medication and diagnosis language", () => {
-  const checkIn = buildCheckIn("normal");
-  const safeBaseline = evaluateCheckIn(patient, checkIn);
-  const unsafePlan = {
-    ...safeBaseline,
-    patientAction: "Double the next dose and stop taking it if nausea continues.",
-    explanation: "This sounds like I can diagnose a medication intolerance.",
-    clinicianDraft: "Increase dose tomorrow unless symptoms continue.",
-    ruleHits: []
+test("post-generation merge keeps every care-plan field deterministic", () => {
+  const checkIn = buildCheckIn("escalation");
+  const rulesPlan = evaluateCheckIn(patient, checkIn);
+  const generatedPlan = {
+    riskLevel: "steady",
+    headline: "Provider headline",
+    patientAction: "Provider patient action",
+    explanation: "Provider explanation",
+    safetyNotice: "Provider notice",
+    escalation: {
+      needed: false,
+      urgency: "none",
+      reason: "Provider reason",
+      channel: "Provider channel"
+    },
+    clinicianSummary: "Provider summary",
+    clinicianDraft: "Provider draft",
+    signals: ["Provider signal"],
+    confidence: 0.01,
+    nextCheckInWindow: "Provider window",
+    ruleHits: [],
+    agentTrace: [],
+    judgeFit: {
+      userImpact: "Provider impact",
+      innovation: "Provider innovation",
+      feasibility: "Provider feasibility",
+      demoQuality: "Provider demo quality"
+    },
+    adherenceTwin: {
+      summary: "Provider twin",
+      predictedFailurePoint: "Provider prediction",
+      confidence: 0.01,
+      riskDrivers: [],
+      protectiveFactors: []
+    },
+    rescuePlan: [],
+    unsafeRequestDemo: {
+      request: "Provider request",
+      blocked: false,
+      patientResponse: "Provider response",
+      clinicianNote: "Provider note",
+      guardrails: []
+    }
   };
 
-  const guardedPlan = applySafetyOverrides(unsafePlan, patient, checkIn);
-  const guardedText = `${guardedPlan.patientAction} ${guardedPlan.explanation} ${guardedPlan.clinicianDraft}`;
+  assert.deepEqual(applySafetyOverrides(generatedPlan, patient, checkIn), rulesPlan);
+});
 
-  assert.doesNotMatch(guardedText, /double|stop taking|increase dose|diagnos/i);
-  assert.match(guardedPlan.safetyNotice, /does not diagnose, change medication/i);
-  assert.ok(
-    guardedPlan.ruleHits.includes("guardrail removed unsafe medication or diagnosis language"),
-    "expected guardrail rule hit to be recorded"
-  );
+test("unsafe generated medication and diagnosis variants are discarded and audited", () => {
+  const checkIn = buildCheckIn("normal");
+  const rulesPlan = evaluateCheckIn(patient, checkIn);
+  const unsafeActions = [
+    "Take twice as much tomorrow. You have pancreatitis.",
+    "Double your next dose tomorrow.",
+    "This is pancreatitis. Stop taking your medication.",
+    "You likely have acute pancreatitis, so increase the dose."
+  ];
+
+  for (const patientAction of unsafeActions) {
+    const generatedPlan = {
+      ...rulesPlan,
+      patientAction,
+      explanation: "Provider explanation",
+      clinicianDraft: "Provider draft",
+      ruleHits: []
+    };
+    const guardedPlan = applySafetyOverrides(generatedPlan, patient, checkIn);
+
+    assert.equal(guardedPlan.patientAction, rulesPlan.patientAction, patientAction);
+    assert.equal(guardedPlan.explanation, rulesPlan.explanation, patientAction);
+    assert.equal(guardedPlan.clinicianDraft, rulesPlan.clinicianDraft, patientAction);
+    assert.deepEqual(guardedPlan.escalation, rulesPlan.escalation, patientAction);
+    assert.match(guardedPlan.safetyNotice, /does not diagnose, change medication/i);
+    assert.ok(
+      guardedPlan.ruleHits.includes("guardrail removed unsafe medication or diagnosis language"),
+      patientAction
+    );
+  }
 });
 
 test("hydration boundaries move from coaching to same-day review to urgent handoff", () => {
@@ -185,6 +243,45 @@ test("common red-flag phrases trigger urgent handoff", () => {
   }
 });
 
+test("severe abdominal and fluid-intolerance paraphrases trigger urgent handoff", () => {
+  const cases = [
+    {
+      freeText: "I have agonising upper belly pain that spreads into my back.",
+      labels: ["severe abdominal pain"]
+    },
+    {
+      freeText: "Every sip comes straight back up and I cannot drink.",
+      labels: ["unable to keep fluids down"]
+    },
+    {
+      freeText: "My stomach hurts unbearably and I keep throwing up.",
+      labels: ["severe abdominal pain", "unable to keep fluids down"]
+    },
+    {
+      freeText: "I have agonizing upper abdominal pain spreading to the back.",
+      labels: ["severe abdominal pain"]
+    },
+    {
+      freeText: "Even tiny sips come right back up and I am unable to drink fluids.",
+      labels: ["unable to keep fluids down"]
+    },
+    {
+      freeText: "My belly is hurting excruciatingly and I keep being sick.",
+      labels: ["severe abdominal pain", "unable to keep fluids down"]
+    }
+  ];
+
+  for (const { freeText, labels } of cases) {
+    const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ freeText }));
+
+    assert.equal(plan.riskLevel, "urgent", freeText);
+    assert.equal(plan.escalation.urgency, "urgent", freeText);
+    for (const label of labels) {
+      assert.ok(plan.ruleHits.includes(`red flag: ${label}`), `${label}: ${freeText}`);
+    }
+  }
+});
+
 test("negated and benign symptom language does not create false urgent handoffs", () => {
   const benignPhrases = [
     "No chest pain or shortness of breath.",
@@ -192,7 +289,11 @@ test("negated and benign symptom language does not create false urgent handoffs"
     "The screen looked faint, but I did not feel dizzy.",
     "Mild stomach discomfort settled after lunch.",
     "I am not pregnant and my period arrived normally.",
-    "I have no thoughts of self harm."
+    "I have no thoughts of self harm.",
+    "I do not have agonising upper belly pain that spreads into my back.",
+    "No sip comes straight back up and I can drink.",
+    "My stomach does not hurt unbearably and I am not throwing up.",
+    "I don't have agonizing upper abdominal pain and I haven't been throwing up."
   ];
 
   for (const freeText of benignPhrases) {
@@ -202,13 +303,34 @@ test("negated and benign symptom language does not create false urgent handoffs"
   }
 });
 
-test("a positive red flag after a negated clause still escalates", () => {
-  const plan = evaluateCheckIn(
-    patient,
-    buildBoundaryCheckIn({ freeText: "No chest pain or breathlessness, but my severe stomach pain will not go away." })
-  );
+test("positive red flags remain active after separate negated clauses", () => {
+  const cases = [
+    {
+      freeText: "No chest pain or breathlessness, but my severe stomach pain will not go away.",
+      present: "severe abdominal pain",
+      absent: "chest pain"
+    },
+    {
+      freeText: "I do not have agonising upper belly pain, but every sip comes straight back up and I cannot drink.",
+      present: "unable to keep fluids down",
+      absent: "severe abdominal pain"
+    },
+    {
+      freeText: "No sip comes back up, but my stomach hurts unbearably now.",
+      present: "severe abdominal pain",
+      absent: "unable to keep fluids down"
+    },
+    {
+      freeText: "I did not have severe stomach pain earlier, but now my stomach hurts unbearably.",
+      present: "severe abdominal pain"
+    }
+  ];
 
-  assert.equal(plan.riskLevel, "urgent");
-  assert.ok(plan.ruleHits.includes("red flag: severe abdominal pain"));
-  assert.equal(plan.ruleHits.includes("red flag: chest pain"), false);
+  for (const { freeText, present, absent } of cases) {
+    const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ freeText }));
+
+    assert.equal(plan.riskLevel, "urgent", freeText);
+    assert.ok(plan.ruleHits.includes(`red flag: ${present}`), freeText);
+    if (absent) assert.equal(plan.ruleHits.includes(`red flag: ${absent}`), false, freeText);
+  }
 });

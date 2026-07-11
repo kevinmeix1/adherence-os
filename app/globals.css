@@ -1063,6 +1063,29 @@ blockquote {
   font-weight: 800;
 }
 
+.model-support-status {
+  align-self: flex-start;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #f7faf9;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.model-support-status.supported {
+  border-color: #b8ddd0;
+  color: #17644f;
+  background: #eef9f4;
+}
+
+.model-support-status.abstained {
+  border-color: #e9c4b7;
+  color: #9a3f28;
+  background: #fff5f1;
+}
+
 .contribution-list {
   display: grid;
   gap: 0;

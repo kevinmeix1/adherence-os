@@ -83,10 +83,10 @@ export type GraphRouteAlternative = {
   label: string;
   targetNodeId: string;
   targetLabel: string;
-  absoluteReduction: number;
-  newRisk: number;
+  absoluteReduction: number | null;
+  newRisk: number | null;
   relativeStrength: number;
-  status: "recommended" | "alternative" | "blocked-by-safety";
+  status: "recommended" | "alternative" | "blocked-by-safety" | "not-ranked";
   rationale: string;
 };
 
@@ -148,11 +148,14 @@ export function buildAdherenceKnowledgeGraph({
   });
   addNode(nodes, {
     id: "risk",
-    label: "7-day adherence risk",
+    label: "Next-week adherence risk",
     type: "risk",
     status: riskStatus,
-    weight: edgeRisk.risk,
-    evidence: `${formatPercent(edgeRisk.risk)} edge-model risk; ${carePlan.headline.toLowerCase()}.`
+    weight: edgeRisk.support.status === "supported" ? edgeRisk.risk : 0.2,
+    evidence:
+      edgeRisk.support.status === "supported"
+        ? `${formatPercent(edgeRisk.risk)} edge-model risk; ${carePlan.headline.toLowerCase()}.`
+        : `Model abstained outside synthetic training support; ${carePlan.headline.toLowerCase()}.`
   });
   addNode(nodes, {
     id: "nausea",
@@ -204,13 +207,16 @@ export function buildAdherenceKnowledgeGraph({
   });
 
   edgeRisk.interventions.slice(0, 3).forEach((intervention) => {
+    const reduction = intervention.absoluteReduction ?? 0;
     addNode(nodes, {
       id: interventionNodeId(intervention),
       label: intervention.label,
       type: "intervention",
       status: "action",
-      weight: clamp01(intervention.absoluteReduction / Math.max(edgeRisk.risk, 0.01)),
-      evidence: `${formatPercent(intervention.absoluteReduction)} absolute modelled risk reduction.`
+      weight: clamp01(reduction / Math.max(edgeRisk.risk, 0.01)),
+      evidence: intervention.rankable
+        ? `${formatPercent(reduction)} absolute modelled risk reduction.`
+        : "Not ranked because the current input is outside synthetic training support."
     });
   });
 
@@ -250,7 +256,7 @@ export function buildAdherenceKnowledgeGraph({
       interventionNodeId(intervention),
       targetDriverForIntervention(intervention),
       "breaks loop",
-      clamp01(intervention.absoluteReduction / Math.max(edgeRisk.risk, 0.01)),
+      clamp01((intervention.absoluteReduction ?? 0) / Math.max(edgeRisk.risk, 0.01)),
       "action"
     );
   });
@@ -286,10 +292,18 @@ export function buildAdherenceKnowledgeGraph({
       targetLabel: nodes.find((node) => node.id === targetNodeId)?.label ?? targetNodeId,
       absoluteReduction: intervention.absoluteReduction,
       newRisk: intervention.risk,
-      relativeStrength: clamp01(intervention.absoluteReduction / strongestReduction),
-      status: carePlan.escalation.needed ? "blocked-by-safety" : index === 0 ? "recommended" : "alternative",
+      relativeStrength: clamp01((intervention.absoluteReduction ?? 0) / strongestReduction),
+      status: carePlan.escalation.needed
+        ? "blocked-by-safety"
+        : !intervention.rankable
+          ? "not-ranked"
+          : index === 0
+            ? "recommended"
+            : "alternative",
       rationale: carePlan.escalation.needed
         ? "Deterministic red flags suppress automated coaching even when the adherence simulation improves."
+        : !intervention.rankable
+          ? "No numeric comparison is shown outside the synthetic training support."
         : index === 0
           ? "Largest modelled risk reduction under the current explicit assumptions."
           : "Lower-ranked modelled option retained for clinician or patient review."
@@ -407,11 +421,15 @@ function buildNodeExplanations(
         contribution: intervention?.absoluteReduction ?? 0,
         contributionUnit: "absolute-risk",
         direction: "reduces risk",
-        impactShare: intervention ? clamp01(intervention.absoluteReduction / Math.max(edgeRisk.risk, 0.01)) : 0,
+        impactShare: intervention
+          ? clamp01((intervention.absoluteReduction ?? 0) / Math.max(edgeRisk.risk, 0.01))
+          : 0,
         featureNames: [],
         featureLabels: [],
         evidenceEdgeCount,
-        summary: "An explicit feature perturbation rescores the same model. The delta is a what-if estimate, not causal evidence."
+        summary: intervention?.rankable
+          ? "An explicit feature perturbation rescores the same model. The delta is a what-if estimate, not causal evidence."
+          : "The route is not numerically ranked because the observed or simulated input is outside synthetic training support."
       };
     }
 

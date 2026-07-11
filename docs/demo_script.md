@@ -33,16 +33,18 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 
 ## 6. Main Wow Moment
 
-Switch from **Coaching** to **Escalation** on the Live twin. The ML risk remains visible, but the simulated risk reduction changes to **Suppressed**, every route becomes **Blocked by safety**, and the graph reroutes through **Safety guardrail** to **Clinician handoff**. The system proves that the model is informative without being in charge of clinical safety.
+Switch from **Coaching** to **Escalation** on the Live twin. The symptom vector moves outside synthetic model support, numeric ML ranking abstains, every route becomes **Blocked by safety**, and the graph reroutes through **Safety guardrail** to **Clinician handoff**. The system demonstrates that safety remains active even when the model declines to score the decision.
 
 ## 7. Why It Is Technically Credible
 
 - The risk score comes from a real browser-side logistic model artifact, not an LLM guess.
+- Each synthetic row predicts a following-week event from index-week information, with patients isolated across train, validation, and test splits.
+- Sixteen patient-bootstrap members expose model spread, and held-out AUPRC and Brier skill are shown alongside recall.
 - Directional constraints prevent synthetic correlated features from learning counterintuitive signs.
 - The score is reconstructed exactly from intercept and signed log-odds contributions.
 - One-feature-at-a-time sensitivity shows local score stability without pretending to be a confidence interval.
 - Graph nodes identify whether evidence comes from the model, a bounded simulation, a deterministic rule, or patient context.
-- Optional OpenAI output is schema-validated and then passed through deterministic safety overrides.
+- Optional OpenAI output is schema-validated, then the complete deterministic plan is recomputed; generated wording does not survive the current MVP merge.
 - The full product works without a provider key.
 
 ## 8. Why It Matters To eMed And Judges
@@ -69,7 +71,7 @@ Point to the headline and four metrics.
 
 Say:
 
-> Maya is on track today. The edge model estimates low seven-day dropout risk, recent adherence is strong, and the graph identifies routine disruption as the smallest loop to interrupt.
+> Maya is on track today. The edge model estimates low next-week adherence-interruption risk, recent adherence is strong, and the evidence map identifies routine disruption as the smallest loop to interrupt.
 
 Do not open every panel. Keep the audience on the decision.
 

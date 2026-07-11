@@ -13,14 +13,14 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 - Patient check-in flow with normal and escalation scenarios.
 - Clinician inbox with prioritised async summaries.
 - Routed synthetic patient directory with summary metrics, clickable records, and loading/error/empty states.
-- Agentic workflow trace for intake, trends, risk, guardrails, and clinician handoff.
+- Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
 - Clickable live inference graph with decision-path, selected-neighbourhood, attribution, and all-signal focus modes.
 - Per-node provenance that distinguishes model attribution, bounded simulation, deterministic rules, and patient context.
-- Ranked support-route comparison that is visibly suppressed when a deterministic safety rule activates.
-- Adherence Twin that predicts each patient's next likely dropout point.
+- Support-route comparison that abstains outside synthetic training support and is visibly suppressed when a deterministic safety rule activates.
+- Personalised adherence-risk summary with active drivers, protective factors, and an explicitly heuristic failure-point narrative.
 - 7-day Rescue Plan with patient micro-actions and clinician triggers.
 - Unsafe medication-request demo that blocks dose-change advice.
-- Model Lab with monotonic synthetic-cohort training, exact local log-odds decomposition, one-feature-at-a-time sensitivity, calibration, and transparent what-if simulation.
+- Model Lab with prospective synthetic-cohort training, a 16-member patient-bootstrap ensemble, exact local log-odds decomposition, support-aware abstention, reliability bins, and transparent what-if simulation.
 - Judging scorecard mapped to user impact, innovation, feasibility, and demo quality.
 - Safety rules: no diagnosis, no medication changes, red flags escalate.
 - Optional OpenAI structured-output API route with deterministic safety fallback.
@@ -60,7 +60,7 @@ After `pnpm build`, `pnpm check:bundle` enforces a 155 kB gzip budget for home f
 3. Click **Routine disruption**, then **Reminder anchor**, to show the evidence source and bounded support route.
 4. Click **Escalation**. Point out **Suppressed**, **Blocked by safety**, and the red route to **Clinician handoff**.
 5. Click **Review handoff** to show the care-team summary and deterministic audit trail.
-6. Open **Model lab** only if technical judges ask for exact score decomposition, local sensitivity, calibration, or artifact provenance.
+6. Open **Model lab** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, support-aware abstention, or artifact provenance.
 
 The core story is one driver, one bounded intervention, and one visible safety override. Do not describe graph routes as causal or synthetic metrics as clinical validation.
 
@@ -74,7 +74,7 @@ OPENAI_MODEL=gpt-5.5
 ```
 
 Without a key, the app still runs using the local safety engine.
-When a key is configured, provider requests use an eight-second deadline with retries disabled so the deterministic engine can take over promptly during a demo.
+When a key is configured, provider requests use an eight-second deadline with retries disabled. The current safety-first merge validates the response but recomputes and returns the full deterministic plan, so provider wording is not shown.
 The care-plan endpoint is intentionally unauthenticated in this MVP, so do not deploy it publicly with an unrestricted paid key. Keyless mode is the recommended judged-demo configuration.
 
 ## ML Model Lab
@@ -82,12 +82,12 @@ The care-plan endpoint is intentionally unauthenticated in this MVP, so do not d
 Regenerate the synthetic cohort and edge model:
 
 ```bash
-python3 -m pip install numpy
+python3 -m pip install -r requirements-model.txt
 pnpm check:model
 pnpm train:model
 ```
 
-`pnpm check:model` retrains in memory and fails if feature order, model values, metrics, or seeded sample rows drift from the checked-in artifact. `pnpm train:model` is the explicit write command. The exported model lives at `data/adherence-model.json` and is used by the Model Lab tab for local browser inference. Directional coefficients are constrained with projected gradient descent so correlated synthetic features cannot learn clinically counterintuitive signs.
+`pnpm check:model` retrains in memory and fails if feature order, consensus or bootstrap values, metrics, support bounds, or parity fixtures drift from the checked-in artifact. `pnpm train:model` is the explicit write command. The exported model lives at `data/adherence-model.json` and is used by the Model Lab tab for local browser inference. Directional coefficients use authored projected-gradient constraints. The metrics are synthetic pipeline evidence, not clinical validation.
 
 ## Troubleshooting
 
@@ -121,7 +121,7 @@ APP_URL=http://localhost:3001 pnpm smoke
 ### Model check cannot import NumPy
 
 ```bash
-python3 -m pip install numpy
+python3 -m pip install -r requirements-model.txt
 pnpm check:model
 ```
 

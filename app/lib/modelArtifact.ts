@@ -29,6 +29,17 @@ export type ModelFeature = {
   mean: number;
   std: number;
   weight: number;
+  support: {
+    kind: "continuous" | "binary";
+    low: number;
+    high: number;
+  };
+};
+
+export type ModelEnsembleMember = {
+  id: string;
+  intercept: number;
+  weights: number[];
 };
 
 export type ModelArtifact = {
@@ -49,18 +60,36 @@ export type ModelArtifact = {
     method: string;
     featureDirections: Record<ModelFeatureName, FeatureDirection>;
   };
+  ensemble: {
+    method: string;
+    members: ModelEnsembleMember[];
+    spread: string;
+  };
   metrics: {
     samples: number;
     patients: number;
     trainPatients: number;
+    validationPatients: number;
     testPatients: number;
     positiveRate: number;
     testAuc: number;
+    testAuprc: number;
     testBrier: number;
+    baselineBrier: number;
+    brierSkill: number;
     threshold: number;
     precisionAtThreshold: number;
     recallAtThreshold: number;
+    reviewRateAtThreshold: number;
     confusionMatrix: { tp: number; fp: number; fn: number; tn: number };
+    thresholdSelection: {
+      method: string;
+      targetRecall: number;
+      validationPrecision: number;
+      validationRecall: number;
+      validationReviewRate: number;
+    };
+    claimStatus: "synthetic-skill-demonstrated" | "no-demonstrated-skill";
     calibration: Array<{ bin: string; count: number; predicted: number; observed: number }>;
   };
   modelCard: {
@@ -69,6 +98,12 @@ export type ModelArtifact = {
     edgeInference: string;
     explainability: string;
     limitations: string[];
+  };
+  trainingRuntime: {
+    python: string;
+    numpy: string;
+    seed: number;
+    maxIterations: number;
   };
 };
 
@@ -136,15 +171,69 @@ function parseFeatures(value: unknown): ModelFeature[] {
     const name = expectString(feature.name, `${path}.name`);
 
     if (name !== expectedName) fail(`${path}.name`, `expected "${expectedName}" in exported feature order`);
+    const support = expectObject(feature.support, `${path}.support`);
+    const supportKind = support.kind;
+    if (supportKind !== "continuous" && supportKind !== "binary") {
+      fail(`${path}.support.kind`, 'expected "continuous" or "binary"');
+    }
+    const supportLow = expectNumber(support.low, `${path}.support.low`);
+    const supportHigh = expectNumber(support.high, `${path}.support.high`);
+    if (supportLow > supportHigh) fail(`${path}.support.high`, "must be at least support.low");
+    if (supportKind === "binary" && (supportLow !== 0 || supportHigh !== 1)) {
+      fail(`${path}.support`, "binary support must span exactly 0 to 1");
+    }
 
     return {
       name: expectedName,
       label: expectString(feature.label, `${path}.label`),
       mean: expectNumber(feature.mean, `${path}.mean`),
       std: expectNumber(feature.std, `${path}.std`, { exclusiveMin: 0 }),
-      weight: expectNumber(feature.weight, `${path}.weight`)
+      weight: expectNumber(feature.weight, `${path}.weight`),
+      support: { kind: supportKind, low: supportLow, high: supportHigh }
     };
   });
+}
+
+function parseEnsemble(
+  value: unknown,
+  features: ModelFeature[],
+  directions: Record<ModelFeatureName, FeatureDirection>
+) {
+  const path = "artifact.ensemble";
+  const source = expectObject(value, path);
+  if (!Array.isArray(source.members) || source.members.length !== 16) {
+    fail(`${path}.members`, "expected exactly 16 bootstrap members");
+  }
+  const ids = new Set<string>();
+  const members = source.members.map((memberValue, memberIndex) => {
+    const memberPath = `${path}.members[${memberIndex}]`;
+    const member = expectObject(memberValue, memberPath);
+    const id = expectString(member.id, `${memberPath}.id`);
+    if (ids.has(id)) fail(`${memberPath}.id`, "expected a unique member id");
+    ids.add(id);
+    if (!Array.isArray(member.weights) || member.weights.length !== features.length) {
+      fail(`${memberPath}.weights`, `expected exactly ${features.length} weights`);
+    }
+    const weights = member.weights.map((weight, featureIndex) => {
+      const parsed = expectNumber(weight, `${memberPath}.weights[${featureIndex}]`);
+      const feature = features[featureIndex];
+      const direction = directions[feature.name];
+      if (direction === "increases risk" && parsed < 0) {
+        fail(`${memberPath}.weights[${featureIndex}]`, "conflicts with an increasing-risk constraint");
+      }
+      if (direction === "decreases risk" && parsed > 0) {
+        fail(`${memberPath}.weights[${featureIndex}]`, "conflicts with a decreasing-risk constraint");
+      }
+      return parsed;
+    });
+    return { id, intercept: expectNumber(member.intercept, `${memberPath}.intercept`), weights };
+  });
+
+  return {
+    method: expectString(source.method, `${path}.method`),
+    members,
+    spread: expectString(source.spread, `${path}.spread`)
+  };
 }
 
 function parseFeatureDirections(value: unknown, features: ModelFeature[]): Record<ModelFeatureName, FeatureDirection> {
@@ -203,7 +292,16 @@ function parseStringArray(value: unknown, path: string): string[] {
 
 function parseSampleRows(value: unknown): Array<Record<string, number>> {
   if (!Array.isArray(value) || value.length === 0) fail("sampleRows", "expected at least one sample row");
-  const requiredNames = ["patient_id", ...MODEL_FEATURE_NAMES, "target"];
+  const requiredNames = [
+    "patient_id",
+    ...MODEL_FEATURE_NAMES,
+    "outcome_week",
+    "target",
+    "expected_consensus_risk",
+    "expected_p10",
+    "expected_p90",
+    "expected_supported"
+  ];
 
   return value.map((rowValue, index) => {
     const path = `sampleRows[${index}]`;
@@ -215,7 +313,15 @@ function parseSampleRows(value: unknown): Array<Record<string, number>> {
     });
 
     if (!Number.isInteger(row.patient_id) || row.patient_id < 0) fail(`${path}.patient_id`, "expected a non-negative integer");
+    if (row.outcome_week !== row.week + 1) fail(`${path}.outcome_week`, "must equal index week plus one");
     if (row.target !== 0 && row.target !== 1) fail(`${path}.target`, "expected a binary value");
+    ["expected_consensus_risk", "expected_p10", "expected_p90"].forEach((name) => {
+      if (row[name] < 0 || row[name] > 1) fail(`${path}.${name}`, "expected a probability from 0 to 1");
+    });
+    if (row.expected_p10 > row.expected_p90) fail(`${path}.expected_p90`, "must be at least expected_p10");
+    if (row.expected_supported !== 0 && row.expected_supported !== 1) {
+      fail(`${path}.expected_supported`, "expected a binary value");
+    }
 
     return row;
   });
@@ -231,6 +337,9 @@ export function parseModelData(value: unknown): ModelData {
   const matrix = parseConfusionMatrix(metricsSource.confusionMatrix);
   const calibration = parseCalibration(metricsSource.calibration);
   const modelCardSource = expectObject(source.modelCard, "artifact.modelCard");
+  const trainingRuntimeSource = expectObject(source.trainingRuntime, "artifact.trainingRuntime");
+  const featureDirections = parseFeatureDirections(constraintsSource.featureDirections, features);
+  const ensemble = parseEnsemble(source.ensemble, features, featureDirections);
 
   const cohort = {
     patients: expectNumber(cohortSource.patients, "artifact.cohort.patients", { min: 1, integer: true }),
@@ -251,21 +360,55 @@ export function parseModelData(value: unknown): ModelData {
     samples: expectNumber(metricsSource.samples, "artifact.metrics.samples", { min: 1, integer: true }),
     patients: expectNumber(metricsSource.patients, "artifact.metrics.patients", { min: 1, integer: true }),
     trainPatients: expectNumber(metricsSource.trainPatients, "artifact.metrics.trainPatients", { min: 1, integer: true }),
+    validationPatients: expectNumber(metricsSource.validationPatients, "artifact.metrics.validationPatients", {
+      min: 1,
+      integer: true
+    }),
     testPatients: expectNumber(metricsSource.testPatients, "artifact.metrics.testPatients", { min: 1, integer: true }),
     positiveRate: expectProbability(metricsSource.positiveRate, "artifact.metrics.positiveRate"),
     testAuc: expectProbability(metricsSource.testAuc, "artifact.metrics.testAuc"),
+    testAuprc: expectProbability(metricsSource.testAuprc, "artifact.metrics.testAuprc"),
     testBrier: expectProbability(metricsSource.testBrier, "artifact.metrics.testBrier"),
+    baselineBrier: expectProbability(metricsSource.baselineBrier, "artifact.metrics.baselineBrier"),
+    brierSkill: expectNumber(metricsSource.brierSkill, "artifact.metrics.brierSkill", { max: 1 }),
     threshold: expectProbability(metricsSource.threshold, "artifact.metrics.threshold"),
     precisionAtThreshold: expectProbability(metricsSource.precisionAtThreshold, "artifact.metrics.precisionAtThreshold"),
     recallAtThreshold: expectProbability(metricsSource.recallAtThreshold, "artifact.metrics.recallAtThreshold"),
+    reviewRateAtThreshold: expectProbability(metricsSource.reviewRateAtThreshold, "artifact.metrics.reviewRateAtThreshold"),
     confusionMatrix: matrix,
+    thresholdSelection: (() => {
+      const selection = expectObject(metricsSource.thresholdSelection, "artifact.metrics.thresholdSelection");
+      return {
+        method: expectString(selection.method, "artifact.metrics.thresholdSelection.method"),
+        targetRecall: expectProbability(selection.targetRecall, "artifact.metrics.thresholdSelection.targetRecall"),
+        validationPrecision: expectProbability(
+          selection.validationPrecision,
+          "artifact.metrics.thresholdSelection.validationPrecision"
+        ),
+        validationRecall: expectProbability(
+          selection.validationRecall,
+          "artifact.metrics.thresholdSelection.validationRecall"
+        ),
+        validationReviewRate: expectProbability(
+          selection.validationReviewRate,
+          "artifact.metrics.thresholdSelection.validationReviewRate"
+        )
+      };
+    })(),
+    claimStatus: (() => {
+      const status = metricsSource.claimStatus;
+      if (status !== "synthetic-skill-demonstrated" && status !== "no-demonstrated-skill") {
+        fail("artifact.metrics.claimStatus", "expected a supported claim status");
+      }
+      return status as ModelArtifact["metrics"]["claimStatus"];
+    })(),
     calibration
   };
 
   if (metrics.samples !== cohort.rows) fail("artifact.metrics.samples", "must match artifact.cohort.rows");
   if (metrics.patients !== cohort.patients) fail("artifact.metrics.patients", "must match artifact.cohort.patients");
-  if (metrics.trainPatients + metrics.testPatients !== metrics.patients) {
-    fail("artifact.metrics.testPatients", "trainPatients plus testPatients must equal patients");
+  if (metrics.trainPatients + metrics.validationPatients + metrics.testPatients !== metrics.patients) {
+    fail("artifact.metrics.testPatients", "train, validation, and test patients must sum to all patients");
   }
 
   const testRows = metrics.testPatients * cohort.weeksPerPatient;
@@ -286,8 +429,9 @@ export function parseModelData(value: unknown): ModelData {
       intercept: expectNumber(source.intercept, "artifact.intercept"),
       constraints: {
         method: expectString(constraintsSource.method, "artifact.constraints.method"),
-        featureDirections: parseFeatureDirections(constraintsSource.featureDirections, features)
+        featureDirections
       },
+      ensemble,
       metrics,
       modelCard: {
         intendedUse: expectString(modelCardSource.intendedUse, "artifact.modelCard.intendedUse"),
@@ -295,6 +439,15 @@ export function parseModelData(value: unknown): ModelData {
         edgeInference: expectString(modelCardSource.edgeInference, "artifact.modelCard.edgeInference"),
         explainability: expectString(modelCardSource.explainability, "artifact.modelCard.explainability"),
         limitations: parseStringArray(modelCardSource.limitations, "artifact.modelCard.limitations")
+      },
+      trainingRuntime: {
+        python: expectString(trainingRuntimeSource.python, "artifact.trainingRuntime.python"),
+        numpy: expectString(trainingRuntimeSource.numpy, "artifact.trainingRuntime.numpy"),
+        seed: expectNumber(trainingRuntimeSource.seed, "artifact.trainingRuntime.seed", { integer: true }),
+        maxIterations: expectNumber(trainingRuntimeSource.maxIterations, "artifact.trainingRuntime.maxIterations", {
+          min: 1,
+          integer: true
+        })
       }
     },
     sampleRows: parseSampleRows(root.sampleRows)

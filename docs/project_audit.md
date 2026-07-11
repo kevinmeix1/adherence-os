@@ -195,44 +195,43 @@ Eight additional P1 tasks are complete. The app remains focused on the same thre
 - **Current estimated score:** 8.73 / 10, above the 8.6 sprint target.
 - **Current top priorities:** bundle budget, safety boundaries, Custom-state clarity, remote CI verification, and final asset refresh.
 
-### Deep Re-Audit
+### Adversarial Re-Audit
 
-More than 15 backlog tasks are complete. P0 and P1 are fully green, the final assets are current, and the remote CI production gate has passed.
+The earlier self-score was too generous. Independent hostile, clinical-safety, ML, UX, and engineering reviews were commissioned on 2026-07-11. They found a leaked model target, 8.2% operating-point recall, free-text safety bypasses, unsupported confidence language, a below-the-fold primary action, and demo tooling mixed into product roles.
 
-- **What improved:** deterministic failure handling, live smoke depth, artifact integrity, model reproducibility, safety language coverage, event-day setup, accessibility semantics, demo reset, social proof, and deployment guidance.
-- **What got worse:** `app/page.tsx` grew modestly and two explicit artifact validators added code. Home first-load JavaScript rose from about 140 kB to 144.9 kB gzip, still 10.1 kB below the enforced ceiling.
-- **Coherence check:** the demo still tells one story: predict adherence risk, explain one driver, compare one bounded action, then let safety suppress coaching and hand off.
-- **Technical debt introduced:** validation logic is intentionally manual to avoid shipping a large parser; browser checks remain manual; the phrase matcher is a bounded demo parser, not clinical NLP.
-- **Work removed from the sprint:** component extraction, stylesheet deletion, token consolidation, transition animation, and a new accessibility dependency are deferred because their pre-demo regression risk exceeds visible value.
+- **Now repaired:** the prospective model contract, patient-isolated evaluation, recall-oriented threshold selection, bootstrap spread, support-aware abstention, Python/browser parity, adversarial symptom coverage, and fully deterministic post-provider plan merge.
+- **Still weak:** first-viewport hierarchy, selected-handoff focus, role separation, medication-cadence semantics, delivered-handoff copy, confidence/agency wording, automated browser accessibility checks, hosted access, and real user or clinician evidence.
+- **Current regression pressure:** home first-load JavaScript is 150.1 kB gzip, leaving only 4.9 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
 
 | Category | Score / 10 | Current evidence |
 |---|---:|---|
-| Product clarity | 9.2 | One driver, one bounded action, one independent safety override |
-| Demo impact | 9.6 | Graph-first opening, six-step path, reset, and verified 2:54 video plus 10-slide deck |
-| UI polish | 9.2 | Responsive operational UI with current repository, social, video, and deck imagery |
-| UX flow | 9.2 | Clear start, scenario-aware queue, Custom state, recovery routes, and deterministic reset |
-| Technical architecture | 8.6 | Strong safety/ML/graph/provider boundaries; large client orchestrator remains |
-| Code quality | 8.1 | Typed, validated, and readable; pure queue composition is tested while page and CSS ownership remain concentrated |
-| Reliability | 9.6 | Keyless mode, provider deadline, stale-request guard, scenario consistency, and expanded smoke |
-| Testing | 9.4 | 43 tests, live normal/escalation smoke, browser scenario checks, and a passing remote production workflow |
-| Error handling | 9.2 | Provider, API, not-found, routed error, and fallback states are explicit |
-| Loading/empty states | 8.6 | Generate, directory loading/error/empty, and recovery states are covered |
-| Performance | 8.5 | 144.9 kB gzip with a 155 kB CI ceiling |
-| Accessibility | 8.5 | Skip navigation, one live region, keyboard graph, and valid directory table semantics |
-| Security/privacy | 8.9 | Synthetic-only, no secret logging, validated boundaries, public-key warning |
-| AI usefulness | 9.3 | Optional structured wording; local explainable ML and deterministic safety own decisions |
-| Documentation | 9.6 | Audit, backlog, demo, deployment, safety, architecture, glossary, and troubleshooting align |
-| Deployment readiness | 8.8 | Reproducible gate and remote CI pass; only an optional hosted preview remains |
-| Hackathon competitiveness | 9.6 | Distinct, feasible, eMed-aligned, demonstrably safe, and backed by a current fallback walkthrough |
-| Portfolio value | 9.6 | Public visual proof, refreshed narrated assets, technical depth, CI, tests, and reproducibility |
+| Product clarity | 7.5 | Strong coaching-to-safety story; some confidence, twin, graph, and handoff wording still overclaims |
+| Demo impact | 7.0 | Graph-first transition works, but the primary action is below the fold and assets now lag the build |
+| UI polish | 7.2 | Cohesive styling, yet evaluator tooling and care roles share one dense shell |
+| UX flow | 6.8 | Reset and scenarios are reliable; handoff navigation does not yet land on a focused task |
+| Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
+| Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
+| Reliability | 8.8 | Keyless fallback, provider deadline, deterministic scenarios, production smoke, and model reproduction |
+| Testing | 9.0 | 49 tests plus prospective parity, support abstention, and adversarial safety cases |
+| Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
+| Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
+| Performance | 7.2 | 150.1 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Accessibility | 7.0 | Useful keyboard semantics, but graph roles, focus styles, and clinician table semantics need work |
+| Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
+| AI usefulness | 8.2 | Leakage-safe explainable ensemble and abstention are real; LLM wording is intentionally discarded |
+| Documentation | 8.4 | Technical boundaries are now explicit; demo media still needs refresh |
+| Deployment readiness | 6.8 | Local production gate passes; no hosted preview or current remote run for this checkpoint |
+| Hackathon competitiveness | 7.5 | Technically differentiated, but commercial product focus and impact evidence remain weak |
+| Portfolio value | 8.1 | Public code, CI, tests, reproducible ML, and assets; visual proof must be refreshed |
 
-**Current overall score: 9.08 / 10.**
+**Current strict-judge score: 7.7 / 10.**
 
-### Final Release Checkpoint
+### Current Checkpoint
 
-- GitHub PR #1 is open as a draft and its remote production workflow passed in 55 seconds without secrets.
-- Coaching-to-queue shows 0 reviews; Escalation-to-queue shows 1 review. A pure regression test and production-browser rehearsal cover the transition.
-- The fallback video is 2:54 at 1920x1080 with H.264/AAC audio; sampled frames cover all ten slides, average audio is -19.4 dB, and no silence gap exceeds 1.5 seconds.
-- The deck preserves all inherited layouts, replaces eleven screenshots, updates 21% risk and 1.87 centrality, passes template fidelity, contains no empty structural placeholders, and was inspected slide by slide.
+- PR #1 remains open on the public repository; its earlier remote workflow passed, but this checkpoint still needs a fresh push and run.
+- Local validation passes with 49 tests, reproducible model training, production build, bundle budget, and live smoke.
+- Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
+- The 2:54 video, ten-slide deck, and README image predate this checkpoint and are deliberately marked for refresh after the UI copy and hierarchy freeze.

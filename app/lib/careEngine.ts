@@ -47,19 +47,20 @@ const redFlagPatterns = [
   { label: "chest pain", pattern: /\b(?:chest pain|tight chest|tightness (?:in|across) (?:my|the) chest|pressure (?:in|on) (?:my|the) chest)\b/i },
   { label: "breathlessness", pattern: /\b(?:short of breath|breathless|cannot breathe|can't breathe|difficulty breathing|struggling to breathe)\b/i },
   { label: "fainting or severe dizziness", pattern: /\b(?:fainted|fainting|feel(?:ing)? faint|felt faint|nearly fainted|almost fainted|passed out|black(?:ed|ing)? out|blackout|lightheaded|severely dizzy|severe dizziness)\b/i },
-  { label: "severe abdominal pain", pattern: /\b(?:(?:severe|persistent|worsening) (?:stomach|abdominal|tummy) pain|(?:stomach|abdominal|tummy) pain (?:is )?(?:getting worse|worsening|won't go away|will not go away|radiat(?:es|ing) to (?:my|the) back))\b/i },
-  { label: "unable to keep fluids down", pattern: /\b(?:(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to) keep (?:fluids|water|anything) down|vomit(?:ing|ed|s)?)\b/i },
+  { label: "severe abdominal pain", pattern: /\b(?:(?:(?:severe|persistent|worsening|agonising|agonizing|unbearable|excruciating)\s+){1,2}(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain\s+(?:is\s+)?(?:getting worse|worsening|won't go away|will not go away|unbearable|agonising|agonizing|excruciating)|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain(?:\s+(?:that|which))?\s+(?:spreads?|spread|spreading|radiat(?:es|ed|ing))\s+(?:into|to)\s+(?:(?:my|the)\s+)?back|(?:upper\s+)?(?:stomach|abdomen|belly|tummy)\s+(?:hurt|hurts|is hurting)\s+(?:severely|unbearably|agonisingly|agonizingly|excruciatingly|(?:so\s+)?badly))\b/i },
+  { label: "unable to keep fluids down", pattern: /\b(?:(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+drink(?:\s+(?:anything|(?:any\s+)?(?:fluids?|water)))?(?=\s*(?:[,.!?;]|$|\b(?:and|because|without)\b))|(?:(?:every|each|any)\s+(?:sip|drink)|(?:even\s+(?:a|one|tiny)\s+)?sips?|(?:all\s+)?(?:fluids?|water))\s+(?:comes?|come|came|is coming|are coming)\s+(?:(?:straight|right)\s+)?back\s+up|vomit(?:ing|ed|s)?|throw(?:ing|s|threw|thrown)\s+up|being\s+sick)\b/i },
   { label: "pregnancy concern", pattern: /\b(?:pregnant|positive pregnancy test|missed (?:my )?period)\b/i },
   { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal|end my life)\b/i }
 ];
 
-const unsafeMedicationPatterns = [
-  /increase (my )?dose/i,
-  /double (my )?dose/i,
-  /skip (the )?dose/i,
-  /stop taking/i,
-  /change (my )?medication/i,
-  /diagnos/i
+const unsafeGeneratedTextPatterns = [
+  /\b(?:increase|raise|reduce|lower|double|halve|skip|change)\s+(?:(?:my|your|the|their|his|her)\s+)?(?:next\s+)?dose\b/i,
+  /\btwice\s+as\s+much\b/i,
+  /\bstop\s+taking\b/i,
+  /\brestart\s+(?:(?:my|your|the|their|his|her)\s+)?medication\b/i,
+  /\bchange\s+(?:(?:my|your|the|their|his|her)\s+)?medication\b/i,
+  /\bdiagnos(?:e|ed|es|ing|is)\b/i,
+  /\b(?:you\s+(?:have|likely have|probably have)|this\s+(?:is|sounds like)|your symptoms\s+(?:mean|show))\s+(?:acute\s+)?pancreatitis\b/i
 ];
 
 export function getPatientInsights(patient: Patient) {
@@ -153,7 +154,7 @@ function hasNonNegatedMatch(text: string, pattern: RegExp) {
 function isNegated(text: string, matchIndex: number) {
   const prefix = text.slice(Math.max(0, matchIndex - 100), matchIndex);
   const clause = prefix.split(/[.!?;\n]|\b(?:but|however|although)\b/i).at(-1) ?? prefix;
-  return /\b(?:no|not|never|without|deny|denies|denied|negative for)\b(?:[\s,:-]+[\w'-]+){0,8}[\s,:-]*$/i.test(clause);
+  return /\b(?:no|not|never|without|deny|denies|denied|negative for|don't|doesn't|didn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't)\b(?:[\s,:-]+[\w'-]+){0,8}[\s,:-]*$/i.test(clause);
 }
 
 export function applySafetyOverrides(
@@ -162,46 +163,28 @@ export function applySafetyOverrides(
   input: CheckInInput
 ): CarePlan {
   const rulesPlan = evaluateCheckIn(patient, input);
-  const containsUnsafeMedicationAdvice = unsafeMedicationPatterns.some((pattern) =>
-    pattern.test(`${aiPlan.patientAction} ${aiPlan.clinicianDraft} ${aiPlan.explanation}`)
+  const generatedText = [
+    aiPlan.headline,
+    aiPlan.patientAction,
+    aiPlan.explanation,
+    aiPlan.escalation.reason,
+    aiPlan.escalation.channel,
+    aiPlan.clinicianSummary,
+    aiPlan.clinicianDraft,
+    ...aiPlan.signals
+  ].join("\n");
+  const containsUnsafeGeneratedText = unsafeGeneratedTextPatterns.some((pattern) =>
+    hasNonNegatedMatch(generatedText, pattern)
   );
-  const rulesFoundUrgent = rulesPlan.riskLevel === "urgent";
 
-  if (rulesFoundUrgent || containsUnsafeMedicationAdvice) {
-    return {
-      ...aiPlan,
-      riskLevel: rulesFoundUrgent ? "urgent" : aiPlan.riskLevel,
-      headline: rulesFoundUrgent ? rulesPlan.headline : aiPlan.headline,
-      patientAction: rulesFoundUrgent || containsUnsafeMedicationAdvice ? rulesPlan.patientAction : aiPlan.patientAction,
-      explanation: rulesFoundUrgent || containsUnsafeMedicationAdvice ? rulesPlan.explanation : aiPlan.explanation,
-      safetyNotice: SAFETY_NOTICE,
-      escalation: rulesFoundUrgent ? rulesPlan.escalation : aiPlan.escalation,
-      clinicianSummary: rulesFoundUrgent ? rulesPlan.clinicianSummary : aiPlan.clinicianSummary,
-      clinicianDraft: containsUnsafeMedicationAdvice ? rulesPlan.clinicianDraft : aiPlan.clinicianDraft,
-      agentTrace: rulesPlan.agentTrace,
-      judgeFit: rulesPlan.judgeFit,
-      adherenceTwin: rulesPlan.adherenceTwin,
-      rescuePlan: rulesPlan.rescuePlan,
-      unsafeRequestDemo: rulesPlan.unsafeRequestDemo,
-      ruleHits: [
-        ...new Set([
-          ...aiPlan.ruleHits,
-          ...rulesPlan.ruleHits,
-          containsUnsafeMedicationAdvice ? "guardrail removed unsafe medication or diagnosis language" : ""
-        ].filter(Boolean))
-      ]
-    };
-  }
+  if (!containsUnsafeGeneratedText) return rulesPlan;
 
   return {
-    ...aiPlan,
-    safetyNotice: SAFETY_NOTICE,
-    agentTrace: aiPlan.agentTrace?.length ? aiPlan.agentTrace : rulesPlan.agentTrace,
-    judgeFit: aiPlan.judgeFit ?? rulesPlan.judgeFit,
-    adherenceTwin: aiPlan.adherenceTwin ?? rulesPlan.adherenceTwin,
-    rescuePlan: aiPlan.rescuePlan?.length ? aiPlan.rescuePlan : rulesPlan.rescuePlan,
-    unsafeRequestDemo: aiPlan.unsafeRequestDemo ?? rulesPlan.unsafeRequestDemo,
-    ruleHits: [...new Set([...aiPlan.ruleHits, ...rulesPlan.ruleHits])]
+    ...rulesPlan,
+    ruleHits: [
+      ...rulesPlan.ruleHits,
+      "guardrail removed unsafe medication or diagnosis language"
+    ]
   };
 }
 
