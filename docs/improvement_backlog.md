@@ -27,7 +27,7 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 | ID | Status | Title | Category | Impact | Effort | Risk | Description | Acceptance Criteria | Validation | Likely Files |
 |---|---|---|---|---|---|---|---|---|---|---|
 | P1-01 | Done | Smoke both care-plan scenarios | Testing | High | Low | Low | Exercise the live POST endpoint for coaching and escalation, not only GET routes. | Smoke fails unless normal is non-escalated and escalation activates urgent handoff. | `APP_URL=... pnpm smoke` | `scripts/smoke.mjs` |
-| P1-02 | Done | Add repository CI | Deployment | High | Low | Low | Run frozen install, typecheck, tests, model check, build, bundle budget, production startup, and smoke on pushes and PRs. PR #1 completed remotely without secrets in 55 seconds. | A GitHub Actions workflow completes without secrets. | GitHub Actions run | `.github/workflows/ci.yml` |
+| P1-02 | Done | Add repository CI | Deployment | High | Low | Low | Run frozen install, typecheck, tests, model check, build, bundle budget, production startup, and smoke on pushes and PRs. The release-candidate run passes remotely without secrets. | A GitHub Actions workflow completes without secrets. | GitHub Actions run | `.github/workflows/ci.yml` |
 | P1-03 | Done | Bound provider response time | Reliability | High | Medium | Medium | An eight-second, zero-retry SDK deadline prevents the optional provider from consuming the demo window. | Provider work has a documented deadline and falls back safely on timeout. | Controlled provider test | API route, tests |
 | P1-04 | Done | Test provider failure branches | Testing | High | Medium | Medium | A pure provider seam covers timeout, exception, invalid output, and post-generation guardrails without network calls. | All provider failure reasons return a complete deterministic plan. | `pnpm test` | provider resolver, API tests |
 | P1-05 | Done | Validate patient JSON at runtime | Data | High | Medium | Low | A lightweight typed load boundary validates fields, ranges, dates, sequence integrity, engagement counts, and unique identifiers without shipping a heavy schema runtime. | Invalid checked-in patient data fails early with a useful message. | `pnpm test && pnpm build` | patient data loader, consumers, tests |
@@ -87,4 +87,4 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 
 ## Selected Next Task
 
-**Run the event-day release rehearsal and remote publication gate.** Execute every local check, push over SSH, verify GitHub Actions and public repository metadata, then freeze the branch. Use P3-05 only if a keyless hosted-preview account is already available.
+**Run the event-day rehearsal, then freeze the judged-demo branch.** Start the production build from a clean checkout, rehearse normal, escalation, reset, video, and deck, and avoid new feature work. Use P3-05 only if a keyless hosted-preview account is already available.

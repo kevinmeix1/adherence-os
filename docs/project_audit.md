@@ -231,7 +231,7 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 
 ### Current Checkpoint
 
-- PR #1 remains open on the public repository; its earlier remote workflow passed, but this checkpoint still needs a fresh push and run.
+- PR #1 carries this public release candidate, and its latest remote production workflow passes without secrets.
 - Local validation passes with 55 tests, reproducible model training, production build, bundle budget, and live smoke.
 - Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
 - The README image, eight-step screenshot walkthrough, 2:59 captioned video, subtitle track, and ten-slide deck match this checkpoint.

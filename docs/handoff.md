@@ -5,9 +5,9 @@ Updated: 2026-07-11
 ## Current State
 
 - Branch: `codex/harden-demo-reliability`
-- Draft pull request: https://github.com/kevinmeix1/adherence-os/pull/1
+- Release pull request: https://github.com/kevinmeix1/adherence-os/pull/1
 - Default local production URL after start: http://localhost:3000
-- Product status: release candidate; final remote publication and CI verification pending
+- Product status: public release candidate; local and remote production gates pass
 
 ## Completed
 
@@ -47,7 +47,7 @@ Updated: 2026-07-11
 - `APP_URL=http://localhost:3002 pnpm smoke`: pass against a temporary production server
 - Production browser rehearsal: Coaching, Escalation abstention, selected handoff draft, active-patient state preservation, custom chest-pain escalation, and graph-node animation pass
 - Responsive browser rehearsal: 390x844 and 320x700 have no horizontal overflow; the graph remains the first analytical surface
-- GitHub Actions PR run: pass in 55 seconds
+- GitHub Actions release-candidate run: pass in 61 seconds without secrets
 - Deck template fidelity: pass with zero issues; no empty slide placeholders
 - Deck QA: all ten slides reviewed at full size; overflow and template-fidelity checks pass with zero issues
 - Video probe: 2:59, 1280x720 at 30 fps, H.264, 48 kHz stereo AAC, embedded English `mov_text` captions, and clean full-file decode
@@ -80,10 +80,10 @@ APP_URL=http://localhost:3001 pnpm smoke
 
 ## Remaining Work
 
-1. Run the full production gate after the final documentation diff.
-2. Push over SSH and verify the new GitHub Actions run, public visibility, description, topics, and pull-request summary.
-3. Add a keyless hosted preview only if an existing deployment account makes it a low-risk operation.
-4. Add automated browser accessibility and visual regression checks after judging.
+1. Rehearse the event-day production start, normal path, escalation path, reset, and fallback assets from a clean checkout.
+2. Add a keyless hosted preview only if an existing deployment account makes it a low-risk operation.
+3. Add automated browser accessibility and visual regression checks after judging.
+4. Decompose the large page and stylesheet modules after the judged demo is frozen.
 
 ## Recommended Next Prompt
 
