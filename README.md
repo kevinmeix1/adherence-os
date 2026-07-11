@@ -50,8 +50,8 @@ After `pnpm build`, `pnpm check:bundle` enforces a 155 kB gzip budget for home f
 
 ## Demo Assets
 
-- [Video walkthrough](outputs/adherence-os-demo.mp4)
-- [Presentation deck](outputs/adherence-os-demo.pptx)
+- [2:54 narrated video walkthrough](outputs/adherence-os-demo.mp4)
+- [10-slide presentation deck](outputs/adherence-os-demo.pptx)
 
 ## Two-Minute Judge Path
 

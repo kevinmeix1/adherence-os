@@ -33,6 +33,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DEMO_CHECK_INS, evaluateCheckIn, getPatientInsights, SAFETY_NOTICE } from "@/app/lib/careEngine";
 import { analyzeRiskSensitivity, explainRiskScore, getModelSampleRows, scorePatientRisk } from "@/app/lib/edgeModel";
 import { buildAdherenceKnowledgeGraph } from "@/app/lib/knowledgeGraph";
+import { buildClinicianDashboardRows } from "@/app/lib/patientDashboard";
 import { patients } from "@/app/lib/patients";
 import type { AgentTraceStep, CarePlan, CarePlanResponse, CheckInInput, Patient, RiskLevel, WeeklySnapshot } from "@/app/lib/types";
 import type { EdgeRiskResult } from "@/app/lib/edgeModel";
@@ -75,13 +76,8 @@ export default function HomePage() {
     [selectedPatient, checkIn, carePlan, edgeRisk]
   );
   const clinicianPlans = useMemo(
-    () =>
-      patients.map((patient) => ({
-        patient,
-        plan: evaluateCheckIn(patient, buildCheckIn(patient.id, patient.id === "maya-patel" ? "escalation" : "normal")),
-        insights: getPatientInsights(patient)
-      })),
-    []
+    () => buildClinicianDashboardRows(patients, selectedPatient.id, carePlan, checkIn.date),
+    [carePlan, checkIn.date, selectedPatient.id]
   );
 
   useEffect(() => {

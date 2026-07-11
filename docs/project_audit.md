@@ -19,8 +19,8 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - **Graph:** a typed in-memory graph built from the patient, check-in, model score, care plan, and synthetic cohort.
 - **AI:** optional OpenAI structured output validated with Zod; a complete deterministic fallback works without a key.
 - **Data:** three synthetic patients with eight weekly snapshots each; no database or real patient data.
-- **Testing:** Node test runner with a small TypeScript registration shim; 29 tests across safety, API/provider failure handling, data validation, ML, graph analytics, health, and patient dashboards, plus live normal/escalation smoke.
-- **Deployment:** checked-in GitHub Actions production gate and a keyless-first deployment runbook. No hosted preview is configured.
+- **Testing:** Node test runner with a small TypeScript registration shim; 43 tests across safety, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
+- **Deployment:** checked-in GitHub Actions production gate, a successful remote PR run, and a keyless-first deployment runbook. No hosted preview is configured.
 
 ## 3. Core User Journey
 
@@ -47,12 +47,14 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - Public documentation includes architecture, safety boundaries, model details, demo assets, and design references.
 - Patient and model artifacts fail early through typed runtime validation, and the synthetic model has a non-destructive reproduction check.
 - A single Reset command restores the rehearsed opening state after any demo path.
+- Coaching and Escalation now drive the clinician queue consistently: zero reviews becomes one review only when the safety path is active.
+- The remote production workflow and current video/deck fallback assets have been verified against the final UI.
 
 ## 5. Main Weaknesses
 
 - `app/page.tsx` is approximately 2,300 lines and owns most view state and UI composition.
 - `app/globals.css` and `app/product.css` total more than 5,000 lines, with legacy and product-specific rules sharing ownership.
-- The first remote CI run has not yet been verified on GitHub.
+- No hosted preview URL is configured; the public repository, local production build, and fallback assets are the current sharing paths.
 - The main workspace views are state-based rather than URL-addressable, so a refresh always returns to the opening graph.
 - There is no automated browser test or visual regression test.
 - Runtime data validators add a small amount of client code because the graph workspace consumes static artifacts directly.
@@ -108,26 +110,23 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 - Existing tests cover the most important deterministic contracts.
 - Missing automated browser coverage for navigation, graph focus modes, menus, mobile overflow, and form loading states.
-- The checked-in CI workflow still needs its first remote run verified.
 - Browser interaction checks are manual rather than part of CI.
 
 ## 13. Deployment And Demo Risks
 
-- CI is configured; no hosted preview deployment is configured.
+- CI passed remotely on PR #1; no hosted preview deployment is configured.
 - README setup is portable and the app builds without secrets.
 - The local demo requires the presenter to start the server before running smoke checks.
 - The optional AI path should not be relied on during judging; deterministic fallback is the safer live-demo mode.
-- The checked-in video and slide deck provide a fallback, but they must be regenerated after material UI changes.
+- The checked-in 2:54 video and 10-slide deck are current; they must be regenerated after future material UI changes.
 - The presenter should keep a production build running locally and avoid dependency installation on event Wi-Fi.
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Verify the first remote CI run and rehearse deployment rollback.
-2. Refresh the video and deck after the final UI checkpoint.
-3. Document CSS ownership without performing a risky pre-demo rewrite.
-4. Add a concise product and ML glossary for technical judges.
-5. Add automated browser or accessibility checks only if they remain lightweight.
-6. Defer component and CSS decomposition until after judging.
+1. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
+2. Add a keyless hosted preview only when an existing deployment account makes it low risk.
+3. Add automated browser or accessibility checks only after the judged demo is frozen.
+4. Defer component and CSS decomposition until after judging.
 
 ## Baseline Validation
 
@@ -198,7 +197,7 @@ Eight additional P1 tasks are complete. The app remains focused on the same thre
 
 ### Deep Re-Audit
 
-More than 15 backlog tasks are complete. P0 remains fully green, all P1 implementation work except final asset refresh is complete locally, and the first remote CI run is the only external verification gap.
+More than 15 backlog tasks are complete. P0 and P1 are fully green, the final assets are current, and the remote CI production gate has passed.
 
 - **What improved:** deterministic failure handling, live smoke depth, artifact integrity, model reproducibility, safety language coverage, event-day setup, accessibility semantics, demo reset, social proof, and deployment guidance.
 - **What got worse:** `app/page.tsx` grew modestly and two explicit artifact validators added code. Home first-load JavaScript rose from about 140 kB to 144.9 kB gzip, still 10.1 kB below the enforced ceiling.
@@ -211,22 +210,29 @@ More than 15 backlog tasks are complete. P0 remains fully green, all P1 implemen
 | Category | Score / 10 | Current evidence |
 |---|---:|---|
 | Product clarity | 9.2 | One driver, one bounded action, one independent safety override |
-| Demo impact | 9.3 | Graph-first opening, six-step path, reset, and fallback assets |
-| UI polish | 9.1 | Responsive operational UI with current repository and social imagery |
-| UX flow | 9.0 | Clear start, Custom state, recovery routes, and deterministic reset |
+| Demo impact | 9.6 | Graph-first opening, six-step path, reset, and verified 2:54 video plus 10-slide deck |
+| UI polish | 9.2 | Responsive operational UI with current repository, social, video, and deck imagery |
+| UX flow | 9.2 | Clear start, scenario-aware queue, Custom state, recovery routes, and deterministic reset |
 | Technical architecture | 8.6 | Strong safety/ML/graph/provider boundaries; large client orchestrator remains |
-| Code quality | 8.0 | Typed, validated, and readable; page and CSS ownership are concentrated |
-| Reliability | 9.5 | Keyless mode, provider deadline, stale-request guard, and expanded smoke |
-| Testing | 9.2 | 42 tests plus live normal, escalation, health, routes, and metadata smoke |
+| Code quality | 8.1 | Typed, validated, and readable; pure queue composition is tested while page and CSS ownership remain concentrated |
+| Reliability | 9.6 | Keyless mode, provider deadline, stale-request guard, scenario consistency, and expanded smoke |
+| Testing | 9.4 | 43 tests, live normal/escalation smoke, browser scenario checks, and a passing remote production workflow |
 | Error handling | 9.2 | Provider, API, not-found, routed error, and fallback states are explicit |
 | Loading/empty states | 8.6 | Generate, directory loading/error/empty, and recovery states are covered |
 | Performance | 8.5 | 144.9 kB gzip with a 155 kB CI ceiling |
 | Accessibility | 8.5 | Skip navigation, one live region, keyboard graph, and valid directory table semantics |
 | Security/privacy | 8.9 | Synthetic-only, no secret logging, validated boundaries, public-key warning |
 | AI usefulness | 9.3 | Optional structured wording; local explainable ML and deterministic safety own decisions |
-| Documentation | 9.5 | Audit, backlog, demo, deployment, safety, architecture, and troubleshooting align |
-| Deployment readiness | 8.3 | Reproducible production gate and CI config; hosted preview and remote run remain |
-| Hackathon competitiveness | 9.4 | Distinct, feasible, eMed-aligned, and demonstrably safe |
-| Portfolio value | 9.4 | Public visual proof, technical depth, CI, tests, and reproducibility |
+| Documentation | 9.6 | Audit, backlog, demo, deployment, safety, architecture, glossary, and troubleshooting align |
+| Deployment readiness | 8.8 | Reproducible gate and remote CI pass; only an optional hosted preview remains |
+| Hackathon competitiveness | 9.6 | Distinct, feasible, eMed-aligned, demonstrably safe, and backed by a current fallback walkthrough |
+| Portfolio value | 9.6 | Public visual proof, refreshed narrated assets, technical depth, CI, tests, and reproducibility |
 
-**Current overall score: 8.97 / 10.**
+**Current overall score: 9.08 / 10.**
+
+### Final Release Checkpoint
+
+- GitHub PR #1 is open as a draft and its remote production workflow passed in 55 seconds without secrets.
+- Coaching-to-queue shows 0 reviews; Escalation-to-queue shows 1 review. A pure regression test and production-browser rehearsal cover the transition.
+- The fallback video is 2:54 at 1920x1080 with H.264/AAC audio; sampled frames cover all ten slides, average audio is -19.4 dB, and no silence gap exceeds 1.5 seconds.
+- The deck preserves all inherited layouts, replaces eleven screenshots, updates 21% risk and 1.87 centrality, passes template fidelity, contains no empty structural placeholders, and was inspected slide by slide.
