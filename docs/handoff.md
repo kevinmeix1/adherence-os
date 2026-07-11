@@ -5,9 +5,10 @@ Updated: 2026-07-11
 ## Current State
 
 - Release branch: `codex/clinical-ledger-ui`
+- Pull request: https://github.com/kevinmeix1/adherence-os/pull/2
 - Public repository: https://github.com/kevinmeix1/adherence-os
 - Local demo URL: http://localhost:3001
-- Product status: validated release candidate awaiting branch publication and merge
+- Product status: validated release candidate published in draft PR #2
 
 ## What Changed
 

@@ -232,7 +232,7 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 
 ### Current Checkpoint
 
-- Release branch `codex/clinical-ledger-ui` carries the care-ledger redesign; the public repository remains the sharing path until this branch is merged.
+- Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
 - Local validation passes with 55 tests, reproducible model training, production build, bundle budget, and live smoke.
 - Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
 - The README image, eight-step screenshot walkthrough, 2:59 captioned video, subtitle track, and ten-slide deck match this checkpoint.
