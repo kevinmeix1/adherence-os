@@ -39,13 +39,13 @@ test("unknown patient state explains the synthetic boundary and recovery link", 
   assert.match(html, /Return to patient overview/);
 });
 
-test("patient directory error state offers retry and a live-twin exit", () => {
+test("patient directory error state offers retry and a Decision map exit", () => {
   const html = renderToStaticMarkup(React.createElement(PatientsError, { error: new Error("synthetic test"), reset() {} }));
 
   assert.match(html, /Patient directory unavailable/);
   assert.match(html, /<button>[\s\S]*Retry<\/button>/);
   assert.match(html, /href="\/"/);
-  assert.match(html, /Return to live twin/);
+  assert.match(html, /Return to Decision map/);
 });
 
 test("patient loading state exposes busy semantics", () => {

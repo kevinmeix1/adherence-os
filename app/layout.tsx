@@ -21,7 +21,7 @@ export const metadata: Metadata = {
         url: "/adherence-os-live-twin.jpg",
         width: 1280,
         height: 720,
-        alt: "Adherence OS Live twin showing an explainable synthetic adherence-risk graph"
+        alt: "Adherence OS Decision map showing an explainable synthetic adherence-risk graph"
       }
     ]
   },

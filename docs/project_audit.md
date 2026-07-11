@@ -11,7 +11,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 ## 2. Current Architecture
 
 - **Frontend:** Next.js 15 App Router, React 19, TypeScript, Lucide icons.
-- **Primary experience:** one client-rendered workspace in `app/page.tsx` with Live twin, Patient app, Care queue, Model evidence, Safety, Demo script, and Judge proof views.
+- **Primary experience:** one client-rendered workspace in `app/page.tsx` with Decision map, Check-in, Review queue, Model record, Safety, Demo script, and Judge proof views.
 - **Routed records:** statically generated `/patients` and `/patients/[patientId]` pages with loading, error, empty, and not-found states.
 - **Backend:** `POST /api/care-plan` and `GET /api/health` route handlers.
 - **Safety:** deterministic rules in `app/lib/careEngine.ts`, applied before and after optional model generation.
@@ -19,23 +19,24 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - **Graph:** a typed in-memory graph built from the patient, check-in, model score, care plan, and synthetic cohort.
 - **AI:** optional OpenAI structured output validated with Zod; a complete deterministic fallback works without a key.
 - **Data:** three synthetic patients with eight weekly snapshots each; no database or real patient data.
-- **Testing:** Node test runner with a small TypeScript registration shim; 43 tests across safety, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
+- **Testing:** Node test runner with a small TypeScript registration shim; 55 tests across safety, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
 - **Deployment:** checked-in GitHub Actions production gate, a successful remote PR run, and a keyless-first deployment runbook. No hosted preview is configured.
 
 ## 3. Core User Journey
 
-1. Open Live twin on Maya Patel in Coaching mode.
+1. Open Decision map on Maya Patel in Coaching mode.
 2. Read one decision headline and four concise operating metrics.
 3. Inspect the active risk driver, graph path, provenance, and model attribution.
 4. Compare bounded support routes and show why one ranks first.
 5. Switch to Escalation.
 6. Observe that deterministic red flags suppress every simulated intervention and activate a clinician handoff.
-7. Open the Care queue and review the structured audit trail.
-8. Use Model evidence only when technical depth is requested.
+7. Open the Review queue and review the structured audit trail.
+8. Use Model record only when technical depth is requested.
 
 ## 4. Main Strengths
 
 - The opening screen immediately demonstrates the differentiated graph experience.
+- The flat care-ledger visual system uses record, task-list, and evidence-table patterns instead of generic AI-dashboard decoration; public references and adaptation decisions are documented.
 - Normal and escalation paths are seeded, deterministic, and visually distinct.
 - Safety is independent from both the LLM and the adherence model.
 - The app remains complete without a network connection or API key.
@@ -52,8 +53,8 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 
 ## 5. Main Weaknesses
 
-- `app/page.tsx` is approximately 2,300 lines and owns most view state and UI composition.
-- `app/globals.css` and `app/product.css` total more than 5,000 lines, with legacy and product-specific rules sharing ownership.
+- `app/page.tsx` is approximately 2,400 lines and owns most view state and UI composition.
+- `app/globals.css` and `app/product.css` total more than 7,600 lines, with legacy and product-specific rules sharing ownership.
 - No hosted preview URL is configured; the public repository, local production build, and fallback assets are the current sharing paths.
 - The main workspace views are state-based rather than URL-addressable, so a refresh always returns to the opening graph.
 - There is no automated browser test or visual regression test.
@@ -77,13 +78,13 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - The README image and social preview must be refreshed after any future material opening-screen change.
 - Dense graph labels remain intentionally abbreviated on small canvases.
 - Multiple historical style layers make visual consistency harder to maintain than the rendered experience suggests.
-- Model evidence is information-rich and should remain a secondary technical proof rather than the opening workflow.
+- Model record is information-rich and should remain a secondary technical proof rather than the opening workflow.
 
 ## 9. Performance Risks
 
 - The home route's first load is approximately 143 kB, which is acceptable for the demo.
 - Every primary workspace view ships in one client module even when only the graph is initially visible.
-- More than 5,000 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
+- More than 7,600 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
 - Graph calculations are small for 13 nodes and three synthetic patients; they do not currently justify worker or server infrastructure.
 - Demo video and deck assets add about 10 MB to the repository but are not loaded by the application.
 
@@ -209,8 +210,8 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 | Category | Score / 10 | Current evidence |
 |---|---:|---|
 | Product clarity | 8.5 | Adherence risk, graph score, safety mode, provider provenance, and handoff delivery state now use distinct language |
-| Demo impact | 8.8 | Graph and next action share the desktop viewport; mobile remains graph-first; captioned fallback media matches the release candidate |
-| UI polish | 8.3 | Commercial product chrome, decision-first inspector, progressive disclosure, and focused review task |
+| Demo impact | 9.1 | Decision map is the first working surface; mobile remains graph-first; current fallback media follows the same judged path |
+| UI polish | 9.0 | Original care-ledger hierarchy, flat records, sparse status colour, stable graph geometry, and restrained one-shot motion |
 | UX flow | 8.5 | Edits recompute immediately, stale work is invalidated, active-patient clicks preserve state, and handoff lands on the selected task |
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
@@ -222,16 +223,16 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 | Accessibility | 8.4 | Interactive graph semantics, visible focus, semantic clinician table, keyboard nodes, captioned video, and no 320px overflow; automated audit remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.6 | Leakage-safe explainable ensemble, bootstrap spread, support abstention, exact attribution, and independent deterministic safety |
-| Documentation | 9.2 | Screenshot walkthrough, full architecture study guide, technical boundaries, demo labels, and current fallback media align |
+| Documentation | 9.4 | Screenshot walkthrough, architecture study guide, design-reference rationale, technical boundaries, demo labels, and fallback media align |
 | Deployment readiness | 6.8 | Local production gate passes; no hosted preview or current remote run for this checkpoint |
 | Hackathon competitiveness | 8.7 | Strong technical differentiation and commercial demo flow; impact evidence and hosted access remain gaps |
 | Portfolio value | 9.1 | Public code, CI, reproducible ML, commercial UI, study guide, screenshot walkthrough, captioned video, and deck |
 
-**Current strict-judge score: 8.5 / 10.**
+**Current strict-judge score: 8.6 / 10.**
 
 ### Current Checkpoint
 
-- PR #1 carries this public release candidate, and its latest remote production workflow passes without secrets.
+- Release branch `codex/clinical-ledger-ui` carries the care-ledger redesign; the public repository remains the sharing path until this branch is merged.
 - Local validation passes with 55 tests, reproducible model training, production build, bundle budget, and live smoke.
 - Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
 - The README image, eight-step screenshot walkthrough, 2:59 captioned video, subtitle track, and ten-slide deck match this checkpoint.

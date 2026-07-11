@@ -2,19 +2,19 @@
 
 This walkthrough follows the exact production build used for release verification. Every patient and metric shown is synthetic. Use it to learn the product flow or as a visual fallback if a live demo is unavailable.
 
-## 1. Start With The Decision
+## 1. Start With The Evidence Chain
 
-![Live twin coaching overview](../public/walkthrough/01-live-twin-coaching.jpg)
+![Decision map coaching overview](../public/walkthrough/01-live-twin-coaching.jpg)
 
-The opening view answers four questions before exposing implementation detail: What is the next-week adherence-interruption risk? Is recent adherence weakening? Which bounded support route changes the score under its assumptions? Is coaching allowed by the independent safety layer?
+The opening view is a compact synthetic case record followed immediately by the evidence chain. It answers four questions: What is the next-week adherence-interruption risk? Which signal is active? Which bounded support assumption changes the score? Is coaching allowed by the independent safety layer?
 
-The graph is the first analytical surface, but the adjacent summary keeps the next safe move visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
+The graph is the first substantial surface, while the adjacent decision record keeps the next safe move and its provenance visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
 
 ## 2. Inspect The Active Driver
 
 ![Attribution view with Routine disruption selected](../public/walkthrough/02-attribution-driver.jpg)
 
-Select **Attribution**, then **Routine disruption**. The graph reveals source badges and the inspector maps the node back to three structured features. The signed log-odds contribution and attribution share come from the local logistic model.
+Select **Attribution**, then **Routine disruption**. The graph reveals source labels and the inspector maps the node back to structured features. The signed log-odds contribution and attribution share come from the local logistic model.
 
 The graph score is an authored inspection aid. It does not prove that the node caused adherence behavior.
 
@@ -38,7 +38,7 @@ This is the key product boundary: model uncertainty cannot disable safety, and a
 
 ![Clinician handoff review workspace](../public/walkthrough/05-clinician-handoff-review.jpg)
 
-Select **Review handoff draft**. The care-team view opens directly on the pending task with its trigger, unassigned owner, **Draft only / not sent** delivery state, longitudinal summary, patient-facing draft, and five-step audit trail.
+Select **Review handoff draft**. **Review queue** opens directly on the pending task with its trigger, unassigned owner, **Draft only / not sent** delivery state, longitudinal summary, patient-facing draft, and five-step audit trail.
 
 The prototype prepares context for a human decision. It does not diagnose, make a medication change, assign a clinician, or claim that a message was delivered.
 
@@ -46,13 +46,13 @@ The prototype prepares context for a human decision. It does not diagnose, make 
 
 ![Patient home check-in and care plan](../public/walkthrough/06-patient-check-in.jpg)
 
-The patient workspace turns a short structured check-in into a care plan, adherence profile, seven-day support plan, rule trace, and eight-week context. Editing any field recomputes the deterministic decision immediately and invalidates older in-flight provider requests.
+The **Check-in** view turns a short structured input into a care plan, adherence profile, seven-day support plan, rule trace, and eight-week context. Editing any field recomputes the deterministic decision immediately and invalidates older in-flight provider requests.
 
 The seeded **Normal** and **Escalation** controls exist for a repeatable judged demo; a field edit visibly changes the state to **Custom**.
 
-## 7. Audit The Model
+## 7. Open The Model Record
 
-![Model evidence with abstention and prospective metrics](../public/walkthrough/07-model-evidence.jpg)
+![Model record with abstention and prospective metrics](../public/walkthrough/07-model-evidence.jpg)
 
 The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out AUPRC, recall, threshold, review rate, Brier skill, exact attribution, one-feature sensitivity, bootstrap spread, reliability bins, and support-aware what-if behavior.
 
@@ -60,9 +60,9 @@ The screenshot intentionally shows an abstention state. The raw 90% score is dis
 
 ## 8. Verify The Narrow Layout
 
-![320 pixel mobile Live twin](../public/walkthrough/08-mobile-live-twin.jpg)
+![320 pixel mobile Decision map](../public/walkthrough/08-mobile-live-twin.jpg)
 
-At 320 px wide the app has zero horizontal page overflow. Navigation wraps into a compact product bar, the decision metrics form a stable two-column grid, and the evidence map remains the first analytical section. Lower-density evidence is progressively disclosed further down the page.
+At 320 px wide the app has zero horizontal page overflow. Navigation becomes a compact two-row product bar, patient and scenario controls stay tappable, and the evidence map remains the first substantial section. The inspector and lower-density evidence follow beneath it.
 
 ## Reproduce The Walkthrough
 

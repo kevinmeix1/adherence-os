@@ -53,7 +53,7 @@ Copy `.env.example` to `.env.local` only for local provider testing. Local envir
 
 1. Ensure `OPENAI_API_KEY` is absent from the shell and `.env.local`.
 2. Run the release gate and start the production build.
-3. Open `http://localhost:3000` and confirm Live twin is the first view.
+3. Open `http://localhost:3000` and confirm Decision map is the first view.
 4. Run `pnpm smoke` immediately before presenting.
 5. Keep the checked-in video and deck available as visual fallback assets.
 

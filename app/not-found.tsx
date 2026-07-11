@@ -10,7 +10,7 @@ export default function NotFound() {
         <p>This route is not part of the Adherence OS synthetic demo.</p>
         <div>
           <Link href="/">
-            <Home size={16} /> Return to live twin
+            <Home size={16} /> Return to Decision map
           </Link>
           <Link href="/patients">Patient overview</Link>
         </div>

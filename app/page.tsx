@@ -191,7 +191,7 @@ export default function HomePage() {
           <header className="topbar">
             <div>
               <p className="section-kicker">
-                {view === "patient" ? "Patient workspace" : view === "clinician" ? "Care-team workspace" : "Model evidence"}
+                {view === "patient" ? "Home check-in" : view === "clinician" ? "Review queue" : "Model record"}
               </p>
               <h1>{selectedPatient.name}</h1>
               <p>{selectedPatient.programme}</p>
@@ -200,7 +200,7 @@ export default function HomePage() {
               <RiskPill level={carePlan.riskLevel} />
               <div className="ai-source">
                 <ShieldCheck size={16} />
-                Deterministic care plan
+                Rules own safety
               </div>
             </div>
           </header>
@@ -313,21 +313,19 @@ function ProductHeader({
 
   return (
     <header className="product-bar">
-      <button className="product-brand" onClick={() => onNavigate("graph")} title="Open live adherence twin">
-        <span className="brand-mark">
-          <HeartPulse size={20} />
-        </span>
+      <button className="product-brand" onClick={() => onNavigate("graph")} title="Open decision map">
+        <span className="brand-mark" aria-hidden="true">A/</span>
         <span>
           <strong>Adherence OS</strong>
-          <small>Metabolic care</small>
+          <small>Care decision ledger</small>
         </span>
       </button>
 
       <nav className="product-nav" aria-label="Product navigation">
-        <NavButton label="Live twin" active={view === "graph"} icon={<Network size={17} />} onClick={() => onNavigate("graph")} />
-        <NavButton label="Patient app" active={view === "patient"} icon={<Home size={17} />} onClick={() => onNavigate("patient")} />
+        <NavButton label="Decision map" active={view === "graph"} icon={<Network size={17} />} onClick={() => onNavigate("graph")} />
+        <NavButton label="Check-in" active={view === "patient"} icon={<Home size={17} />} onClick={() => onNavigate("patient")} />
         <NavButton
-          label="Care queue"
+          label="Review queue"
           active={view === "clinician"}
           icon={<Stethoscope size={17} />}
           onClick={() => onNavigate("clinician")}
@@ -337,7 +335,7 @@ function ProductHeader({
       <div className="product-bar-meta">
         <span className="demo-status">
           <i />
-          Synthetic demo
+          Synthetic / local
         </span>
         <span className="current-patient">{patient.name}</span>
         <button className="demo-reset" aria-label="Reset demo" title="Reset demo" onClick={resetFromHeader}>
@@ -365,7 +363,7 @@ function ProductHeader({
               <ShieldCheck size={16} /> Safety boundary
             </button>
             <button onClick={() => navigateFromMenu("model")}>
-              <BarChart3 size={16} /> Model evidence
+              <BarChart3 size={16} /> Model record
             </button>
             <button onClick={() => navigateFromMenu("scripts")}>
               <ClipboardList size={16} /> Demo guide
@@ -542,10 +540,10 @@ function PatientView({
         </div>
 
         <div className="care-moment">
-          <div className="device-visual" aria-hidden="true">
-            <div className={`pulse-ring ${carePlan.riskLevel}`} />
-            <HeartPulse size={46} />
-            <span>{riskLabels[carePlan.riskLevel]}</span>
+          <div className={`care-index ${carePlan.riskLevel}`} aria-hidden="true">
+            <span>Current plan</span>
+            <strong>{riskLabels[carePlan.riskLevel]}</strong>
+            <small>Week {patient.currentWeek}</small>
           </div>
           <div>
             <p className="patient-action">{carePlan.patientAction}</p>
@@ -847,7 +845,7 @@ function ModelLabView({
     <div className="model-grid">
       <section className="panel wide-panel model-hero">
         <div>
-          <p className="section-kicker">Model Lab</p>
+          <p className="section-kicker">Model record</p>
           <h2>Edge ML predicts next-week adherence interruption risk</h2>
           <p>
             A leakage-safe monotonic model scores structured home-care features in the browser. Sixteen patient-bootstrap members expose model spread while deterministic rules own safety.
@@ -1221,14 +1219,15 @@ function KnowledgeGraphView({
       <section className="decision-intro">
         <div className="decision-copy">
           <p className="decision-eyebrow">
-            <span /> Week {patient.currentWeek} / adherence evidence map
+            Case {patient.id} / Week {patient.currentWeek} / Synthetic record
           </p>
-          <h1>
+          <h1>{patient.name}</h1>
+          <strong className="decision-statement">
             {graph.pathMode === "escalation"
               ? `${firstName} needs a clinician, not another nudge.`
               : `${firstName}'s adherence risk is still reversible.`}
-          </h1>
-          <p>{graph.summary}</p>
+          </strong>
+          <p className="decision-summary">{graph.summary}</p>
         </div>
         <div className="decision-controls">
           <div className="graph-patient-strip" aria-label="Demo patients">
@@ -1267,57 +1266,17 @@ function KnowledgeGraphView({
         </div>
       </section>
 
-      <section className="decision-metrics" aria-label="Current patient summary">
-        <DecisionMetric
-          label="Adherence interruption risk"
-          value={edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}
-          note={
-            edgeRisk.support.status === "supported"
-              ? carePlan.escalation.needed
-                ? "Safety rule overrides model"
-                : riskBand(edgeRisk.risk, edgeRisk.artifact.metrics.threshold)
-              : "Outside synthetic support"
-          }
-          tone={edgeRisk.support.status === "supported" ? "action" : "watch"}
-        />
-        <DecisionMetric label="Recent adherence" value={`${Math.round(insights.lastTwoAdherence)}%`} note="Last 2 weeks" tone="steady" />
-        <DecisionMetric
-          label="Scenario score change"
-          value={
-            graph.pathMode === "escalation"
-              ? "Suppressed"
-              : bestIntervention.absoluteReduction === null
-                ? "Not ranked"
-                : `-${formatPercentagePoints(bestIntervention.absoluteReduction)}`
-          }
-          note={
-            graph.pathMode === "escalation"
-              ? "Safety override"
-              : bestIntervention.rankable
-                ? bestIntervention.label
-                : "Outside synthetic support"
-          }
-          tone={graph.pathMode === "escalation" ? "urgent" : "action"}
-        />
-        <DecisionMetric
-          label="Safety status"
-          value={graph.pathMode === "escalation" ? "Handoff draft" : "Coaching permitted"}
-          note={graph.pathMode === "escalation" ? "Pending human review" : "No red-flag rule active"}
-          tone={graph.pathMode === "escalation" ? "urgent" : "protective"}
-        />
-      </section>
-
       <section className="decision-workbench">
         <article className="graph-evidence-panel">
           <header className="graph-evidence-head">
             <div>
-              <p className="section-kicker">Decision evidence map</p>
-              <h2>Signals to safe action</h2>
-              <p>Home context, edge inference, what-if actions and clinical guardrails.</p>
+              <p className="section-kicker">Evidence chain</p>
+              <h2>Observed signals to bounded action</h2>
+              <p>Home inputs, local score, support assumption, and deterministic handoff.</p>
             </div>
             <div className="graph-evidence-meta">
               <span>
-                <ShieldCheck size={15} /> {source === "deterministic-rules" ? "Provider validated / deterministic plan" : "Local model / deterministic rules"}
+                <ShieldCheck size={15} /> {source === "deterministic-rules" ? "Validated output / rules" : "Local score / rules"}
               </span>
               <RiskPill level={riskLevel} />
             </div>
@@ -1340,16 +1299,56 @@ function KnowledgeGraphView({
         />
       </section>
 
+      <section className="decision-metrics" aria-label="Current patient summary">
+        <DecisionMetric
+          label="Interruption risk"
+          value={edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}
+          note={
+            edgeRisk.support.status === "supported"
+              ? carePlan.escalation.needed
+                ? "Safety rule overrides model"
+                : riskBand(edgeRisk.risk, edgeRisk.artifact.metrics.threshold)
+              : "Outside synthetic support"
+          }
+          tone={edgeRisk.support.status === "supported" ? "action" : "watch"}
+        />
+        <DecisionMetric label="Recent adherence" value={`${Math.round(insights.lastTwoAdherence)}%`} note="Previous 2 weeks" tone="steady" />
+        <DecisionMetric
+          label="Bounded scenario"
+          value={
+            graph.pathMode === "escalation"
+              ? "Suppressed"
+              : bestIntervention.absoluteReduction === null
+                ? "Not ranked"
+                : `-${formatPercentagePoints(bestIntervention.absoluteReduction)}`
+          }
+          note={
+            graph.pathMode === "escalation"
+              ? "Safety override"
+              : bestIntervention.rankable
+                ? bestIntervention.label
+                : "Outside synthetic support"
+          }
+          tone={graph.pathMode === "escalation" ? "urgent" : "action"}
+        />
+        <DecisionMetric
+          label="Safety ownership"
+          value={graph.pathMode === "escalation" ? "Handoff draft" : "Coaching permitted"}
+          note={graph.pathMode === "escalation" ? "Pending human review" : "No red-flag rule active"}
+          tone={graph.pathMode === "escalation" ? "urgent" : "protective"}
+        />
+      </section>
+
       <section className="decision-proof-strip" aria-label="Technical credibility">
         <div>
           <BarChart3 size={19} />
-          <span>Edge ML</span>
-          <strong>Monotonic {edgeRisk.artifact.features.length}-feature model / exact local decomposition</strong>
+          <span>Local model</span>
+          <strong>Monotonic {edgeRisk.artifact.features.length}-feature score with exact decomposition</strong>
         </div>
         <div>
           <Network size={19} />
-          <span>Evidence map</span>
-          <strong>{graph.nodes.length} nodes / source labels + four inspection views</strong>
+          <span>Evidence graph</span>
+          <strong>{graph.nodes.length} nodes / typed sources / four inspection views</strong>
         </div>
         <div>
           <ShieldCheck size={19} />
@@ -1544,7 +1543,7 @@ function GraphNodeInspector({
           <ArrowRight size={17} />
         </button>
         <button className="secondary-action" onClick={() => onNavigate("model")}>
-          <BarChart3 size={17} /> Model evidence
+          <BarChart3 size={17} /> Model record
         </button>
       </div>
 
@@ -1758,7 +1757,7 @@ function KnowledgeGraphCanvas({
     <div className="knowledge-graph-wrap">
       <div className="graph-canvas-toolbar">
         <span className="graph-live-state">
-          <i /> Inference active
+          <i /> Evidence ready
         </span>
         <div className="graph-focus-control" role="group" aria-label="Graph focus mode">
           <button aria-label="Decision path" aria-pressed={focusMode === "decision"} className={focusMode === "decision" ? "active" : ""} onClick={() => onFocusMode("decision")}>
@@ -1797,7 +1796,7 @@ function KnowledgeGraphCanvas({
         </div>
       </div>
       <div className="graph-map-frame">
-        <div className="graph-map-caption top-left">Decision evidence map</div>
+        <div className="graph-map-caption top-left">Current decision record</div>
         <div className="graph-map-caption bottom-right">{graph.nodes.length} nodes / {graph.edges.length} edges</div>
         <svg
           className="knowledge-graph-canvas"
@@ -1808,14 +1807,6 @@ function KnowledgeGraphCanvas({
         >
           <title>Interactive adherence evidence map</title>
           <defs>
-            <linearGradient id="graph-bg-wash" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor="#17201f" />
-              <stop offset="52%" stopColor="#182226" />
-              <stop offset="100%" stopColor="#111817" />
-            </linearGradient>
-            <filter id="graph-soft-glow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="1.1" stdDeviation="1.35" floodColor="#73f1cc" floodOpacity="0.3" />
-            </filter>
             <marker id="graph-arrow" markerHeight="4" markerWidth="5" orient="auto" refX="4.4" refY="2" viewBox="0 0 5 4">
               <path d="M0,0 L5,2 L0,4 Z" />
             </marker>
@@ -2289,7 +2280,7 @@ function getGenerationNotice(reason: CarePlanResponse["fallbackReason"], meta?: 
     return `OpenAI was unavailable. The deterministic local safety engine took over safely.${timing}`;
   }
   return meta?.providerAttempted
-    ? `Provider output was schema-valid in ${meta.durationMs} ms. The complete deterministic care plan was recomputed before display.`
+    ? `Provider output was schema-valid in ${meta.durationMs} ms. The complete rules-owned plan was recomputed before display.`
     : null;
 }
 

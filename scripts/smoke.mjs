@@ -95,8 +95,8 @@ const escalationCheckIn = {
 await check("/", async (response) => {
   const html = await response.text();
   if (!html.includes("Adherence OS")) throw new Error("home page is missing the product name");
-  if (!html.includes("Decision evidence map") || !html.includes("Supporting evidence")) {
-    throw new Error("home page is missing the commercial decision-first surface");
+  if (!html.includes("Observed signals to bounded action") || !html.includes("Supporting evidence")) {
+    throw new Error("home page is missing the care-ledger decision surface");
   }
   if (!html.includes('property="og:title"') || !html.includes("adherence-os-live-twin.jpg")) {
     throw new Error("home page is missing social preview metadata");

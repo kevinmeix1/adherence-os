@@ -1,6 +1,6 @@
-# ML Model Lab
+# ML Model Record
 
-The Model Lab is the technical spine of Adherence OS. It shows a complete, synthetic machine-learning path:
+The Model record is the technical spine of Adherence OS. It shows a complete, synthetic machine-learning path:
 
 1. Generate a synthetic GLP-1 chronic-care cohort.
 2. Build prospective examples where index week `t` predicts a planned adherence event missed in week `t + 1`.

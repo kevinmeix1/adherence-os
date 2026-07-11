@@ -26,15 +26,15 @@ flowchart TB
 
         Validate --> Safety["Deterministic safety engine"]
         History --> Safety
-        Safety --> Plan["Deterministic care plan"]
+        Safety --> Plan["Rules-owned care plan"]
 
         Explain --> Graph["Inspectable evidence-map builder"]
         Safety --> Graph
         History --> Graph
-        Graph --> Live["Live twin"]
-        Plan --> Patient["Patient workspace"]
+        Graph --> Live["Decision map"]
+        Plan --> Patient["Home check-in"]
         Plan --> Queue["Clinician review queue"]
-        Artifact --> Lab["Model evidence"]
+        Artifact --> Lab["Model record"]
     end
 
     subgraph Optional["Optional provider boundary"]

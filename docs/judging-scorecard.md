@@ -16,7 +16,7 @@ The product is not a chatbot. It is an inspectable decision pipeline:
 
 The Adherence Twin reframes monitoring as pre-emptive support: it shows the current risk drivers, the smallest bounded support assumption, and when safety rules require a human instead.
 
-The Model Lab adds a real ML spine: prospective synthetic cohort generation, patient-isolated evaluation, 16 bootstrap members, exact feature contributions, support-aware abstention, and explicit what-if rescoring.
+The Model record adds a real ML spine: prospective synthetic cohort generation, patient-isolated evaluation, 16 bootstrap members, exact feature contributions, support-aware abstention, and explicit what-if rescoring.
 
 ## Feasibility
 
