@@ -1,70 +1,170 @@
-# Technical Architecture
+# Architecture And Study Guide
 
-Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. It separates prediction, safety, explanation, and communication so each layer can be inspected during the demo.
+Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. Its central design choice is separation: prediction estimates adherence interruption, deterministic rules own safety, the evidence map explains the route, and a clinician remains responsible for review.
+
+## Whole-System Diagram
 
 ```mermaid
-flowchart LR
-    A["60-second home check-in"] --> B["Deterministic safety engine"]
-    A --> C["Local edge ML model"]
-    H["8-week patient history"] --> C
-    H --> D["Knowledge graph builder"]
-    C --> D
-    B --> D
-    D --> E["Centrality + rescue path"]
-    C --> F["Sensitivity + what-if rescoring"]
-    E --> G["Patient care moment"]
-    F --> G
-    B --> I["Clinician handoff"]
-    G --> J["Optional OpenAI structured output"]
-    J --> K["Schema validation + safety override"]
-    K --> L["Patient and clinician views"]
-    B --> L
+flowchart TB
+    subgraph Build["Offline synthetic model build"]
+        Seed["Seeded synthetic cohort generator"] --> Cohort["12,000 prospective patient-week rows"]
+        Cohort --> Split["Patient-isolated 70 / 15 / 15 split"]
+        Split --> Train["Constrained logistic training + 16 bootstraps"]
+        Train --> Select["Validation-selected operating threshold"]
+        Select --> Artifact["Versioned JSON model artifact"]
+        Artifact --> Parity["Python / TypeScript parity fixtures"]
+    end
+
+    subgraph Runtime["Keyless browser runtime"]
+        CheckIn["60-second home check-in"] --> Validate["Typed input validation"]
+        History["Synthetic 8-week history"] --> Features["Prospective feature builder"]
+        Validate --> Features
+        Features --> Model["Local edge inference"]
+        Artifact --> Model
+        Model --> Support["Training-support gate"]
+        Support --> Explain["Exact log-odds attribution + bounded rescoring"]
+
+        Validate --> Safety["Deterministic safety engine"]
+        History --> Safety
+        Safety --> Plan["Deterministic care plan"]
+
+        Explain --> Graph["Inspectable evidence-map builder"]
+        Safety --> Graph
+        History --> Graph
+        Graph --> Live["Live twin"]
+        Plan --> Patient["Patient workspace"]
+        Plan --> Queue["Clinician review queue"]
+        Artifact --> Lab["Model evidence"]
+    end
+
+    subgraph Optional["Optional provider boundary"]
+        API["POST /api/care-plan"] --> LLM["OpenAI structured output"]
+        LLM --> Schema["Schema validation"]
+        Schema --> Recompute["Recompute complete deterministic plan"]
+    end
+
+    Validate --> API
+    Recompute --> Plan
+    API -. "timeout, invalid, or no key" .-> Plan
+    Safety -. "urgent rules suppress coaching" .-> Queue
 ```
+
+The dotted provider fallback is deliberate. The judged demo is complete without a key; optional generated output cannot weaken, rewrite, or own the displayed care plan.
+
+## One Check-In, Step By Step
+
+```mermaid
+sequenceDiagram
+    actor Patient
+    participant UI as React workspace
+    participant Rules as Deterministic care engine
+    participant ML as Browser edge model
+    participant Graph as Evidence-map builder
+    participant API as Optional care-plan API
+    participant Clinician as Review queue
+
+    Patient->>UI: Submit or edit a structured check-in
+    UI->>Rules: Evaluate symptoms, adherence, and red flags
+    UI->>ML: Build week-t features and score week-t+1 interruption
+    ML-->>UI: Risk, attribution, support status, bounded scenarios
+    Rules-->>UI: Coaching mode or destination-specific handoff draft
+    UI->>Graph: Combine context, model evidence, and safety state
+    Graph-->>UI: Nodes, typed edges, provenance, and rescue path
+    opt Provider key configured
+        UI->>API: Send validated structured request
+        API-->>UI: Validated provider attempt metadata
+        UI->>Rules: Keep the recomputed deterministic plan
+    end
+    alt Red flag active
+        UI->>Clinician: Show pending draft, owner, trigger, and audit trail
+    else Coaching permitted
+        UI-->>Patient: Show one bounded behavioral next step
+    end
+```
+
+Edits and scenario changes invalidate any in-flight request before recomputing locally. That prevents an older response from replacing the decision for the currently visible check-in.
 
 ## Intelligence Layers
 
-### 1. Edge ML
+### 1. Prospective Edge ML
 
-- A monotonic logistic model is trained on 12,000 synthetic GLP-1 care sequences with projected-gradient sign constraints.
-- The model is exported to `data/adherence-model.json`.
-- Inference runs locally in the browser over 14 structured features.
-- The UI exposes the intercept baseline, exact signed log-odds decomposition, one-feature-at-a-time sensitivity, calibration, and transparent what-if score changes.
+- Every index-week row predicts a planned adherence event in the following week. Same-row outcomes cannot enter its features.
+- Patients, not rows, are isolated into deterministic 70/15/15 training, validation, and test partitions.
+- A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic patient-weeks with projected-gradient sign constraints.
+- The artifact exports coefficients, training-only support bounds, the selected threshold, held-out metrics, bootstrap members, reliability bins, and parity fixtures.
+- Inference runs locally over 14 structured features. Exact signed contributions reconstruct the final log-odds score.
+- Numeric route ranking abstains when the observed or simulated vector falls outside the training-only 0.5th-99.5th percentile support bounds.
 
-### 2. Knowledge Graph
+Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`data/adherence-model.json`](../data/adherence-model.json) and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
+
+### 2. Evidence Map
 
 - Patient, symptom, routine, biomarker, risk, intervention, safety, and clinician nodes are assembled for the current check-in.
-- Weighted centrality identifies the most connected active driver.
-- A rescue path connects that driver to the strongest what-if action or to the safety handoff.
-- Every node declares its provenance as model attribution, bounded simulation, deterministic rule, or patient context.
-- Decision-path, selected-neighbourhood, attribution, and all-signal modes keep the live graph readable during inspection.
-- All support routes are ranked by their rescored model assumptions; an active safety rule marks every simulated route as blocked.
-- Graph-derived features can feed a future temporal or graph model.
+- Authored edge weights identify the most connected inspectable driver and a concise decision path.
+- Every node declares provenance: model attribution, bounded simulation, deterministic rule, or patient context.
+- Decision-path, selected-neighborhood, attribution, and all-signal modes change presentation, not the underlying decision.
+- Route comparison is disabled outside synthetic support and suppressed whenever safety owns the next action.
 
-### 3. Safety Engine
+This is an explainable decision representation, not a learned knowledge-graph model or causal graph. Read [`app/lib/knowledgeGraph.ts`](../app/lib/knowledgeGraph.ts) after the edge model.
+
+### 3. Deterministic Safety
 
 - No diagnosis.
 - No medication start, stop, or dose-change advice.
-- Red flags activate clinician or urgent-care escalation.
-- The safety result is independent of the adherence prediction and can override it.
+- Clause-aware red-flag matching distinguishes active, negated, and explicitly resolved symptoms.
+- Active red flags select cautious UK destinations such as NHS 111, 999, or A&E according to the matched symptom family.
+- Safety is independent of the adherence score and can override it when the model abstains or reports a low score.
+- Review and urgent states prepare drafts only; the UI never claims that a message was sent.
 
-### 4. Optional LLM Layer
+The implementation is in [`app/lib/careEngine.ts`](../app/lib/careEngine.ts), with adversarial and threshold tests in [`tests/careEngine.test.cjs`](../tests/careEngine.test.cjs).
 
-- The API asks OpenAI for schema-constrained care-plan output.
-- Zod validates the response shape.
-- Deterministic safety overrides are applied after generation.
-- If the API is unavailable or invalid, the local engine returns a complete fallback plan.
+### 4. Optional OpenAI Boundary
 
-## Demo Reliability
+- The route accepts only validated structured input.
+- OpenAI is optional and uses schema-constrained output, an eight-second deadline, and no retries.
+- Output is validated, but the complete deterministic plan is recomputed after the provider attempt; provider wording is not displayed in this MVP.
+- Missing keys, timeouts, exceptions, or invalid output return a complete and visibly disclosed rules fallback.
 
-- All three patients and eight weeks of history are synthetic and checked into the repository.
-- Normal and escalation scenarios are deterministic.
-- The core demo works without a network connection or API key.
-- The optional OpenAI layer improves communication but does not own safety or risk scoring.
+Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/carePlanProvider.ts`](../app/lib/carePlanProvider.ts), and [`tests/carePlanProvider.test.cjs`](../tests/carePlanProvider.test.cjs).
+
+## Runtime Ownership
+
+| Concern | Source of truth | Runs where | Failure behavior |
+|---|---|---|---|
+| Synthetic patient history | `data/patients.json` | Build and browser | Runtime validation fails with a precise path |
+| Adherence prediction | `data/adherence-model.json` | Browser | Artifact validation fails; unsupported inputs abstain |
+| Safety mode and route | `app/lib/careEngine.ts` | Browser and route handler | Deterministic handoff overrides coaching |
+| Evidence-map structure | `app/lib/knowledgeGraph.ts` | Browser | No causal claim; routes remain inspectable |
+| Generated provider attempt | `app/lib/carePlanProvider.ts` | Server route | Visible deterministic fallback |
+| View and request state | `app/page.tsx` | Browser | Patient/scenario/edit changes invalidate stale requests |
+| Release readiness | tests, model check, build, bundle, smoke | Local and GitHub Actions | Release gate fails visibly |
+
+## Repository Map
+
+| Path | Why it exists |
+|---|---|
+| `app/page.tsx` | Orchestrates patient, scenario, view, graph focus, and request state |
+| `app/product.css` | Owns the commercial workspace and graph presentation |
+| `app/lib/types.ts` | Shared contracts between engine, API, graph, and UI |
+| `app/lib/schemas.ts` | Runtime API and provider-output validation |
+| `app/lib/patientData.ts` | Runtime validation for checked-in synthetic records |
+| `scripts/smoke.mjs` | Exercises production routes plus normal and escalation POST paths |
+| `.github/workflows/ci.yml` | Repeats the full release gate without secrets |
+
+## Suggested Study Order
+
+1. Run the [screenshot walkthrough](product-walkthrough.md) to understand the product story.
+2. Read the contracts in `types.ts`, then the deterministic path in `careEngine.ts`.
+3. Run `pnpm test -- --test-name-pattern="normal|escalation"` and trace one assertion into the engine.
+4. Read `edgeModel.ts` beside the checked-in JSON artifact; verify it with `pnpm check:model`.
+5. Read `knowledgeGraph.ts` and inspect how provenance and safety suppression become graph nodes and edges.
+6. Follow `page.tsx` from scenario selection to request-version invalidation and view rendering.
+7. Run `pnpm build && pnpm start`, then execute `pnpm smoke` from another terminal.
 
 ## Prototype Limits
 
-- The model metrics describe synthetic data and are not evidence of clinical performance.
-- The graph is an explainable decision representation, not a validated causal model.
-- Intervention simulations mutate explicit feature assumptions and rescore the model; they are not estimates of treatment effect.
-- Local sensitivity varies one bounded feature at a time; it is not a confidence interval or clinical uncertainty estimate.
-- Production deployment would require clinical validation, governance, monitoring, privacy review, and integration with eMed workflows.
+- All patient records and model metrics are synthetic; they are pipeline evidence, not clinical validation.
+- The graph is an authored explanatory representation, not causal evidence.
+- Intervention simulations mutate explicit feature assumptions and rescore the same model; they do not estimate treatment effects.
+- Bootstrap spread describes model variation inside one synthetic cohort, not a clinical confidence interval.
+- Production use would require real-world validation, clinical governance, privacy and security review, monitoring, authentication, and integration with eMed workflows.

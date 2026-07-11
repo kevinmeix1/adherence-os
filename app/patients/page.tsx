@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardCheck, UserRound } from "lucide-react";
-import patientsData from "@/data/patients.json";
 import { buildPatientDashboardRows } from "@/app/lib/patientDashboard";
-import type { Patient, RiskLevel } from "@/app/lib/types";
+import { patients } from "@/app/lib/patients";
+import type { RiskLevel } from "@/app/lib/types";
 import { PatientDirectoryHeader, PatientRiskBadge, PatientSummaryMetric } from "./components";
 
-const patients = patientsData as Patient[];
 const riskRank: Record<RiskLevel, number> = { steady: 0, watch: 1, review: 2, urgent: 3 };
 
 export default function PatientsPage() {
@@ -59,30 +58,46 @@ export default function PatientsPage() {
             </div>
             <span>{rows.length} records</span>
           </header>
-          <div className="directory-table" role="table" aria-label="Synthetic patient list">
+          <div
+            className="directory-table"
+            role="table"
+            aria-label="Synthetic patient list"
+            aria-colcount={6}
+            aria-rowcount={rows.length + 1}
+          >
             <div className="directory-row directory-row-head" role="row">
-              <span>Patient</span>
-              <span>Adherence</span>
-              <span>Missed check-ins</span>
-              <span>Risk</span>
-              <span>Next recommended action</span>
-              <span aria-hidden="true" />
+              <span role="columnheader">Patient</span>
+              <span role="columnheader">Adherence</span>
+              <span role="columnheader">Missed check-ins</span>
+              <span role="columnheader">Risk</span>
+              <span role="columnheader">Next recommended action</span>
+              <span role="columnheader">Record</span>
             </div>
             {rows.map((row) => (
-              <Link className="directory-row" href={`/patients/${row.patient.id}`} key={row.patient.id} role="row">
-                <span className="directory-patient-cell">
+              <div className="directory-row" key={row.patient.id} role="row" aria-label={`${row.patient.name} patient summary`}>
+                <span className="directory-patient-cell" role="cell">
                   <i>{row.patient.name.slice(0, 1)}</i>
                   <span>
                     <strong>{row.patient.name}</strong>
                     <small>{row.patient.conditionFocus}</small>
                   </span>
                 </span>
-                <strong>{row.adherencePct}%</strong>
-                <span>{row.missedCheckIns}</span>
-                <PatientRiskBadge level={row.riskLevel} />
-                <span className="directory-next-action">{row.nextAction}</span>
-                <ArrowRight size={17} />
-              </Link>
+                <strong role="cell">{row.adherencePct}%</strong>
+                <span role="cell">{row.missedCheckIns}</span>
+                <span className="directory-risk-cell" role="cell">
+                  <PatientRiskBadge level={row.riskLevel} />
+                </span>
+                <span className="directory-next-action" role="cell">{row.nextAction}</span>
+                <span className="directory-row-action-cell" role="cell">
+                  <Link
+                    className="directory-row-action"
+                    href={`/patients/${row.patient.id}`}
+                    aria-label={`Open ${row.patient.name} patient record`}
+                  >
+                    <ArrowRight size={17} aria-hidden="true" />
+                  </Link>
+                </span>
+              </div>
             ))}
           </div>
         </section>

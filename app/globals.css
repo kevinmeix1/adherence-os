@@ -1,3 +1,4 @@
+/* Shared foundations and legacy workspace views; graph/product/directory styles live in product.css. */
 :root {
   --bg: #f5f7fb;
   --panel: #ffffff;
@@ -20,6 +21,18 @@
 
 * {
   box-sizing: border-box;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 html,
@@ -333,6 +346,21 @@ button {
   box-shadow: inset 0 0 0 2px rgba(220, 38, 38, 0.38);
 }
 
+.scenario-custom-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f4f6f5;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -409,6 +437,13 @@ button {
   min-height: 74px;
   resize: vertical;
   line-height: 1.45;
+}
+
+.field:focus-within,
+.slider-field:focus-within,
+.toggle-row:focus-within {
+  border-color: rgba(15, 118, 110, 0.72);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
 }
 
 .primary-action {
@@ -858,32 +893,39 @@ blockquote {
   grid-column: 1 / -1;
 }
 
-.clinician-table {
+.clinician-table-wrap {
   margin-top: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 0.6fr 1.5fr;
-  gap: 10px;
+.clinician-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.clinician-table th,
+.clinician-table td {
   padding: 12px;
   border-top: 1px solid var(--line);
-  font-size: 0.9rem;
+  vertical-align: top;
 }
 
-.table-row:first-child {
+.clinician-table thead th {
   border-top: 0;
-}
-
-.table-head {
   background: var(--panel-strong);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 850;
   text-transform: uppercase;
+}
+
+.clinician-table tbody th {
+  font-weight: 850;
 }
 
 .handoff-grid {
@@ -962,6 +1004,35 @@ blockquote {
   font-size: 0.82rem;
 }
 
+.model-provenance-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(72px, 1fr));
+  gap: 10px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.model-provenance-grid > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.model-provenance-grid span {
+  color: var(--muted);
+  font-size: 0.67rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.model-provenance-grid strong {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+
 .risk-dial {
   display: grid;
   place-items: center;
@@ -1004,6 +1075,29 @@ blockquote {
   background: #fbfdfd;
   border: 1px solid var(--line);
   font-weight: 800;
+}
+
+.model-support-status {
+  align-self: flex-start;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #f7faf9;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.model-support-status.supported {
+  border-color: #b8ddd0;
+  color: #17644f;
+  background: #eef9f4;
+}
+
+.model-support-status.abstained {
+  border-color: #e9c4b7;
+  color: #9a3f28;
+  background: #fff5f1;
 }
 
 .contribution-list {
@@ -2712,6 +2806,10 @@ blockquote {
     grid-template-columns: 1fr;
   }
 
+  .model-provenance-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .graph-command-strip {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
@@ -2770,6 +2868,10 @@ blockquote {
 }
 
 @media (max-width: 560px) {
+  .model-provenance-grid {
+    grid-template-columns: 1fr;
+  }
+
   .graph-header-actions {
     gap: 7px;
   }

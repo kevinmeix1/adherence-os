@@ -37,7 +37,6 @@ export const CarePlanSchema = z.object({
   clinicianSummary: z.string(),
   clinicianDraft: z.string(),
   signals: z.array(z.string()),
-  confidence: z.number().min(0).max(1),
   nextCheckInWindow: z.string(),
   ruleHits: z.array(z.string()),
   agentTrace: z.array(
@@ -59,7 +58,6 @@ export const CarePlanSchema = z.object({
   adherenceTwin: z.object({
     summary: z.string(),
     predictedFailurePoint: z.string(),
-    confidence: z.number().min(0).max(1),
     riskDrivers: z.array(
       z.object({
         label: z.string(),

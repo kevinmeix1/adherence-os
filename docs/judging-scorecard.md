@@ -6,17 +6,17 @@ Adherence OS helps patients through the hard middle of chronic care: side effect
 
 ## Innovation
 
-The product is not a chatbot. It is an agentic care workflow:
+The product is not a chatbot. It is an inspectable decision pipeline:
 
-1. Intake Agent structures the patient check-in.
-2. Trend Tool calculates longitudinal risk from home data.
-3. Risk Agent chooses coaching, watch, review, or urgent mode.
-4. Safety Guardrail blocks diagnosis and medication-change advice.
-5. Clinician Briefing Agent creates the async handoff.
+1. Check-in intake structures the patient report.
+2. Trend calculation derives longitudinal context from home data.
+3. Local edge ML estimates prospective adherence-interruption risk and exposes bootstrap spread.
+4. A training-support gate abstains before extrapolation.
+5. Deterministic safety rules choose coaching, review, or urgent handoff independently of ML.
 
-The Adherence Twin reframes monitoring as pre-emptive rescue: the system predicts the next likely dropout point and intervenes before the patient fails the programme.
+The Adherence Twin reframes monitoring as pre-emptive support: it shows the current risk drivers, the smallest bounded support assumption, and when safety rules require a human instead.
 
-The Model Lab adds a real ML spine: synthetic cohort generation, trained edge model, feature contributions, calibration, and explicit what-if score simulations.
+The Model Lab adds a real ML spine: prospective synthetic cohort generation, patient-isolated evaluation, 16 bootstrap members, exact feature contributions, support-aware abstention, and explicit what-if rescoring.
 
 ## Feasibility
 
@@ -31,6 +31,6 @@ Use two live paths:
 1. Normal check-in: mild nausea, medication taken, one supportive next action.
 2. Escalation check-in: missed medication, vomiting, low hydration, urgent handoff.
 
-The visible agent trace proves how the workflow changes mode.
+The visible decision trace shows how the workflow changes mode; it is not presented as autonomous agency.
 
 Use the unsafe medication-request demo to show the safety guardrail working live.

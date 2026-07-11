@@ -1,6 +1,6 @@
-import { evaluateCheckIn, getPatientInsights } from "./careEngine";
+import { DEMO_CHECK_INS, evaluateCheckIn, getPatientInsights } from "./careEngine";
 import { scorePatientRisk } from "./edgeModel";
-import type { CheckInInput, Patient, RiskLevel } from "./types";
+import type { CarePlan, CheckInInput, Patient, RiskLevel } from "./types";
 
 export type PatientDashboardRow = {
   patient: Patient;
@@ -12,6 +12,32 @@ export type PatientDashboardRow = {
   weightChangeKg: number;
   lastCheckInDate: string;
 };
+
+export type ClinicianDashboardRow = {
+  patient: Patient;
+  plan: CarePlan;
+  insights: ReturnType<typeof getPatientInsights>;
+};
+
+export function buildClinicianDashboardRows(
+  patients: Patient[],
+  selectedPatientId: string,
+  selectedPlan: CarePlan,
+  date: string
+): ClinicianDashboardRow[] {
+  return patients.map((patient) => ({
+    patient,
+    plan:
+      patient.id === selectedPatientId
+        ? selectedPlan
+        : evaluateCheckIn(patient, {
+            patientId: patient.id,
+            date,
+            ...DEMO_CHECK_INS.normal
+          }),
+    insights: getPatientInsights(patient)
+  }));
+}
 
 export function buildPatientDashboardRows(patients: Patient[]): PatientDashboardRow[] {
   return patients.map((patient) => {

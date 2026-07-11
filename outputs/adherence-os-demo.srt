@@ -1,0 +1,123 @@
+1
+00:00:00,250 --> 00:00:03,800
+Adherence OS is an AI decision layer for at-home GLP-1 care.
+
+2
+00:00:03,800 --> 00:00:15,400
+It predicts next week's adherence interruption, explains the active driver, compares one bounded support route, and uses independent deterministic rules to decide when AI must stop and a clinician must review.
+
+3
+00:00:16,321 --> 00:00:23,000
+Maya begins in coaching mode. Her synthetic eight-week history and today's check-in produce a five per cent next-week adherence-interruption estimate.
+
+4
+00:00:23,000 --> 00:00:27,200
+Recent adherence is one hundred per cent.
+
+5
+00:00:27,200 --> 00:00:34,600
+The evidence map surfaces appetite and energy drag, while the decision summary keeps one safe next move, a hydration nudge, visible beside the graph.
+
+6
+00:00:35,527 --> 00:00:40,200
+Switching to Attribution shows where each part of the route comes from.
+
+7
+00:00:40,200 --> 00:00:45,200
+Routine disruption accounts for thirty-two per cent of absolute local attribution.
+
+8
+00:00:45,200 --> 00:00:51,900
+Blue nodes represent model evidence, amber nodes are bounded simulations, red nodes are deterministic rules, and grey-green nodes are patient context.
+
+9
+00:00:52,897 --> 00:00:56,500
+Selecting Hydration nudge does not claim a treatment effect.
+
+10
+00:00:56,500 --> 00:01:03,400
+The app changes explicit feature assumptions, rescores the same monotonic model, and shows a two percentage-point scenario decrease.
+
+11
+00:01:03,400 --> 00:01:09,500
+It ranks the route only while both the observed and simulated vectors remain inside the synthetic training-support envelope.
+
+12
+00:01:10,429 --> 00:01:16,800
+In Escalation, Maya reports severe abdominal pain, vomiting, poor hydration, and lightheadedness.
+
+13
+00:01:16,800 --> 00:01:24,200
+The input moves outside synthetic support, so numeric model ranking abstains and every coaching route is suppressed.
+
+14
+00:01:24,200 --> 00:01:29,900
+Deterministic safety remains active, selects a cautious NHS 111 route, and prepares an urgent handoff draft.
+
+15
+00:01:30,866 --> 00:01:35,500
+The care queue opens on the selected review task.
+
+16
+00:01:35,500 --> 00:01:40,100
+It shows the trigger, an unassigned owner, and the explicit state: draft only, not sent.
+
+17
+00:01:40,100 --> 00:01:46,800
+Eight weeks of context, current red flags, the patient-facing draft, and the five-step audit trail are compressed for human review.
+
+18
+00:01:46,800 --> 00:01:49,900
+Nothing is diagnosed, assigned, or delivered automatically.
+
+19
+00:01:50,868 --> 00:01:56,000
+The patient workspace keeps input lightweight: a planned weekly dose, four symptom and wellbeing scores, mood, and short notes.
+
+20
+00:01:56,000 --> 00:02:02,300
+The deterministic plan updates immediately, then exposes a seven-day support plan and longitudinal context.
+
+21
+00:02:02,300 --> 00:02:09,900
+Field edits invalidate older in-flight requests so stale provider work cannot overwrite the visible decision.
+
+22
+00:02:10,895 --> 00:02:14,500
+Model evidence is inspectable, not hidden behind a chatbot.
+
+23
+00:02:14,500 --> 00:02:19,000
+The prospective target predicts the following week's planned adherence event.
+
+24
+00:02:19,000 --> 00:02:23,000
+Patients are isolated across train, validation, and test.
+
+25
+00:02:23,000 --> 00:02:32,300
+The browser loads a fourteen-feature logistic artifact with sixteen bootstrap members, exact log-odds decomposition, reliability bins, sensitivity checks, and support-aware abstention.
+
+26
+00:02:32,300 --> 00:02:36,900
+All metrics are synthetic pipeline evidence, not clinical validation.
+
+27
+00:02:38,077 --> 00:02:41,800
+This is why Adherence OS fits eMed.
+
+28
+00:02:41,800 --> 00:02:45,700
+Patient impact comes from one clear action before dropout.
+
+29
+00:02:45,700 --> 00:02:49,600
+Innovation comes from dual-track machine learning and safety.
+
+30
+00:02:49,600 --> 00:02:54,400
+Feasibility comes from local inference, typed data, keyless fallback, and asynchronous review.
+
+31
+00:02:54,400 --> 00:02:58,700
+The live story is simple: predict the interruption, explain the driver, and hand off before harm.

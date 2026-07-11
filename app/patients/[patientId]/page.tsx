@@ -1,11 +1,8 @@
 import { notFound } from "next/navigation";
 import { Activity, CalendarDays, Scale, ShieldCheck } from "lucide-react";
-import patientsData from "@/data/patients.json";
 import { buildPatientDashboardRows } from "@/app/lib/patientDashboard";
-import type { Patient } from "@/app/lib/types";
+import { patients } from "@/app/lib/patients";
 import { DirectorySection, PatientDirectoryHeader, PatientRiskBadge, PatientSummaryMetric } from "../components";
-
-const patients = patientsData as Patient[];
 
 export function generateStaticParams() {
   return patients.map((patient) => ({ patientId: patient.id }));
