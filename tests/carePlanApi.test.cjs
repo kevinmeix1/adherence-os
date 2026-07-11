@@ -66,6 +66,9 @@ test("care-plan API returns a disclosed deterministic fallback without an API ke
     assert.equal(payload.source, "rules-fallback");
     assert.equal(payload.fallbackReason, "openai-not-configured");
     assert.equal(payload.plan.riskLevel, "steady");
+    assert.equal(payload.meta.providerAttempted, false);
+    assert.ok(Number.isInteger(payload.meta.durationMs));
+    assert.ok(payload.meta.durationMs >= 0);
   } finally {
     if (originalApiKey) process.env.OPENAI_API_KEY = originalApiKey;
   }

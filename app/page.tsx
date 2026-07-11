@@ -17,7 +17,9 @@ import {
   Mic,
   MoreHorizontal,
   Network,
+  PenLine,
   Pill,
+  RotateCcw,
   Scale,
   Send,
   ShieldCheck,
@@ -28,15 +30,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import patientsData from "@/data/patients.json";
 import { DEMO_CHECK_INS, evaluateCheckIn, getPatientInsights, SAFETY_NOTICE } from "@/app/lib/careEngine";
 import { analyzeRiskSensitivity, explainRiskScore, getModelSampleRows, scorePatientRisk } from "@/app/lib/edgeModel";
 import { buildAdherenceKnowledgeGraph } from "@/app/lib/knowledgeGraph";
+import { patients } from "@/app/lib/patients";
 import type { AgentTraceStep, CarePlan, CarePlanResponse, CheckInInput, Patient, RiskLevel, WeeklySnapshot } from "@/app/lib/types";
 import type { EdgeRiskResult } from "@/app/lib/edgeModel";
 import type { AdherenceKnowledgeGraph, KnowledgeGraphNode } from "@/app/lib/knowledgeGraph";
 
-const patients = patientsData as Patient[];
 type View = "patient" | "clinician" | "model" | "graph" | "scorecard" | "scripts" | "safety";
 type GraphFocusMode = "decision" | "neighborhood" | "attribution" | "all";
 
@@ -55,7 +56,10 @@ export default function HomePage() {
   const [carePlan, setCarePlan] = useState<CarePlan>(() => evaluateCheckIn(selectedPatient, checkIn));
   const [source, setSource] = useState<CarePlanResponse["source"]>("rules-fallback");
   const [generationNotice, setGenerationNotice] = useState<string | null>(null);
+  const [carePlanAnnouncement, setCarePlanAnnouncement] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [graphResetVersion, setGraphResetVersion] = useState(0);
+  const requestVersionRef = useRef(0);
 
   const patientInsights = useMemo(() => getPatientInsights(selectedPatient), [selectedPatient]);
   const edgeRisk = useMemo(() => scorePatientRisk(selectedPatient, checkIn), [selectedPatient, checkIn]);
@@ -92,14 +96,17 @@ export default function HomePage() {
     setCarePlan(evaluateCheckIn(patient, nextCheckIn));
     setSource("rules-fallback");
     setGenerationNotice(null);
+    setCarePlanAnnouncement("");
   }
 
   function loadScenario(scenario: "normal" | "escalation") {
     const nextCheckIn = buildCheckIn(selectedPatient.id, scenario);
     setCheckIn(nextCheckIn);
-    setCarePlan(evaluateCheckIn(selectedPatient, nextCheckIn));
+    const nextPlan = evaluateCheckIn(selectedPatient, nextCheckIn);
+    setCarePlan(nextPlan);
     setSource("rules-fallback");
     setGenerationNotice(null);
+    setCarePlanAnnouncement(buildCarePlanAnnouncement(nextPlan));
   }
 
   function navigateTo(nextView: View) {
@@ -107,8 +114,33 @@ export default function HomePage() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
+  function resetDemo() {
+    const patient = patients[0];
+    const nextCheckIn = buildCheckIn(patient.id, "normal");
+    requestVersionRef.current += 1;
+    setSelectedPatientId(patient.id);
+    setCheckIn(nextCheckIn);
+    setCarePlan(evaluateCheckIn(patient, nextCheckIn));
+    setSource("rules-fallback");
+    setGenerationNotice(null);
+    setCarePlanAnnouncement("");
+    setIsLoading(false);
+    setView("graph");
+    setGraphResetVersion((version) => version + 1);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  function skipToWorkspace(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    const workspace = document.getElementById("main-workspace");
+    workspace?.focus({ preventScroll: true });
+    workspace?.scrollIntoView({ block: "start", behavior: "auto" });
+  }
+
   async function submitCheckIn() {
+    const requestVersion = ++requestVersionRef.current;
     setIsLoading(true);
+    setCarePlanAnnouncement("");
     try {
       const response = await fetch("/api/care-plan", {
         method: "POST",
@@ -118,23 +150,31 @@ export default function HomePage() {
 
       if (!response.ok) throw new Error("Care plan request failed");
       const payload = (await response.json()) as CarePlanResponse;
+      if (requestVersion !== requestVersionRef.current) return;
       setCarePlan(payload.plan);
       setSource(payload.source);
-      setGenerationNotice(getGenerationNotice(payload.fallbackReason));
+      setGenerationNotice(getGenerationNotice(payload.fallbackReason, payload.meta));
+      setCarePlanAnnouncement(buildCarePlanAnnouncement(payload.plan));
     } catch {
-      setCarePlan(evaluateCheckIn(selectedPatient, checkIn));
+      if (requestVersion !== requestVersionRef.current) return;
+      const fallbackPlan = evaluateCheckIn(selectedPatient, checkIn);
+      setCarePlan(fallbackPlan);
       setSource("rules-fallback");
       setGenerationNotice("Care-plan API unavailable. The deterministic local safety engine produced this result.");
+      setCarePlanAnnouncement(buildCarePlanAnnouncement(fallbackPlan));
     } finally {
-      setIsLoading(false);
+      if (requestVersion === requestVersionRef.current) setIsLoading(false);
     }
   }
 
   return (
     <main className={`app-shell product-shell ${view === "graph" ? "graph-first-shell" : ""}`}>
-      <ProductHeader view={view} patient={selectedPatient} onNavigate={navigateTo} />
+      <a className="skip-link" href="#main-workspace" onClick={skipToWorkspace}>
+        Skip to main content
+      </a>
+      <ProductHeader view={view} patient={selectedPatient} onNavigate={navigateTo} onReset={resetDemo} />
 
-      <section className="workspace product-workspace">
+      <section className="workspace product-workspace" id="main-workspace" tabIndex={-1}>
         {view !== "graph" && (
           <header className="topbar">
             <div>
@@ -160,6 +200,7 @@ export default function HomePage() {
             carePlan={carePlan}
             isLoading={isLoading}
             generationNotice={generationNotice}
+            carePlanAnnouncement={carePlanAnnouncement}
             onChange={setCheckIn}
             onScenario={loadScenario}
             onSubmit={submitCheckIn}
@@ -169,6 +210,7 @@ export default function HomePage() {
         {view === "model" && <ModelLabView patient={selectedPatient} checkIn={checkIn} edgeRisk={edgeRisk} />}
         {view === "graph" && (
           <KnowledgeGraphView
+            key={graphResetVersion}
             graph={knowledgeGraph}
             patient={selectedPatient}
             patients={patients}
@@ -219,11 +261,13 @@ function NavButton({
 function ProductHeader({
   view,
   patient,
-  onNavigate
+  onNavigate,
+  onReset
 }: {
   view: View;
   patient: Patient;
   onNavigate: (view: View) => void;
+  onReset: () => void;
 }) {
   const menuRef = useRef<HTMLDetailsElement>(null);
 
@@ -246,6 +290,11 @@ function ProductHeader({
   function navigateFromMenu(nextView: View) {
     closeMenu();
     onNavigate(nextView);
+  }
+
+  function resetFromHeader() {
+    closeMenu();
+    onReset();
   }
 
   return (
@@ -278,6 +327,9 @@ function ProductHeader({
           Synthetic demo
         </span>
         <span className="current-patient">{patient.name}</span>
+        <button className="demo-reset" aria-label="Reset demo" title="Reset demo" onClick={resetFromHeader}>
+          <RotateCcw size={17} />
+        </button>
         <details
           className="product-more"
           ref={menuRef}
@@ -319,6 +371,7 @@ function PatientView({
   carePlan,
   isLoading,
   generationNotice,
+  carePlanAnnouncement,
   onChange,
   onScenario,
   onSubmit
@@ -329,6 +382,7 @@ function PatientView({
   carePlan: CarePlan;
   isLoading: boolean;
   generationNotice: string | null;
+  carePlanAnnouncement: string;
   onChange: (input: CheckInInput) => void;
   onScenario: (scenario: "normal" | "escalation") => void;
   onSubmit: () => void;
@@ -360,6 +414,11 @@ function PatientView({
               <AlertTriangle size={17} />
               Escalation
             </button>
+            {checkIn.scenario === "custom" && (
+              <span className="scenario-custom-state" aria-label="Custom check-in">
+                <PenLine size={15} /> Custom
+              </span>
+            )}
           </div>
         </div>
 
@@ -445,11 +504,14 @@ function PatientView({
           {isLoading ? "Generating..." : "Generate care moment"}
         </button>
         {generationNotice && (
-          <div className="generation-notice" role="status">
+          <div className="generation-notice">
             <ShieldCheck size={17} />
             <span>{generationNotice}</span>
           </div>
         )}
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          {carePlanAnnouncement}
+        </p>
       </section>
 
       <section className="panel result-panel">
@@ -751,6 +813,24 @@ function ModelLabView({
             <strong>{artifact.constraints.method}</strong>
           </div>
           <small>{Object.keys(artifact.constraints.featureDirections).length} directional features</small>
+        </div>
+        <div className="model-provenance-grid" aria-label="Model artifact provenance">
+          <div>
+            <span>Version</span>
+            <strong>{artifact.version}</strong>
+          </div>
+          <div>
+            <span>Trained</span>
+            <strong>{artifact.trainedAt}</strong>
+          </div>
+          <div>
+            <span>Seed</span>
+            <strong>{artifact.cohort.generationSeed}</strong>
+          </div>
+          <div>
+            <span>Rows</span>
+            <strong>{artifact.metrics.samples.toLocaleString()}</strong>
+          </div>
         </div>
       </section>
 
@@ -2061,17 +2141,23 @@ function riskBand(value: number) {
   return "Low risk";
 }
 
-function getGenerationNotice(reason: CarePlanResponse["fallbackReason"]) {
+function getGenerationNotice(reason: CarePlanResponse["fallbackReason"], meta?: CarePlanResponse["meta"]) {
+  const timing = meta ? ` Decision completed in ${meta.durationMs} ms.` : "";
   if (reason === "openai-not-configured") {
-    return "OpenAI is not configured. The deterministic local safety engine produced this result.";
+    return `OpenAI is not configured. The deterministic local safety engine produced this result.${timing}`;
   }
   if (reason === "invalid-openai-output") {
-    return "OpenAI returned an invalid result. The deterministic local safety engine took over safely.";
+    return `OpenAI returned an invalid result. The deterministic local safety engine took over safely.${timing}`;
   }
   if (reason === "openai-error") {
-    return "OpenAI was unavailable. The deterministic local safety engine took over safely.";
+    return `OpenAI was unavailable. The deterministic local safety engine took over safely.${timing}`;
   }
-  return null;
+  return meta?.providerAttempted ? `OpenAI structured output passed deterministic safety checks in ${meta.durationMs} ms.` : null;
+}
+
+function buildCarePlanAnnouncement(plan: CarePlan) {
+  const nextStep = plan.escalation.needed ? "A clinician handoff is required." : "Coaching can continue.";
+  return `Care moment updated. ${plan.headline} Risk level: ${riskLabels[plan.riskLevel]}. ${nextStep}`;
 }
 
 function getGraphNodePosition(node: KnowledgeGraphNode, index: number) {

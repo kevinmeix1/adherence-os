@@ -1,4 +1,6 @@
+import argparse
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +13,8 @@ TRAIN_RATIO = 0.78
 L2 = 0.018
 LR = 0.18
 EPOCHS = 1800
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_OUTPUT = PROJECT_ROOT / "data" / "adherence-model.json"
 
 
 FEATURES = [
@@ -295,15 +299,81 @@ def train_model(rows):
     }
 
 
+def compare_reproduction(expected, actual, path="modelData", errors=None):
+    if errors is None:
+        errors = []
+
+    if type(expected) is not type(actual):
+        errors.append(f"{path}: expected {type(expected).__name__}, got {type(actual).__name__}")
+        return errors
+
+    if isinstance(expected, dict):
+        if expected.keys() != actual.keys():
+            missing = sorted(expected.keys() - actual.keys())
+            extra = sorted(actual.keys() - expected.keys())
+            errors.append(f"{path}: key mismatch (missing={missing}, extra={extra})")
+            return errors
+        for key in expected:
+            compare_reproduction(expected[key], actual[key], f"{path}.{key}", errors)
+    elif isinstance(expected, list):
+        if len(expected) != len(actual):
+            errors.append(f"{path}: expected {len(expected)} items, got {len(actual)}")
+            return errors
+        for index, (expected_item, actual_item) in enumerate(zip(expected, actual)):
+            compare_reproduction(expected_item, actual_item, f"{path}[{index}]", errors)
+    elif isinstance(expected, float):
+        tolerance = 1e-9 if path.startswith("modelData.sampleRows") else 1e-6
+        if not math.isclose(expected, actual, rel_tol=tolerance, abs_tol=tolerance):
+            errors.append(f"{path}: expected {expected}, got {actual}")
+    elif expected != actual:
+        errors.append(f"{path}: expected {expected!r}, got {actual!r}")
+
+    return errors
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Train the deterministic synthetic adherence model.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Retrain in memory and fail if the checked-in artifact has drifted.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT,
+        help="Artifact path to write or compare (defaults to data/adherence-model.json).",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     rows = make_synthetic_cohort()
     artifact = train_model(rows)
     sample_rows = [{key: float(value) if isinstance(value, np.floating) else int(value) if isinstance(value, np.integer) else value for key, value in row.items()} for row in rows[:16]]
     output = {"artifact": artifact, "sampleRows": sample_rows}
-    path = Path("data/adherence-model.json")
-    path.write_text(json.dumps(output, indent=2), encoding="utf-8")
+
+    if args.check:
+        if not args.output.exists():
+            raise SystemExit(f"model check failed: {args.output} does not exist")
+        expected = json.loads(args.output.read_text(encoding="utf-8"))
+        errors = compare_reproduction(expected, output)
+        if errors:
+            details = "\n".join(f"- {error}" for error in errors[:12])
+            remaining = len(errors) - 12
+            suffix = f"\n- ...and {remaining} more differences" if remaining > 0 else ""
+            raise SystemExit(f"model check failed with {len(errors)} difference(s):\n{details}{suffix}")
+        print(
+            f"model check passed | version={artifact['version']} "
+            f"auc={artifact['metrics']['testAuc']} brier={artifact['metrics']['testBrier']}"
+        )
+        return
+
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(output, indent=2), encoding="utf-8")
     print(
-        f"wrote {path} | auc={artifact['metrics']['testAuc']} "
+        f"wrote {args.output} | auc={artifact['metrics']['testAuc']} "
         f"brier={artifact['metrics']['testBrier']} samples={artifact['metrics']['samples']}"
     )
 

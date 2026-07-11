@@ -1,60 +1,6 @@
-import modelData from "@/data/adherence-model.json";
 import { getPatientInsights } from "./careEngine";
+import { adherenceModelData, type ModelArtifact } from "./modelArtifact";
 import type { CheckInInput, Patient } from "./types";
-
-type ModelFeature = {
-  name: string;
-  label: string;
-  mean: number;
-  std: number;
-  weight: number;
-};
-
-type ModelArtifact = {
-  version: string;
-  modelType: string;
-  target: string;
-  trainedAt: string;
-  cohort: {
-    patients: number;
-    weeksPerPatient: number;
-    rows: number;
-    generationSeed: number;
-    description: string;
-  };
-  features: ModelFeature[];
-  intercept: number;
-  constraints: {
-    method: string;
-    featureDirections: Record<string, "increases risk" | "decreases risk">;
-  };
-  metrics: {
-    samples: number;
-    patients: number;
-    trainPatients: number;
-    testPatients: number;
-    positiveRate: number;
-    testAuc: number;
-    testBrier: number;
-    threshold: number;
-    precisionAtThreshold: number;
-    recallAtThreshold: number;
-    confusionMatrix: { tp: number; fp: number; fn: number; tn: number };
-    calibration: Array<{ bin: string; count: number; predicted: number; observed: number }>;
-  };
-  modelCard: {
-    intendedUse: string;
-    notFor: string;
-    edgeInference: string;
-    explainability: string;
-    limitations: string[];
-  };
-};
-
-type ModelData = {
-  artifact: ModelArtifact;
-  sampleRows: Array<Record<string, number>>;
-};
 
 export type FeatureContribution = {
   name: string;
@@ -128,18 +74,16 @@ export type EdgeRiskResult = {
   interventions: InterventionSimulation[];
 };
 
-const typedModelData = modelData as ModelData;
-
 export function getModelArtifact() {
-  return typedModelData.artifact;
+  return adherenceModelData.artifact;
 }
 
 export function getModelSampleRows() {
-  return typedModelData.sampleRows;
+  return adherenceModelData.sampleRows;
 }
 
 export function scorePatientRisk(patient: Patient, checkIn: CheckInInput): EdgeRiskResult {
-  const artifact = typedModelData.artifact;
+  const artifact = adherenceModelData.artifact;
   const features = extractFeatures(patient, checkIn);
   const baseScore = scoreFeatures(features, artifact);
   const contributions = artifact.features

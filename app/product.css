@@ -1,3 +1,4 @@
+/* Product shell, graph-first workspace, and routed directory; loaded after globals.css. */
 :root {
   --product-canvas: #f3f5f2;
   --product-surface: #ffffff;
@@ -13,6 +14,26 @@
 
 body {
   background: var(--product-canvas);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 10px;
+  left: 12px;
+  padding: 9px 12px;
+  border: 2px solid var(--product-ink);
+  border-radius: 6px;
+  background: white;
+  color: var(--product-ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 16px));
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 .product-shell,
@@ -151,6 +172,7 @@ body {
   position: relative;
 }
 
+.demo-reset,
 .product-more summary {
   display: grid;
   place-items: center;
@@ -162,6 +184,18 @@ body {
   color: var(--product-muted);
   cursor: pointer;
   list-style: none;
+}
+
+.demo-reset {
+  flex: 0 0 34px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.demo-reset:hover,
+.demo-reset:focus-visible {
+  color: var(--product-ink);
+  background: #edf1ef;
 }
 
 .product-more summary::-webkit-details-marker {
@@ -214,6 +248,7 @@ body {
   margin: 0 auto;
   padding: clamp(18px, 2.2vw, 34px) clamp(18px, 3vw, 44px) 64px;
   overflow-anchor: none;
+  scroll-margin-top: 72px;
 }
 
 .decision-page {
@@ -1929,6 +1964,7 @@ body {
 }
 
 .directory-row {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(230px, 1.25fr) 0.55fr 0.7fr 0.55fr minmax(250px, 1.45fr) 22px;
   gap: 14px;
@@ -1946,6 +1982,11 @@ body {
 
 .directory-row:not(.directory-row-head):hover {
   background: #f6f9f7;
+}
+
+.directory-row:not(.directory-row-head):focus-within {
+  outline: 2px solid var(--product-mint-strong);
+  outline-offset: -2px;
 }
 
 .directory-row-head {
@@ -1999,6 +2040,34 @@ body {
   line-height: 1.35;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.directory-risk-cell,
+.directory-row-action-cell {
+  min-width: 0;
+}
+
+.directory-row-action-cell,
+.directory-row-action {
+  display: grid;
+  place-items: center;
+}
+
+.directory-row-action {
+  width: 28px;
+  height: 28px;
+  color: var(--product-muted);
+}
+
+.directory-row-action::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.directory-row-action svg {
+  position: relative;
+  z-index: 1;
 }
 
 .directory-risk {
@@ -2416,9 +2485,10 @@ body {
     margin-left: 48px;
   }
 
-  .directory-row > svg {
+  .directory-row > span.directory-row-action-cell {
     grid-column: 2;
     grid-row: 1;
+    margin-left: 0;
   }
 
   .directory-next-action {

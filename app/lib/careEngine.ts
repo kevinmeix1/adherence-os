@@ -44,13 +44,13 @@ export const DEMO_CHECK_INS: Record<"normal" | "escalation", Omit<CheckInInput, 
 };
 
 const redFlagPatterns = [
-  { label: "chest pain", pattern: /chest pain|tight chest|pressure in my chest/i },
-  { label: "breathlessness", pattern: /short of breath|breathless|cannot breathe|can't breathe/i },
-  { label: "fainting or severe dizziness", pattern: /faint|fainted|blackout|lightheaded/i },
-  { label: "severe abdominal pain", pattern: /severe stomach pain|severe abdominal pain|worse stomach pain|stomach pain is getting worse/i },
-  { label: "unable to keep fluids down", pattern: /keep fluids down|cannot keep water down|can't keep water down|vomiting/i },
-  { label: "pregnancy concern", pattern: /pregnant|positive pregnancy test|missed period/i },
-  { label: "self-harm language", pattern: /self harm|hurt myself|suicidal|end my life/i }
+  { label: "chest pain", pattern: /\b(?:chest pain|tight chest|tightness (?:in|across) (?:my|the) chest|pressure (?:in|on) (?:my|the) chest)\b/i },
+  { label: "breathlessness", pattern: /\b(?:short of breath|breathless|cannot breathe|can't breathe|difficulty breathing|struggling to breathe)\b/i },
+  { label: "fainting or severe dizziness", pattern: /\b(?:fainted|fainting|feel(?:ing)? faint|felt faint|nearly fainted|almost fainted|passed out|black(?:ed|ing)? out|blackout|lightheaded|severely dizzy|severe dizziness)\b/i },
+  { label: "severe abdominal pain", pattern: /\b(?:(?:severe|persistent|worsening) (?:stomach|abdominal|tummy) pain|(?:stomach|abdominal|tummy) pain (?:is )?(?:getting worse|worsening|won't go away|will not go away|radiat(?:es|ing) to (?:my|the) back))\b/i },
+  { label: "unable to keep fluids down", pattern: /\b(?:(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to) keep (?:fluids|water|anything) down|vomit(?:ing|ed|s)?)\b/i },
+  { label: "pregnancy concern", pattern: /\b(?:pregnant|positive pregnancy test|missed (?:my )?period)\b/i },
+  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal|end my life)\b/i }
 ];
 
 const unsafeMedicationPatterns = [
@@ -99,7 +99,7 @@ export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan
   const insights = getPatientInsights(patient);
   const text = `${input.sideEffects} ${input.biomarkerNote} ${input.freeText}`;
   const redFlags = redFlagPatterns
-    .filter((flag) => flag.pattern.test(text))
+    .filter((flag) => hasNonNegatedMatch(text, flag.pattern))
     .map((flag) => flag.label);
   const ruleHits: string[] = [];
 
@@ -136,6 +136,24 @@ export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan
     rescuePlan: buildRescuePlan(patient, input, insights, riskLevel, redFlags),
     unsafeRequestDemo: buildUnsafeRequestDemo(patient)
   };
+}
+
+function hasNonNegatedMatch(text: string, pattern: RegExp) {
+  const matcher = new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`);
+  let match = matcher.exec(text);
+
+  while (match) {
+    if (!isNegated(text, match.index)) return true;
+    match = matcher.exec(text);
+  }
+
+  return false;
+}
+
+function isNegated(text: string, matchIndex: number) {
+  const prefix = text.slice(Math.max(0, matchIndex - 100), matchIndex);
+  const clause = prefix.split(/[.!?;\n]|\b(?:but|however|although)\b/i).at(-1) ?? prefix;
+  return /\b(?:no|not|never|without|deny|denies|denied|negative for)\b(?:[\s,:-]+[\w'-]+){0,8}[\s,:-]*$/i.test(clause);
 }
 
 export function applySafetyOverrides(

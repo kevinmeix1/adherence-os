@@ -2,13 +2,20 @@
   "name": "emed-adherence-os",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11 <12"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:bundle": "node scripts/check-bundle-budget.mjs",
     "start": "next start",
     "smoke": "node scripts/smoke.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --require ./tests/register-typescript.cjs --test tests/*.test.cjs",
+    "check:model": "python3 scripts/train_adherence_model.py --check",
     "train:model": "python3 scripts/train_adherence_model.py"
   },
   "dependencies": {

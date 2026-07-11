@@ -146,4 +146,8 @@ export type CarePlanResponse = {
   source: "openai" | "rules-fallback";
   fallbackReason?: "openai-not-configured" | "openai-error" | "invalid-openai-output";
   plan: CarePlan;
+  meta?: {
+    providerAttempted: boolean;
+    durationMs: number;
+  };
 };
