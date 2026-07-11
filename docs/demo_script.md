@@ -24,7 +24,7 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 ## 5. Product Workflow
 
 1. Structure a 60-second home check-in.
-2. Score seven-day adherence-failure risk locally with a monotonic model.
+2. Score next-week adherence-interruption risk locally with a monotonic model.
 3. Build a patient-specific evidence graph from longitudinal and current signals.
 4. Identify and explain the most connected active risk driver.
 5. Rescore explicit, bounded support assumptions and rank the routes.
@@ -71,13 +71,13 @@ Point to the headline and four metrics.
 
 Say:
 
-> Maya is on track today. The edge model estimates low next-week adherence-interruption risk, recent adherence is strong, and the evidence map identifies routine disruption as the smallest loop to interrupt.
+> Maya is on track today. The edge model estimates low next-week adherence-interruption risk, and the evidence map surfaces appetite and energy drag as the active driver. Attribution shows that routine disruption carries the largest structured share, while hydration is the smallest supported route to try.
 
 Do not open every panel. Keep the audience on the decision.
 
 ### 0:55-1:30 — Explain The Intelligence
 
-Click **Attribution**, then click **Routine disruption** and **Reminder anchor**.
+Click **Attribution**, then click **Routine disruption** and **Hydration nudge**.
 
 Say:
 
@@ -91,21 +91,21 @@ Click **Escalation**.
 
 Say:
 
-> Now Maya reports vomiting, worsening pain, poor hydration, and lightheadedness. The adherence model still shows its score, but it no longer controls the action. Simulations are suppressed, every coaching route is blocked, and deterministic safety activates a clinician handoff.
+> Now Maya reports vomiting, worsening pain, poor hydration, and lightheadedness. The input is outside synthetic model support, so numeric ranking abstains. Every coaching route is blocked, and deterministic safety prepares an urgent handoff draft.
 
-Point to **Suppressed**, **Handoff**, and the red route.
+Point to **Abstained**, **Suppressed**, **Handoff draft**, and the red route.
 
 ### 2:15-2:40 — Show Scalable Oversight
 
-Click **Review handoff**.
+Click **Review handoff draft**.
 
 Say:
 
-> The care team receives the longitudinal context, current red flags, a safe draft response, and the audit trail without needing another real-time appointment to assemble the case.
+> The selected review task opens with longitudinal context, current red flags, ownership and delivery state, a safe draft response, and the audit trail. The prototype is explicit that nothing has been sent.
 
 ### 2:40-3:00 — Establish Credibility And Close
 
-Optionally click **Model lab** only if the audience wants technical depth.
+Optionally click **Model evidence** only if the audience wants technical depth.
 
 Say:
 
@@ -113,7 +113,7 @@ Say:
 
 ## 10. Thirty-Second Backup Pitch
 
-> Adherence OS helps eMed manage the weeks between appointments. A local model predicts near-term adherence failure, an evidence graph explains the active driver, and bounded simulations compare small support actions. Independent red-flag rules can suppress every AI suggestion and hand the patient to a clinician. It works with synthetic data and without an API key, so the demo is reliable and the safety boundary is visible.
+> Adherence OS helps eMed manage the weeks between appointments. A local model estimates next-week adherence interruption, an evidence map exposes the active driver, and supported scenarios compare small actions without claiming treatment effects. Independent red-flag rules can suppress every coaching route and prepare a clinician-review draft. It works with synthetic data and without an API key, so the demo is reliable and the safety boundary is visible.
 
 ## 11. Fallback Plan If The Live Demo Fails
 
@@ -131,13 +131,13 @@ Use **Maya Patel** for both paths.
 
 ### Coaching Seed
 
-- Medication taken
+- Planned weekly dose recorded
 - Nausea 3/10
 - Hydration 7/10
 - Strong recent adherence
-- Routine disruption remains the active preventable driver
+- Appetite and energy drag is the active graph driver; routine disruption has the largest structured attribution share
 
-Expected result: coaching allowed, Reminder anchor selected, no escalation.
+Expected result: coaching allowed, Hydration nudge selected, no escalation.
 
 ### Escalation Seed
 
@@ -155,8 +155,8 @@ Expected result: urgent clinical attention, simulations suppressed, safety guard
 2. `/` Live twin Attribution focus.
 3. `/` Live twin after Escalation.
 4. `/` Care queue with Maya selected.
-5. `/` Patient app Generate loading and fallback notice.
-6. `/` Model lab sensitivity and exact decomposition.
+5. `/` Patient app Review care plan loading and fallback notice.
+6. `/` Model evidence sensitivity and exact decomposition.
 7. `/patients` synthetic patient overview.
 8. `/patients/maya-patel` routed patient record.
 9. `/api/health` readiness response.
@@ -168,12 +168,12 @@ Expected result: urgent clinical attention, simulations suppressed, safety guard
 - Never call synthetic metrics clinical validation.
 - Never imply that Adherence OS diagnoses or changes medication.
 - Keep the graph explanation to one driver, one route, and one safety override.
-- Model lab is technical proof, not the main story.
+- Model evidence is technical proof, not the main story.
 
 ## Keyboard Rehearsal Checklist
 
 1. Reload and press `Tab` once. **Skip to main content** must appear; `Enter` must focus the workspace.
-2. Tab through **Live twin**, **Patient app**, **Care queue**, and **Model lab**; focus must remain visible and `Enter` must switch views.
+2. Tab through **Live twin**, **Patient app**, and **Care queue**; focus must remain visible and `Enter` must switch views. Open **Model evidence** from the decision summary.
 3. In **Patient app**, activate Normal/Escalation, change one slider with arrow keys, and confirm **Custom** appears after the edit.
 4. Open prototype resources with `Enter`, press `Escape`, and confirm focus returns to the resources summary.
 5. In **Live twin**, activate graph focus modes with `Enter`, then reach graph nodes and use both `Enter` and `Space` to update the inspector.

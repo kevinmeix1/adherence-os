@@ -2,9 +2,9 @@
 
 AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health with eMed hackathon.
 
-![Adherence OS Live twin showing Maya Patel's explainable adherence-risk graph](public/adherence-os-live-twin.jpg)
+![Adherence OS evidence map showing Maya Patel's adherence risk, safe next move, and decision graph](public/adherence-os-live-twin.jpg)
 
-*Live twin connects synthetic home signals, local ML attribution, bounded support routes, and an independent safety boundary in one decision view.*
+*The decision view connects synthetic home signals, local ML attribution, a bounded support scenario, and an independent safety boundary without hiding the next action below the graph.*
 
 ## What It Shows
 
@@ -50,19 +50,21 @@ After `pnpm build`, `pnpm check:bundle` enforces a 155 kB gzip budget for home f
 
 ## Demo Assets
 
-- [2:54 narrated video walkthrough](outputs/adherence-os-demo.mp4)
+- [2:59 narrated and captioned video walkthrough](outputs/adherence-os-demo.mp4)
+- [English subtitle track](outputs/adherence-os-demo.srt)
 - [10-slide presentation deck](outputs/adherence-os-demo.pptx)
+- [Screenshot-led product walkthrough](docs/product-walkthrough.md)
 
 ## Two-Minute Judge Path
 
 1. Open `/`. **Live twin** starts on synthetic patient Maya Patel in **Coaching** mode.
 2. Read the decision headline and operating metrics, then click **Attribution**.
-3. Click **Routine disruption**, then **Reminder anchor**, to show the evidence source and bounded support route.
+3. Click **Routine disruption**, then **Hydration nudge**, to show the evidence source and bounded support route.
 4. Click **Escalation**. Point out **Suppressed**, **Blocked by safety**, and the red route to **Clinician handoff**.
-5. Click **Review handoff** to show the care-team summary and deterministic audit trail.
-6. Open **Model lab** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, support-aware abstention, or artifact provenance.
+5. Click **Review handoff draft** to land directly on the selected review task, delivery state, and deterministic audit trail.
+6. Open **Model evidence** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, support-aware abstention, or artifact provenance.
 
-The core story is one driver, one bounded intervention, and one visible safety override. Do not describe graph routes as causal or synthetic metrics as clinical validation.
+The core story is one driver, one bounded scenario, one visible model abstention, and one safety override. Do not describe graph routes as causal or synthetic metrics as clinical validation.
 
 ## Optional OpenAI Mode
 
@@ -131,9 +133,10 @@ That is the recommended keyless demo mode, not an error. The complete determinis
 
 ## Product and Technical Notes
 
+- [Screenshot-led product walkthrough](docs/product-walkthrough.md)
 - [Project audit](docs/project_audit.md)
 - [Improvement backlog](docs/improvement_backlog.md)
-- [Architecture](docs/architecture.md)
+- [Architecture and study guide](docs/architecture.md)
 - [Deployment runbook](docs/deployment.md)
 - [Design references](docs/design-references.md)
 - [Three-minute demo script](docs/demo_script.md)

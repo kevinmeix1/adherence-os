@@ -48,7 +48,9 @@ test("normal check-in stays in coaching mode with no escalation", () => {
   assert.equal(plan.agentTrace.length, 5);
   assert.equal(plan.rescuePlan.length, 7);
   assert.equal(plan.unsafeRequestDemo.blocked, true);
-  assert.match(plan.patientAction, /routine|reminder|log/i);
+  assert.match(plan.patientAction, /routine/i);
+  assert.match(plan.patientAction, /fluid/i);
+  assert.match(plan.patientAction, /log/i);
 });
 
 test("escalation check-in routes red flags to urgent clinical review", () => {
@@ -57,7 +59,10 @@ test("escalation check-in routes red flags to urgent clinical review", () => {
   assert.equal(plan.riskLevel, "urgent");
   assert.equal(plan.escalation.needed, true);
   assert.equal(plan.escalation.urgency, "urgent");
-  assert.match(plan.patientAction, /clinical team|urgent medical help/i);
+  assert.match(plan.patientAction, /NHS 111|999|A&E/i);
+  assert.equal(plan.nextCheckInWindow, "Now");
+  assert.equal(plan.rescuePlan.length, 1);
+  assert.equal(plan.rescuePlan[0].patientMicroAction, plan.patientAction);
   assert.ok(
     plan.ruleHits.some((hit) => hit.startsWith("red flag:")),
     "expected at least one red-flag rule hit"
@@ -86,7 +91,6 @@ test("post-generation merge keeps every care-plan field deterministic", () => {
     clinicianSummary: "Provider summary",
     clinicianDraft: "Provider draft",
     signals: ["Provider signal"],
-    confidence: 0.01,
     nextCheckInWindow: "Provider window",
     ruleHits: [],
     agentTrace: [],
@@ -99,7 +103,6 @@ test("post-generation merge keeps every care-plan field deterministic", () => {
     adherenceTwin: {
       summary: "Provider twin",
       predictedFailurePoint: "Provider prediction",
-      confidence: 0.01,
       riskDrivers: [],
       protectiveFactors: []
     },
@@ -172,14 +175,16 @@ test("nausea boundaries enter watch mode without forcing clinical review", () =>
   for (const expected of cases) {
     const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ nauseaScore: expected.nauseaScore }));
     assert.equal(plan.riskLevel, expected.riskLevel, `nausea ${expected.nauseaScore}/10`);
+    assert.equal(plan.escalation.needed, false, `nausea ${expected.nauseaScore}/10`);
+    assert.equal(plan.escalation.urgency, "none", `nausea ${expected.nauseaScore}/10`);
   }
 });
 
 test("missed medication plus nausea crosses the same-day review boundary at six", () => {
   const cases = [
-    { nauseaScore: 5, riskLevel: "watch", urgency: "routine_async" },
-    { nauseaScore: 6, riskLevel: "review", urgency: "same_day" },
-    { nauseaScore: 7, riskLevel: "review", urgency: "same_day" }
+    { nauseaScore: 5, riskLevel: "watch", urgency: "none", needed: false },
+    { nauseaScore: 6, riskLevel: "review", urgency: "same_day", needed: true },
+    { nauseaScore: 7, riskLevel: "review", urgency: "same_day", needed: true }
   ];
 
   for (const expected of cases) {
@@ -189,6 +194,7 @@ test("missed medication plus nausea crosses the same-day review boundary at six"
     );
     assert.equal(plan.riskLevel, expected.riskLevel, `missed medication with nausea ${expected.nauseaScore}/10`);
     assert.equal(plan.escalation.urgency, expected.urgency, `missed medication with nausea ${expected.nauseaScore}/10`);
+    assert.equal(plan.escalation.needed, expected.needed, `missed medication with nausea ${expected.nauseaScore}/10`);
   }
 });
 
@@ -201,6 +207,35 @@ test("high-nausea evidence activates at seven without changing the review bounda
       `high-nausea evidence at ${nauseaScore}/10`
     );
   }
+});
+
+test("watch stays in coaching while review creates only a pending same-day draft", () => {
+  const watchPlan = evaluateCheckIn(patient, buildBoundaryCheckIn({ nauseaScore: 5 }));
+  const reviewPlan = evaluateCheckIn(patient, buildBoundaryCheckIn({ hydrationScore: 2 }));
+
+  assert.equal(watchPlan.riskLevel, "watch");
+  assert.equal(watchPlan.escalation.needed, false);
+  assert.equal(watchPlan.escalation.urgency, "none");
+  assert.match(watchPlan.escalation.channel, /no active handoff/i);
+
+  assert.equal(reviewPlan.riskLevel, "review");
+  assert.equal(reviewPlan.escalation.needed, true);
+  assert.equal(reviewPlan.escalation.urgency, "same_day");
+  assert.match(reviewPlan.escalation.channel, /draft.*pending/i);
+  assert.match(reviewPlan.patientAction, /draft.*pending/i);
+  assert.match(reviewPlan.clinicianDraft, /draft pending/i);
+
+  const planText = JSON.stringify([
+    evaluateCheckIn(patient, buildCheckIn("normal")),
+    watchPlan,
+    reviewPlan,
+    evaluateCheckIn(patient, buildCheckIn("escalation"))
+  ]);
+  assert.doesNotMatch(
+    planText,
+    /\b(?:send|sent|delivered|receives?|routed|created|queued?)\b/i,
+    "care plans must describe drafts and pending review, not transport"
+  );
 });
 
 test("latest and two-week adherence enter watch mode only below 85 percent", () => {
@@ -241,6 +276,99 @@ test("common red-flag phrases trigger urgent handoff", () => {
     assert.equal(plan.escalation.urgency, "urgent", label);
     assert.ok(plan.ruleHits.includes(`red flag: ${label}`), label);
   }
+});
+
+test("adversarial active phrases select destination-specific urgent routes", () => {
+  const cases = [
+    {
+      freeText: "I have not been able to keep fluids down.",
+      labels: ["unable to keep fluids down"],
+      destination: /call NHS 111/i
+    },
+    {
+      freeText: "No idea why I have chest pain.",
+      labels: ["chest pain"],
+      destination: /call 999/i
+    },
+    {
+      freeText: "I am struggling to breathe.",
+      labels: ["breathlessness"],
+      destination: /call 999/i
+    },
+    {
+      freeText: "I want to kill myself.",
+      labels: ["immediate self-harm language"],
+      destination: /call 999|go to A&E/i
+    },
+    {
+      freeText: "I am throwing up.",
+      labels: ["unable to keep fluids down"],
+      destination: /call NHS 111/i
+    },
+    {
+      freeText: "I have severe persistent abdominal pain and I am throwing up.",
+      labels: ["severe abdominal pain", "unable to keep fluids down"],
+      destination: /call NHS 111/i
+    }
+  ];
+
+  for (const { freeText, labels, destination } of cases) {
+    const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ freeText }));
+
+    assert.equal(plan.riskLevel, "urgent", freeText);
+    assert.equal(plan.escalation.needed, true, freeText);
+    assert.equal(plan.escalation.urgency, "urgent", freeText);
+    assert.match(plan.escalation.channel, destination, freeText);
+    assert.match(plan.patientAction, destination, freeText);
+    assert.equal(plan.nextCheckInWindow, "Now", freeText);
+    assert.equal(plan.rescuePlan.length, 1, freeText);
+    assert.equal(plan.rescuePlan[0].label, "Immediate safety action", freeText);
+    assert.equal(plan.rescuePlan[0].patientMicroAction, plan.patientAction, freeText);
+    assert.ok(
+      plan.adherenceTwin.riskDrivers.every((driver) => /coaching routes are suppressed/i.test(driver.rescueMove)),
+      freeText
+    );
+    for (const label of labels) {
+      assert.ok(plan.ruleHits.includes(`red flag: ${label}`), `${label}: ${freeText}`);
+    }
+  }
+});
+
+test("negation in one check-in field cannot hide a red flag in another field", () => {
+  const plan = evaluateCheckIn(
+    patient,
+    buildBoundaryCheckIn({
+      sideEffects: "No nausea",
+      freeText: "I have chest pain now"
+    })
+  );
+
+  assert.equal(plan.riskLevel, "urgent");
+  assert.ok(plan.ruleHits.includes("red flag: chest pain"));
+  assert.match(plan.escalation.channel, /call 999/i);
+});
+
+test("explicitly resolved historical vomiting stays out of urgent mode", () => {
+  const resolvedPhrases = [
+    "I vomited once last week but I am fine now.",
+    "Last week I was vomiting, but I feel better now.",
+    "I threw up yesterday; however I am well now."
+  ];
+
+  for (const freeText of resolvedPhrases) {
+    const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ freeText }));
+    assert.equal(plan.riskLevel, "steady", freeText);
+    assert.equal(plan.ruleHits.some((hit) => hit.startsWith("red flag:")), false, freeText);
+  }
+
+  const currentAgain = evaluateCheckIn(
+    patient,
+    buildBoundaryCheckIn({
+      freeText: "I vomited once last week but I am fine now. I am throwing up again today."
+    })
+  );
+  assert.equal(currentAgain.riskLevel, "urgent");
+  assert.ok(currentAgain.ruleHits.includes("red flag: unable to keep fluids down"));
 });
 
 test("severe abdominal and fluid-intolerance paraphrases trigger urgent handoff", () => {

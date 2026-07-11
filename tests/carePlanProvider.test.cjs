@@ -49,7 +49,8 @@ test("provider timeout or exception returns a complete deterministic fallback", 
   assert.equal(resolution.payload.fallbackReason, "openai-error");
   assert.equal(resolution.payload.plan.riskLevel, "urgent");
   assert.equal(resolution.payload.plan.escalation.urgency, "urgent");
-  assert.equal(resolution.payload.plan.rescuePlan.length, 7);
+  assert.equal(resolution.payload.plan.rescuePlan.length, 1);
+  assert.match(resolution.payload.plan.rescuePlan[0].label, /urgent|safety|review/i);
 });
 
 test("provider output still passes through deterministic medication guardrails", async () => {
@@ -67,7 +68,7 @@ test("provider output still passes through deterministic medication guardrails",
   });
   const guardedText = `${resolution.payload.plan.patientAction} ${resolution.payload.plan.explanation} ${resolution.payload.plan.clinicianDraft}`;
 
-  assert.equal(resolution.payload.source, "openai");
+  assert.equal(resolution.payload.source, "deterministic-rules");
   assert.doesNotMatch(guardedText, /double|stop taking|increase dose|diagnos/i);
   assert.ok(
     resolution.payload.plan.ruleHits.includes("guardrail removed unsafe medication or diagnosis language"),

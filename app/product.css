@@ -111,7 +111,7 @@ body {
   min-height: 38px;
   padding: 8px 11px;
   border-radius: 7px;
-  color: #737d7a;
+  color: #5f6966;
   font-size: 0.82rem;
   font-weight: 780;
   white-space: nowrap;
@@ -246,21 +246,21 @@ body {
   width: 100%;
   max-width: 1580px;
   margin: 0 auto;
-  padding: clamp(18px, 2.2vw, 34px) clamp(18px, 3vw, 44px) 64px;
+  padding: clamp(14px, 1.7vw, 26px) clamp(18px, 3vw, 44px) 64px;
   overflow-anchor: none;
   scroll-margin-top: 72px;
 }
 
 .decision-page {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .decision-intro {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(400px, auto);
-  align-items: end;
-  gap: 28px;
+  align-items: center;
+  gap: 22px;
 }
 
 .decision-copy {
@@ -281,16 +281,16 @@ body {
 .decision-copy h1 {
   max-width: 920px;
   margin: 0;
-  font-size: clamp(2.15rem, 3.4vw, 4rem);
-  line-height: 0.98;
+  font-size: clamp(1.9rem, 2.7vw, 3.25rem);
+  line-height: 1.02;
   letter-spacing: 0;
 }
 
 .decision-copy > p:last-child {
   max-width: 840px;
-  margin: 12px 0 0;
+  margin: 9px 0 0;
   color: var(--product-muted);
-  font-size: 1rem;
+  font-size: 0.92rem;
   line-height: 1.48;
 }
 
@@ -381,7 +381,7 @@ body {
   grid-template-columns: 1fr auto;
   gap: 3px 12px;
   min-width: 0;
-  padding: 14px clamp(12px, 1.5vw, 22px);
+  padding: 12px clamp(12px, 1.5vw, 20px);
   border-left: 1px solid var(--product-line);
 }
 
@@ -597,9 +597,9 @@ body {
 }
 
 .graph-evidence-panel .knowledge-graph-canvas {
-  height: clamp(410px, 48vw, 560px);
-  max-height: 56vh;
-  min-height: 390px;
+  height: clamp(380px, 42vw, 510px);
+  max-height: 54vh;
+  min-height: 360px;
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(180deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
@@ -889,6 +889,18 @@ body {
   border-color: #ffd9d6;
 }
 
+.decision-risk-score.abstained {
+  width: 92px;
+  border-width: 1px;
+  border-color: #efc2be;
+  border-radius: 8px;
+  background: #fff3f1;
+}
+
+.decision-risk-score.abstained strong {
+  font-size: 0.92rem;
+}
+
 .decision-risk-score strong {
   font-size: 1.08rem;
   line-height: 1;
@@ -896,7 +908,7 @@ body {
 
 .decision-risk-score span {
   color: var(--product-muted);
-  font-size: 0.58rem;
+  font-size: 0.68rem;
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -1009,7 +1021,7 @@ body {
 .graph-provenance-head span,
 .graph-provenance-metrics span {
   color: var(--product-muted);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -1200,6 +1212,156 @@ body {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  margin-top: 16px;
+}
+
+.extended-evidence > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 11px 14px;
+  border: 1px solid var(--product-line);
+  border-radius: 7px;
+  background: white;
+  color: var(--product-ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.extended-evidence > summary::-webkit-details-marker {
+  display: none;
+}
+
+.extended-evidence > summary > span {
+  display: grid;
+  gap: 3px;
+}
+
+.extended-evidence > summary strong {
+  font-size: 0.84rem;
+}
+
+.extended-evidence > summary small {
+  color: var(--product-muted);
+  font-size: 0.72rem;
+}
+
+.extended-evidence > summary svg {
+  flex: 0 0 auto;
+  transition: transform 180ms ease;
+}
+
+.extended-evidence[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.extended-evidence > summary:focus-visible {
+  outline: 3px solid rgba(49, 94, 251, 0.26);
+  outline-offset: 2px;
+}
+
+.clinician-review-hero {
+  display: grid;
+  gap: 16px;
+  border-left: 4px solid var(--product-mint-strong);
+  box-shadow: 0 18px 50px rgba(17, 24, 23, 0.08);
+}
+
+.clinician-review-hero.review,
+.clinician-review-hero.urgent {
+  border-left-color: var(--product-coral);
+}
+
+.clinician-review-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.clinician-review-heading h2,
+.clinician-review-heading p {
+  margin: 0;
+}
+
+.clinician-review-heading h2 {
+  font-size: 1.55rem;
+}
+
+.clinician-review-heading > div > p:last-child {
+  margin-top: 4px;
+  color: var(--product-muted);
+  font-size: 0.84rem;
+}
+
+.review-state {
+  padding: 7px 10px;
+  border: 1px solid #b8ddd0;
+  border-radius: 6px;
+  background: #eef9f4;
+  color: #17644f;
+  font-size: 0.76rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.review-state.pending {
+  border-color: #efc2be;
+  background: #fff2f0;
+  color: #a33f38;
+}
+
+.clinician-review-facts {
+  display: grid;
+  grid-template-columns: 0.7fr 1.7fr 0.8fr 1.1fr;
+  border-top: 1px solid var(--product-line);
+  border-bottom: 1px solid var(--product-line);
+}
+
+.clinician-review-facts > div {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+  border-left: 1px solid var(--product-line);
+}
+
+.clinician-review-facts > div:first-child {
+  border-left: 0;
+}
+
+.clinician-review-facts span,
+.clinician-review-brief span {
+  color: var(--product-muted);
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.clinician-review-facts strong {
+  overflow-wrap: anywhere;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.clinician-review-brief {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.clinician-review-brief p {
+  margin: 7px 0 0;
+  color: var(--product-ink);
+  line-height: 1.5;
+}
+
+.clinician-review-brief blockquote {
+  margin: 0;
 }
 
 .route-ranking-evidence {
@@ -1435,7 +1597,25 @@ body {
   }
 
   .decision-panel.graph-inspector {
+    order: -1;
     min-height: auto;
+  }
+
+  .clinician-review-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clinician-review-facts > div:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--product-line);
+  }
+
+  .clinician-review-facts > div:nth-child(4) {
+    border-top: 1px solid var(--product-line);
+  }
+
+  .clinician-review-brief {
+    grid-template-columns: 1fr;
   }
 
   .graph-support-grid {
@@ -1464,7 +1644,7 @@ body {
 
   .product-nav {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 2px;
     width: 100%;
     margin: 0;
@@ -1490,11 +1670,15 @@ body {
   }
 
   .decision-copy h1 {
-    font-size: clamp(2rem, 10vw, 2.75rem);
+    font-size: clamp(1.85rem, 8.5vw, 2.45rem);
   }
 
   .decision-copy > p:last-child {
+    display: -webkit-box;
+    overflow: hidden;
     font-size: 0.88rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 
   .decision-controls {
@@ -1551,6 +1735,7 @@ body {
   }
 
   .graph-evidence-panel {
+    order: -2;
     padding: 12px;
   }
 
@@ -1631,6 +1816,10 @@ body {
     grid-row: 3;
     justify-self: start;
   }
+
+  .clinician-review-heading {
+    display: grid;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1706,6 +1895,20 @@ body {
     width: 64px;
     height: 64px;
     border-width: 6px;
+  }
+
+  .clinician-review-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .clinician-review-facts > div,
+  .clinician-review-facts > div:nth-child(4) {
+    border-top: 1px solid var(--product-line);
+    border-left: 0;
+  }
+
+  .clinician-review-facts > div:first-child {
+    border-top: 0;
   }
 
   .graph-ai-cues {

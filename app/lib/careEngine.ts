@@ -43,14 +43,27 @@ export const DEMO_CHECK_INS: Record<"normal" | "escalation", Omit<CheckInInput, 
   }
 };
 
-const redFlagPatterns = [
+type RedFlagPattern = {
+  label: string;
+  pattern: RegExp;
+  ignoreResolvedHistory?: boolean;
+};
+
+type UrgentRoute = {
+  reason: string;
+  channel: string;
+  patientAction: string;
+};
+
+const redFlagPatterns: RedFlagPattern[] = [
   { label: "chest pain", pattern: /\b(?:chest pain|tight chest|tightness (?:in|across) (?:my|the) chest|pressure (?:in|on) (?:my|the) chest)\b/i },
   { label: "breathlessness", pattern: /\b(?:short of breath|breathless|cannot breathe|can't breathe|difficulty breathing|struggling to breathe)\b/i },
   { label: "fainting or severe dizziness", pattern: /\b(?:fainted|fainting|feel(?:ing)? faint|felt faint|nearly fainted|almost fainted|passed out|black(?:ed|ing)? out|blackout|lightheaded|severely dizzy|severe dizziness)\b/i },
   { label: "severe abdominal pain", pattern: /\b(?:(?:(?:severe|persistent|worsening|agonising|agonizing|unbearable|excruciating)\s+){1,2}(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain\s+(?:is\s+)?(?:getting worse|worsening|won't go away|will not go away|unbearable|agonising|agonizing|excruciating)|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain(?:\s+(?:that|which))?\s+(?:spreads?|spread|spreading|radiat(?:es|ed|ing))\s+(?:into|to)\s+(?:(?:my|the)\s+)?back|(?:upper\s+)?(?:stomach|abdomen|belly|tummy)\s+(?:hurt|hurts|is hurting)\s+(?:severely|unbearably|agonisingly|agonizingly|excruciatingly|(?:so\s+)?badly))\b/i },
-  { label: "unable to keep fluids down", pattern: /\b(?:(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+drink(?:\s+(?:anything|(?:any\s+)?(?:fluids?|water)))?(?=\s*(?:[,.!?;]|$|\b(?:and|because|without)\b))|(?:(?:every|each|any)\s+(?:sip|drink)|(?:even\s+(?:a|one|tiny)\s+)?sips?|(?:all\s+)?(?:fluids?|water))\s+(?:comes?|come|came|is coming|are coming)\s+(?:(?:straight|right)\s+)?back\s+up|vomit(?:ing|ed|s)?|throw(?:ing|s|threw|thrown)\s+up|being\s+sick)\b/i },
+  { label: "unable to keep fluids down", pattern: /\b(?:(?:(?:have|has|had)\s+not|haven't|hasn't|hadn't)\s+been\s+able\s+to\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+drink(?:\s+(?:anything|(?:any\s+)?(?:fluids?|water)))?(?=\s*(?:[,.!?;]|$|\b(?:and|because|without)\b))|(?:(?:every|each|any)\s+(?:sip|drink)|(?:even\s+(?:a|one|tiny)\s+)?sips?|(?:all\s+)?(?:fluids?|water))\s+(?:comes?|come|came|is coming|are coming)\s+(?:(?:straight|right)\s+)?back\s+up|vomit(?:ing|ed|s)?|throw(?:ing|s|threw|thrown)\s+up|being\s+sick)\b/i, ignoreResolvedHistory: true },
   { label: "pregnancy concern", pattern: /\b(?:pregnant|positive pregnancy test|missed (?:my )?period)\b/i },
-  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal|end my life)\b/i }
+  { label: "immediate self-harm language", pattern: /\b(?:kill myself|end my life|want to die|cannot keep myself safe)\b/i },
+  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal)\b/i }
 ];
 
 const unsafeGeneratedTextPatterns = [
@@ -98,9 +111,9 @@ export function getPatientInsights(patient: Patient) {
 
 export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan {
   const insights = getPatientInsights(patient);
-  const text = `${input.sideEffects} ${input.biomarkerNote} ${input.freeText}`;
+  const text = [input.sideEffects, input.biomarkerNote, input.freeText].join("\n");
   const redFlags = redFlagPatterns
-    .filter((flag) => hasNonNegatedMatch(text, flag.pattern))
+    .filter((flag) => hasNonNegatedMatch(text, flag.pattern, flag.ignoreResolvedHistory))
     .map((flag) => flag.label);
   const ruleHits: string[] = [];
 
@@ -113,38 +126,43 @@ export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan
   if (redFlags.length > 0) ruleHits.push(...redFlags.map((flag) => `red flag: ${flag}`));
 
   const riskLevel = chooseRiskLevel(input, insights.latest, redFlags, ruleHits);
-  const escalation = buildEscalation(riskLevel, redFlags, input);
+  const urgentRoute = buildUrgentRoute(redFlags);
+  const escalation = buildEscalation(riskLevel, input, urgentRoute);
   const signals = buildSignals(patient, input, insights, redFlags);
   const clinicianSummary = buildClinicianSummary(patient, input, insights, riskLevel, redFlags);
-  const clinicianDraft = buildClinicianDraft(patient, riskLevel, redFlags);
+  const clinicianDraft = buildClinicianDraft(patient, riskLevel, redFlags, urgentRoute);
 
   return {
     riskLevel,
     headline: buildHeadline(riskLevel),
-    patientAction: buildPatientAction(riskLevel, input, redFlags),
+    patientAction: buildPatientAction(riskLevel, input, urgentRoute),
     explanation: buildExplanation(riskLevel, patient, input, insights, redFlags),
     safetyNotice: SAFETY_NOTICE,
     escalation,
     clinicianSummary,
     clinicianDraft,
     signals,
-    confidence: redFlags.length > 0 ? 0.91 : riskLevel === "steady" ? 0.82 : 0.86,
-    nextCheckInWindow: riskLevel === "steady" ? "Tomorrow morning" : riskLevel === "watch" ? "Tonight" : "Same day",
+    nextCheckInWindow: riskLevel === "urgent" ? "Now" : riskLevel === "steady" ? "Tomorrow morning" : riskLevel === "watch" ? "Tonight" : "Same day",
     ruleHits,
     agentTrace: buildAgentTrace(patient, input, insights, riskLevel, redFlags, ruleHits, clinicianSummary),
     judgeFit: buildJudgeFit(patient, riskLevel),
     adherenceTwin: buildAdherenceTwin(patient, input, insights, riskLevel, redFlags),
-    rescuePlan: buildRescuePlan(patient, input, insights, riskLevel, redFlags),
+    rescuePlan: buildRescuePlan(patient, input, insights, riskLevel, redFlags, urgentRoute),
     unsafeRequestDemo: buildUnsafeRequestDemo(patient)
   };
 }
 
-function hasNonNegatedMatch(text: string, pattern: RegExp) {
+function hasNonNegatedMatch(text: string, pattern: RegExp, ignoreResolvedHistory = false) {
   const matcher = new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`);
   let match = matcher.exec(text);
 
   while (match) {
-    if (!isNegated(text, match.index)) return true;
+    if (
+      !isNegated(text, match.index) &&
+      !(ignoreResolvedHistory && isResolvedHistoricalMatch(text, match.index, match[0].length))
+    ) {
+      return true;
+    }
     match = matcher.exec(text);
   }
 
@@ -154,7 +172,37 @@ function hasNonNegatedMatch(text: string, pattern: RegExp) {
 function isNegated(text: string, matchIndex: number) {
   const prefix = text.slice(Math.max(0, matchIndex - 100), matchIndex);
   const clause = prefix.split(/[.!?;\n]|\b(?:but|however|although)\b/i).at(-1) ?? prefix;
-  return /\b(?:no|not|never|without|deny|denies|denied|negative for|don't|doesn't|didn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't)\b(?:[\s,:-]+[\w'-]+){0,8}[\s,:-]*$/i.test(clause);
+  const negationScope = clause.replace(/\bno\s+(?:idea|clue)\b/gi, "uncertain");
+  return /\b(?:no|not|never|without|deny|denies|denied|negative for|don't|doesn't|didn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't)\b(?:[\s,:-]+[\w'-]+){0,8}[\s,:-]*$/i.test(negationScope);
+}
+
+function isResolvedHistoricalMatch(text: string, matchIndex: number, matchLength: number) {
+  const prefix = text.slice(0, matchIndex);
+  const sentenceStart = Math.max(
+    prefix.lastIndexOf("."),
+    prefix.lastIndexOf("!"),
+    prefix.lastIndexOf("?"),
+    prefix.lastIndexOf("\n")
+  ) + 1;
+  const afterMatch = text.slice(matchIndex + matchLength);
+  const boundaryOffset = afterMatch.search(/[.!?\n]/);
+  const sentenceEnd = boundaryOffset === -1
+    ? text.length
+    : matchIndex + matchLength + boundaryOffset;
+  const sentenceRemainder = text.slice(matchIndex + matchLength, sentenceEnd);
+  const transition = sentenceRemainder.match(/\b(?:but|however)\b/i);
+
+  if (!transition) return false;
+
+  const transitionIndex = transition.index ?? 0;
+  const symptomClause = text.slice(sentenceStart, matchIndex + matchLength) +
+    sentenceRemainder.slice(0, transitionIndex);
+  const resolutionClause = sentenceRemainder.slice(transitionIndex + transition[0].length);
+  const isHistorical = /\b(?:earlier|previously|yesterday|last\s+(?:night|week|month)|\d+\s+days?\s+ago)\b/i.test(symptomClause);
+  const isCurrent = /\b(?:today|currently|right now|still)\b/i.test(symptomClause);
+  const isExplicitlyResolved = /^\s*[,\-:]?\s*(?:now\s+)?(?:(?:i\s+(?:am|was|feel)|i'm|it\s+(?:is|has)|(?:the\s+)?symptoms?\s+(?:are|have))\s+)?(?:fine|well|better|resolved|gone|settled)(?:\s+now)?\b/i.test(resolutionClause);
+
+  return isHistorical && !isCurrent && isExplicitlyResolved;
 }
 
 export function applySafetyOverrides(
@@ -200,16 +248,58 @@ function chooseRiskLevel(
   return "steady";
 }
 
-function buildEscalation(riskLevel: RiskLevel, redFlags: string[], input: CheckInInput) {
+function buildUrgentRoute(redFlags: string[]): UrgentRoute {
+  if (redFlags.includes("immediate self-harm language")) {
+    return {
+      reason: "Immediate self-harm language indicates possible immediate danger, so coaching is suppressed.",
+      channel: "Emergency mental-health route: call 999 or go to A&E now.",
+      patientAction: "Call 999 now or go to A&E because you may be in immediate danger. If possible, stay with a trusted person while you get help."
+    };
+  }
+
+  if (redFlags.includes("chest pain") || redFlags.includes("breathlessness")) {
+    return {
+      reason: "Chest-pain or breathing language needs emergency assessment; this prototype cannot assess severity.",
+      channel: "Emergency physical-health route: call 999 or go to A&E now. Do not drive yourself.",
+      patientAction: "Call 999 now for chest pain or breathing difficulty. Do not drive yourself to A&E."
+    };
+  }
+
+  if (
+    redFlags.includes("severe abdominal pain") &&
+    redFlags.includes("unable to keep fluids down")
+  ) {
+    return {
+      reason: "Severe or persistent abdominal-pain language appears with vomiting or inability to keep fluids down.",
+      channel: "Urgent physical-health route: call NHS 111 now; use 999 or A&E if the pain is sudden or so severe that it is hard to think or talk.",
+      patientAction: "Call NHS 111 now for urgent assessment. If the pain is sudden or so severe that it is hard to think or talk, call 999 or go to A&E."
+    };
+  }
+
+  if (redFlags.includes("self-harm language")) {
+    return {
+      reason: "Self-harm language needs urgent mental-health support rather than in-app coaching.",
+      channel: "Urgent mental-health route: call NHS 111 and select the mental-health option; use 999 or A&E if there is immediate danger.",
+      patientAction: "Call NHS 111 now and select the mental-health option. If you might act now or cannot keep yourself safe, call 999 or go to A&E."
+    };
+  }
+
+  return {
+    reason: redFlags.length > 0
+      ? `Urgent symptom language detected: ${redFlags.join(", ")}.`
+      : "The hydration score crossed the prototype's urgent boundary.",
+    channel: "Urgent clinical route: call NHS 111 now; use 999 or A&E for immediate danger or severe symptoms.",
+    patientAction: "Call NHS 111 now for urgent advice. If you are in immediate danger or symptoms are severe, call 999 or go to A&E."
+  };
+}
+
+function buildEscalation(riskLevel: RiskLevel, input: CheckInInput, urgentRoute: UrgentRoute) {
   if (riskLevel === "urgent") {
     return {
       needed: true,
       urgency: "urgent" as const,
-      reason:
-        redFlags.length > 0
-          ? `Red flag signal detected: ${redFlags.join(", ")}.`
-          : "Hydration and symptom scores suggest urgent review.",
-      channel: "Escalate to clinical team now; advise urgent help if symptoms feel severe."
+      reason: urgentRoute.reason,
+      channel: urgentRoute.channel
     };
   }
 
@@ -217,19 +307,19 @@ function buildEscalation(riskLevel: RiskLevel, redFlags: string[], input: CheckI
     return {
       needed: true,
       urgency: "same_day" as const,
-      reason: !input.medicationTaken
-        ? "Missed medication plus high side-effect burden."
-        : "Side-effect burden may affect adherence.",
-      channel: "Create same-day async clinician review."
+      reason: input.hydrationScore <= 2
+        ? "Hydration is at the prototype's same-day review boundary."
+        : "Missed medication plus nausea is at the prototype's same-day review boundary.",
+      channel: "Same-day clinician-review draft prepared; pending manual review."
     };
   }
 
   if (riskLevel === "watch") {
     return {
-      needed: true,
-      urgency: "routine_async" as const,
-      reason: "Early adherence or side-effect pattern is forming.",
-      channel: "Queue for care-team review if repeated tomorrow."
+      needed: false,
+      urgency: "none" as const,
+      reason: "An early adherence or side-effect pattern is being monitored in coaching mode.",
+      channel: "No active handoff; prepare a review draft only if the pattern repeats."
     };
   }
 
@@ -248,24 +338,22 @@ function buildHeadline(riskLevel: RiskLevel) {
   return "On track today";
 }
 
-function buildPatientAction(riskLevel: RiskLevel, input: CheckInInput, redFlags: string[]) {
+function buildPatientAction(riskLevel: RiskLevel, input: CheckInInput, urgentRoute: UrgentRoute) {
   if (riskLevel === "urgent") {
-    return redFlags.length > 0
-      ? "Stop self-troubleshooting and contact the clinical team now. If symptoms are severe, worsening, or you cannot keep fluids down, seek urgent medical help."
-      : "Contact the clinical team today and focus on fluids if tolerated. Do not change medication without clinician guidance.";
+    return urgentRoute.patientAction;
   }
 
   if (riskLevel === "review") {
-    return "Send this check-in to the care team for same-day review. Keep meals small and simple, sip fluids, and avoid changing medication unless a clinician tells you to.";
+    return "A same-day care-team review draft is pending manual review. Keep meals small and simple, sip fluids if tolerated, and avoid changing medication unless a clinician tells you to.";
   }
 
   if (riskLevel === "watch") {
     return input.medicationTaken
-      ? "Keep the plan steady today. Pair tomorrow's dose reminder with a meal cue and log nausea again tonight."
-      : "Log the missed dose and send an async update. Use a reminder cue tomorrow and wait for clinician guidance before making medication changes.";
+      ? "Keep the plan steady today. Pair the next planned-dose reminder with a meal cue and log nausea again tonight."
+      : "Log the missed planned dose and note it for a review draft if the pattern continues. Set a cue for the next scheduled dose and wait for clinician guidance before making medication changes.";
   }
 
-  return "Keep today's routine. Repeat the same reminder tomorrow and log any side effects before they become a pattern.";
+  return "Keep today's routine. Add one fluid cue before midday tomorrow and log any side effects before they become a pattern.";
 }
 
 function buildExplanation(
@@ -282,7 +370,10 @@ function buildExplanation(
   }
 
   if (riskLevel === "review") {
-    return `Side effects are high enough to threaten adherence. The model is prioritising a clinician review because ${input.medicationTaken ? "symptoms are rising" : "a dose was missed"} and hydration is ${input.hydrationScore}/10.`;
+    const reason = input.hydrationScore <= 2
+      ? `hydration is ${input.hydrationScore}/10`
+      : `medication was missed and nausea is ${input.nauseaScore}/10`;
+    return `Side effects may threaten adherence. Deterministic rules set same-day review because ${reason}.`;
   }
 
   if (riskLevel === "watch") {
@@ -306,24 +397,29 @@ function buildClinicianSummary(
   const hba1c = typeof insights.hba1cDelta === "number" ? ` HbA1c change: ${insights.hba1cDelta.toFixed(1)} pts.` : "";
   return `${patient.name}, week ${patient.currentWeek}, ${patient.conditionFocus}. Risk: ${riskLevel}. Recent adherence ${Math.round(
     insights.lastTwoAdherence
-  )}%, missed doses total ${insights.missedDoses}. Weight change ${insights.weightDelta.toFixed(1)} kg.${hba1c} Today: medication ${
-    input.medicationTaken ? "taken" : "missed"
+  )}%, missed weekly doses total ${insights.missedDoses}. Weight change ${insights.weightDelta.toFixed(1)} kg.${hba1c} Current check-in: planned dose ${
+    input.medicationTaken ? "recorded" : "missed"
   }, nausea ${input.nauseaScore}/10, hydration ${input.hydrationScore}/10.${
     redFlags.length > 0 ? ` Red flags: ${redFlags.join(", ")}.` : ""
   }`;
 }
 
-function buildClinicianDraft(patient: Patient, riskLevel: RiskLevel, redFlags: string[]) {
+function buildClinicianDraft(
+  patient: Patient,
+  riskLevel: RiskLevel,
+  redFlags: string[],
+  urgentRoute: UrgentRoute
+) {
   const firstName = patient.name.split(" ")[0];
 
   if (riskLevel === "urgent") {
     return `Hi ${firstName}, thanks for logging this. Some of what you described needs clinical review now${
       redFlags.length > 0 ? ` (${redFlags.join(", ")})` : ""
-    }. Please contact the care team now, and seek urgent help if symptoms are severe or worsening.`;
+    }. ${urgentRoute.patientAction} This message is a draft pending clinician review.`;
   }
 
   if (riskLevel === "review") {
-    return `Hi ${firstName}, thanks for the detail. Your side effects may be getting in the way of the programme, so I have sent this to the clinical team for review today. Please do not change your medication unless they advise it.`;
+    return `Hi ${firstName}, thanks for the detail. A same-day care-team review is recommended. This message is a draft pending clinician review. Please do not change your medication unless a clinician advises it.`;
   }
 
   if (riskLevel === "watch") {
@@ -373,19 +469,19 @@ function buildAgentTrace(
   return [
     {
       id: "intake",
-      label: "Intake Agent",
-      role: "turns messy home language into structured care signals",
+      label: "Check-in normaliser",
+      role: "turns home language into structured care signals",
       status: "complete",
       summary: `${firstName}'s check-in was parsed into medication, symptom, biomarker and mood fields.`,
       evidence: [
-        `Medication ${input.medicationTaken ? "taken" : "missed"}`,
+        `Planned dose ${input.medicationTaken ? "recorded" : "missed"}`,
         `Nausea ${input.nauseaScore}/10`,
         `Hydration ${input.hydrationScore}/10`
       ]
     },
     {
       id: "trend",
-      label: "Trend Tool",
+      label: "Trend calculator",
       role: "calculates longitudinal change without model guesswork",
       status: "complete",
       summary: `The deterministic trend layer compared today against ${patient.currentWeek} weeks of programme data.`,
@@ -397,8 +493,8 @@ function buildAgentTrace(
     },
     {
       id: "risk",
-      label: "Risk Agent",
-      role: "chooses coaching, watch, review or urgent mode",
+      label: "Risk-mode rules",
+      role: "applies coaching, watch, review or urgent thresholds",
       status: riskLevel === "urgent" || riskLevel === "review" ? "escalated" : "complete",
       summary: `Risk mode set to ${riskLevel} using red flags, adherence and symptom burden.`,
       evidence: [
@@ -408,7 +504,7 @@ function buildAgentTrace(
     },
     {
       id: "guardrail",
-      label: "Safety Guardrail",
+      label: "Safety boundary",
       role: "blocks diagnosis and medication-change advice",
       status: riskLevel === "urgent" || redFlags.length > 0 ? "guarded" : "complete",
       summary: `Safety layer selected ${coachingMode} and preserved clinician oversight.`,
@@ -420,10 +516,13 @@ function buildAgentTrace(
     },
     {
       id: "handoff",
-      label: "Clinician Briefing Agent",
-      role: "compresses the case into an async review packet",
+      label: "Handoff composer",
+      role: "prepares a clinician-review draft from the current evidence",
       status: riskLevel === "urgent" || riskLevel === "review" ? "escalated" : "complete",
-      summary: "Generated a concise clinical handoff with patient trend, current risk and suggested channel.",
+      summary:
+        riskLevel === "urgent" || riskLevel === "review"
+          ? "Prepared a concise clinical handoff draft; it remains pending manual review."
+          : "Prepared a review-ready summary; no handoff is active.",
       evidence: [clinicianSummary]
     }
   ];
@@ -433,13 +532,13 @@ function buildJudgeFit(patient: Patient, riskLevel: RiskLevel): JudgeFit {
   const firstName = patient.name.split(" ")[0];
   const impact =
     riskLevel === "urgent"
-      ? `${firstName} is moved out of self-coaching and into clinical review before a risky at-home pattern gets missed.`
+      ? `${firstName} is kept out of self-coaching, shown an immediate safety route, and given a clinician-handoff draft that remains pending review.`
       : `${firstName} gets one small next action that protects adherence without needing another appointment.`;
 
   return {
     userImpact: impact,
     innovation:
-      "The product is an agentic care workflow: intake, trend calculation, risk mode, guardrail and clinician handoff work together instead of a single chatbot response.",
+      "The workflow combines deterministic intake, trend calculation, risk mode, guardrails and a pending clinician-handoff draft instead of relying on generated chat.",
     feasibility:
       "The prototype keeps deterministic rules for safety-critical thresholds, uses structured outputs for the UI and leaves clinical decisions with the care team.",
     demoQuality:
@@ -461,35 +560,34 @@ function buildAdherenceTwin(
   const sideEffectImpact = input.nauseaScore >= 7 ? "high" : input.nauseaScore >= 5 ? "medium" : "low";
   const routineImpact = !input.medicationTaken || insights.lastTwoAdherence < 90 ? "high" : "medium";
   const hydrationImpact = input.hydrationScore <= 2 ? "high" : input.hydrationScore <= 5 ? "medium" : "low";
+  const urgentRescueMove = riskLevel === "urgent"
+    ? "Follow the immediate safety action; coaching routes are suppressed."
+    : undefined;
 
   const riskDrivers: AdherenceTwin["riskDrivers"] = [
     {
       label: "Side-effect spiral",
       impact: sideEffectImpact,
       evidence: `Nausea is ${input.nauseaScore}/10 today and ${insights.nauseaTrend >= 0 ? "up" : "down"} versus last week.`,
-      rescueMove:
-        riskLevel === "urgent"
-          ? "Switch from coaching to clinical review because symptoms may be unsafe."
-          : "Use small-meal and hydration prompts before the next dose reminder."
+      rescueMove: urgentRescueMove ?? "Use small-meal and hydration prompts before the next dose reminder."
     },
     {
       label: hasTravel ? "Travel disruption" : hasShiftWork ? "Shift-work disruption" : hasCycleContext ? "Cycle-linked friction" : "Routine drift",
       impact: routineImpact,
-      evidence: `${Math.round(insights.lastTwoAdherence)}% adherence over the last two weeks; ${insights.missedDoses} total missed dose or habit events.`,
-      rescueMove: hasCycleContext
+      evidence: `${Math.round(insights.lastTwoAdherence)}% adherence over the last two weeks; ${insights.missedDoses} missed weekly dose${insights.missedDoses === 1 ? "" : "s"} across the programme.`,
+      rescueMove: urgentRescueMove ?? (hasCycleContext
         ? "Use cycle-aware check-ins and avoid weight-only feedback during fatigue windows."
         : hasTravel
           ? "Move reminders to the travel packing moment and evening hotel routine."
-          : "Anchor the reminder to the meal or work transition most likely to happen."
+          : "Anchor the reminder to the meal or work transition most likely to happen.")
     },
     {
       label: "Hydration and energy drag",
       impact: hydrationImpact,
       evidence: `Hydration is ${input.hydrationScore}/10 and energy is ${input.energyScore}/10 today.`,
-      rescueMove:
-        input.hydrationScore <= 2
+      rescueMove: urgentRescueMove ?? (input.hydrationScore <= 2
           ? "Escalate if poor fluid intake continues or lightheadedness appears."
-          : "Prompt fluids early in the day before symptoms make adherence feel harder."
+          : "Prompt fluids early in the day before symptoms make adherence feel harder.")
     }
   ];
 
@@ -503,9 +601,8 @@ function buildAdherenceTwin(
           : "Next busy day: the main risk is small friction accumulating before it is visible.";
 
   return {
-    summary: `${firstName}'s twin models the personal path from daily friction to dropout risk, then picks the smallest safe rescue move.`,
+    summary: `${firstName}'s profile summarises the path from current friction to the next planned adherence event, then surfaces the smallest bounded support move.`,
     predictedFailurePoint,
-    confidence: riskLevel === "urgent" ? 0.91 : 0.84,
     riskDrivers,
     protectiveFactors: [
       `${Math.round(insights.adherenceAvg)}% average adherence across the programme`,
@@ -521,13 +618,24 @@ function buildRescuePlan(
   input: CheckInInput,
   insights: ReturnType<typeof getPatientInsights>,
   riskLevel: RiskLevel,
-  redFlags: string[]
+  redFlags: string[],
+  urgentRoute: UrgentRoute
 ): RescuePlanDay[] {
-  const firstName = patient.name.split(" ")[0];
-  const reviewTrigger =
-    riskLevel === "urgent"
-      ? "Clinical team reviews now; urgent help if symptoms are severe or worsening."
-      : "Escalate if nausea rises, hydration drops, or another dose is missed.";
+  if (riskLevel === "urgent") {
+    return [
+      {
+        day: 1,
+        label: "Immediate safety action",
+        patientMicroAction: urgentRoute.patientAction,
+        monitoringSignal: `Urgent rule active: ${redFlags.join(", ") || "hydration boundary"}.`,
+        clinicianTrigger: "Clinical handoff draft prepared; pending manual review. The prototype does not contact services."
+      }
+    ];
+  }
+
+  const reviewTrigger = riskLevel === "review"
+    ? "Same-day clinician-review draft remains pending manual review."
+    : "Prepare a review draft if nausea rises, hydration drops, or another dose is missed.";
   const routineAnchor = patient.riskFactors.some((factor) => /travel/i.test(factor))
     ? "travel packing routine"
     : patient.riskFactors.some((factor) => /shift/i.test(factor))
@@ -536,65 +644,11 @@ function buildRescuePlan(
         ? "cycle-aware evening check-in"
         : "breakfast or first drink";
 
-  if (redFlags.length > 0 || riskLevel === "urgent") {
-    return [
-      {
-        day: 1,
-        label: "Safety handoff",
-        patientMicroAction: "Contact the care team now and stop trying to self-adjust the programme.",
-        monitoringSignal: `Red flags detected: ${redFlags.join(", ") || "urgent symptom burden"}.`,
-        clinicianTrigger: reviewTrigger
-      },
-      {
-        day: 2,
-        label: "Stabilise",
-        patientMicroAction: "Log whether fluids, dizziness and stomach pain are improving.",
-        monitoringSignal: `Hydration ${input.hydrationScore}/10, nausea ${input.nauseaScore}/10.`,
-        clinicianTrigger: "Same-day follow-up if symptoms persist or worsen."
-      },
-      {
-        day: 3,
-        label: "Rebuild routine",
-        patientMicroAction: `Restart only clinician-approved routine steps and pair check-in with ${routineAnchor}.`,
-        monitoringSignal: `${Math.round(insights.lastTwoAdherence)}% recent adherence.`,
-        clinicianTrigger: "Clinician confirms whether the normal coaching pathway is safe."
-      },
-      {
-        day: 4,
-        label: "Food and fluids",
-        patientMicroAction: "Use the smallest tolerable meal and fluid cue before logging symptoms.",
-        monitoringSignal: "Appetite, hydration and nausea scores.",
-        clinicianTrigger: "Review if appetite stays below 3/10."
-      },
-      {
-        day: 5,
-        label: "Confidence check",
-        patientMicroAction: `Tell the app what would make ${firstName} hesitate before the next dose window.`,
-        monitoringSignal: "Free-text anxiety or avoidance language.",
-        clinicianTrigger: "Care team message if avoidance language appears."
-      },
-      {
-        day: 6,
-        label: "Progress story",
-        patientMicroAction: "Review one non-scale win and one biomarker or adherence trend.",
-        monitoringSignal: `${insights.weightDelta.toFixed(1)} kg trend and programme adherence.`,
-        clinicianTrigger: "No trigger unless symptoms return."
-      },
-      {
-        day: 7,
-        label: "Next-week prevention",
-        patientMicroAction: `Choose one reminder tied to ${routineAnchor} for the next week.`,
-        monitoringSignal: "Reminder completion and check-in consistency.",
-        clinicianTrigger: "Routine async review if adherence falls below 85%."
-      }
-    ];
-  }
-
   return [
     {
       day: 1,
       label: "Friction capture",
-      patientMicroAction: "Log the one thing most likely to make tomorrow's check-in or dose harder.",
+      patientMicroAction: "Log the one thing most likely to make the next check-in or scheduled dose harder.",
       monitoringSignal: `Nausea ${input.nauseaScore}/10, hydration ${input.hydrationScore}/10.`,
       clinicianTrigger: reviewTrigger
     },
@@ -602,7 +656,7 @@ function buildRescuePlan(
       day: 2,
       label: "Reminder anchor",
       patientMicroAction: `Attach the programme reminder to ${routineAnchor}.`,
-      monitoringSignal: "Medication taken and check-in completed.",
+      monitoringSignal: "Planned weekly dose status and check-in completion.",
       clinicianTrigger: "Escalate if a dose is missed."
     },
     {
@@ -628,15 +682,15 @@ function buildRescuePlan(
     },
     {
       day: 6,
-      label: "Dropout forecast",
+      label: "Friction forecast",
       patientMicroAction: "Ask whether tomorrow feels easy, uncertain or at risk.",
-      monitoringSignal: "Self-rated confidence and free-text hesitation.",
-      clinicianTrigger: "Queue async care message if confidence is low."
+      monitoringSignal: "Self-rated ease and free-text hesitation.",
+      clinicianTrigger: "Prepare a review draft if the next adherence event feels at risk."
     },
     {
       day: 7,
       label: "Loop close",
-      patientMicroAction: "Compare the week to the twin's predicted failure point and update the plan.",
+      patientMicroAction: "Compare the week with the profile's likely friction point and update the plan.",
       monitoringSignal: "Adherence, symptoms and trigger match.",
       clinicianTrigger: "Review if the same trigger repeats twice."
     }
@@ -649,13 +703,13 @@ function buildUnsafeRequestDemo(patient: Patient): UnsafeRequestDemo {
   return {
     request: "I missed my dose. Should I double the next one or stop taking it until I feel better?",
     blocked: true,
-    patientResponse: `${firstName}, I cannot advise doubling, stopping or changing medication. I can send this to the clinical team and help you log what happened so they can review it safely.`,
-    clinicianNote: `${patient.name} asked for medication-change advice after a missed dose. The assistant blocked dose guidance and routed to clinician review.`,
+    patientResponse: `${firstName}, I cannot advise doubling, stopping or changing medication. I can prepare a clinician-review draft and help you log what happened; the draft remains pending manual review.`,
+    clinicianNote: `${patient.name} asked for medication-change advice after a missed planned dose. The system blocked dose guidance and prepared a clinician-review draft that remains pending manual review.`,
     guardrails: [
       "Medication-change advice blocked",
       "No diagnosis or dose instruction",
-      "Async clinician review created",
-      "Patient receives safe logging guidance only"
+      "Async clinician-review draft prepared",
+      "Pending manual review; no message transport"
     ]
   };
 }

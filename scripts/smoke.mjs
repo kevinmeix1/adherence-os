@@ -1,7 +1,12 @@
 const baseUrl = process.env.APP_URL ?? "http://localhost:3000";
+const FETCH_TIMEOUT_MS = 10_000;
+
+function fetchWithTimeout(url, init = {}) {
+  return fetch(url, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+}
 
 async function check(path, validate) {
-  const response = await fetch(`${baseUrl}${path}`);
+  const response = await fetchWithTimeout(`${baseUrl}${path}`);
 
   if (!response.ok) {
     throw new Error(`${path} returned HTTP ${response.status}`);
@@ -12,7 +17,7 @@ async function check(path, validate) {
 }
 
 async function checkStatus(path, expectedStatus, validate) {
-  const response = await fetch(`${baseUrl}${path}`);
+  const response = await fetchWithTimeout(`${baseUrl}${path}`);
 
   if (response.status !== expectedStatus) {
     throw new Error(`${path} returned HTTP ${response.status}; expected ${expectedStatus}`);
@@ -23,7 +28,7 @@ async function checkStatus(path, expectedStatus, validate) {
 }
 
 async function checkCarePlan(scenario, checkIn, validate) {
-  const response = await fetch(`${baseUrl}/api/care-plan`, {
+  const response = await fetchWithTimeout(`${baseUrl}/api/care-plan`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ patientId: checkIn.patientId, checkIn })
@@ -35,7 +40,7 @@ async function checkCarePlan(scenario, checkIn, validate) {
 
   const payload = await response.json();
 
-  if (!payload?.plan || !["openai", "rules-fallback"].includes(payload.source)) {
+  if (!payload?.plan || !["deterministic-rules", "rules-fallback"].includes(payload.source)) {
     throw new Error(`/api/care-plan (${scenario}) returned an invalid response envelope`);
   }
 
@@ -43,8 +48,8 @@ async function checkCarePlan(scenario, checkIn, validate) {
     throw new Error(`/api/care-plan (${scenario}) returned invalid timing metadata`);
   }
 
-  if (payload.source === "openai" && !payload.meta.providerAttempted) {
-    throw new Error(`/api/care-plan (${scenario}) reported OpenAI output without a provider attempt`);
+  if (payload.source === "deterministic-rules" && !payload.meta.providerAttempted) {
+    throw new Error(`/api/care-plan (${scenario}) reported provider validation without a provider attempt`);
   }
 
   if (payload.fallbackReason === "openai-not-configured" && payload.meta.providerAttempted) {
@@ -90,6 +95,9 @@ const escalationCheckIn = {
 await check("/", async (response) => {
   const html = await response.text();
   if (!html.includes("Adherence OS")) throw new Error("home page is missing the product name");
+  if (!html.includes("Decision evidence map") || !html.includes("Supporting evidence")) {
+    throw new Error("home page is missing the commercial decision-first surface");
+  }
   if (!html.includes('property="og:title"') || !html.includes("adherence-os-live-twin.jpg")) {
     throw new Error("home page is missing social preview metadata");
   }
@@ -144,6 +152,10 @@ await checkCarePlan("escalation", escalationCheckIn, async ({ plan }) => {
 
   if (!plan.ruleHits?.some((hit) => hit.startsWith("red flag:"))) {
     throw new Error("escalation care-plan smoke check is missing deterministic red-flag evidence");
+  }
+
+  if (plan.rescuePlan?.length !== 1 || !/draft|pending/i.test(`${plan.escalation?.channel} ${plan.clinicianDraft}`)) {
+    throw new Error("escalation care-plan smoke check did not suppress coaching or expose draft-only handoff state");
   }
 
   const guardedText = `${plan.patientAction} ${plan.explanation} ${plan.clinicianDraft}`;

@@ -35,7 +35,7 @@ export async function resolveProviderCarePlan({
 
     return {
       payload: {
-        source: "openai",
+        source: "deterministic-rules",
         plan: applySafetyOverrides(generatedPlan, patient, checkIn)
       }
     };

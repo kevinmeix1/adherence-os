@@ -91,7 +91,6 @@ export type JudgeFit = {
 export type AdherenceTwin = {
   summary: string;
   predictedFailurePoint: string;
-  confidence: number;
   riskDrivers: Array<{
     label: string;
     impact: "low" | "medium" | "high";
@@ -132,7 +131,6 @@ export type CarePlan = {
   clinicianSummary: string;
   clinicianDraft: string;
   signals: string[];
-  confidence: number;
   nextCheckInWindow: string;
   ruleHits: string[];
   agentTrace: AgentTraceStep[];
@@ -143,7 +141,7 @@ export type CarePlan = {
 };
 
 export type CarePlanResponse = {
-  source: "openai" | "rules-fallback";
+  source: "deterministic-rules" | "rules-fallback";
   fallbackReason?: "openai-not-configured" | "openai-error" | "invalid-openai-output";
   plan: CarePlan;
   meta?: {

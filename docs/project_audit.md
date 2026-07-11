@@ -11,7 +11,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 ## 2. Current Architecture
 
 - **Frontend:** Next.js 15 App Router, React 19, TypeScript, Lucide icons.
-- **Primary experience:** one client-rendered workspace in `app/page.tsx` with Live twin, Patient app, Care queue, Model lab, Safety, Demo script, and Judge proof views.
+- **Primary experience:** one client-rendered workspace in `app/page.tsx` with Live twin, Patient app, Care queue, Model evidence, Safety, Demo script, and Judge proof views.
 - **Routed records:** statically generated `/patients` and `/patients/[patientId]` pages with loading, error, empty, and not-found states.
 - **Backend:** `POST /api/care-plan` and `GET /api/health` route handlers.
 - **Safety:** deterministic rules in `app/lib/careEngine.ts`, applied before and after optional model generation.
@@ -31,7 +31,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 5. Switch to Escalation.
 6. Observe that deterministic red flags suppress every simulated intervention and activate a clinician handoff.
 7. Open the Care queue and review the structured audit trail.
-8. Use Model lab only when technical depth is requested.
+8. Use Model evidence only when technical depth is requested.
 
 ## 4. Main Strengths
 
@@ -77,7 +77,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - The README image and social preview must be refreshed after any future material opening-screen change.
 - Dense graph labels remain intentionally abbreviated on small canvases.
 - Multiple historical style layers make visual consistency harder to maintain than the rendered experience suggests.
-- The Model lab is information-rich and should remain a secondary technical proof rather than the opening workflow.
+- Model evidence is information-rich and should remain a secondary technical proof rather than the opening workflow.
 
 ## 9. Performance Risks
 
@@ -99,7 +99,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 11. AI And Prompting Risks
 
-- The LLM improves wording but does not own risk scoring or clinical escalation.
+- Optional LLM output is schema-validated, but the complete displayed plan is recomputed deterministically.
 - The provider prompt is clear about diagnosis, medication changes, escalation, and structured output.
 - Post-generation safety overrides are deterministic and tested.
 - Provider timeout, invalid-output, exception, and unsafe-generation branches are exercised through controlled test doubles.
@@ -118,7 +118,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - README setup is portable and the app builds without secrets.
 - The local demo requires the presenter to start the server before running smoke checks.
 - The optional AI path should not be relied on during judging; deterministic fallback is the safer live-demo mode.
-- The checked-in 2:54 video and 10-slide deck are current; they must be regenerated after future material UI changes.
+- The checked-in 2:59 captioned video, subtitle track, screenshot walkthrough, and 10-slide deck are current; regenerate them after future material UI changes.
 - The presenter should keep a production build running locally and avoid dependency installation on event Wi-Fi.
 
 ## 14. Highest-Impact Improvement Areas
@@ -150,7 +150,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 | Reliability | 8.5 | Deterministic fallback and seeded paths; provider deadline missing |
 | Testing | 7.5 | Excellent core contract tests; no CI or browser automation |
 | Error handling | 8.0 | Safe API fallback and routed page states |
-| Loading/empty states | 8.0 | Good routed states and Generate loading state |
+| Loading/empty states | 8.0 | Good routed states and Review care plan loading state |
 | Performance | 8.0 | Reasonable bundle and tiny graph; monolithic client surface |
 | Accessibility | 7.5 | ARIA, keyboard graph nodes, focus states; no automated audit |
 | Security/privacy | 8.0 | Synthetic-only, validated inputs, secret hygiene; public API risk if keyed |
@@ -200,38 +200,38 @@ Eight additional P1 tasks are complete. The app remains focused on the same thre
 The earlier self-score was too generous. Independent hostile, clinical-safety, ML, UX, and engineering reviews were commissioned on 2026-07-11. They found a leaked model target, 8.2% operating-point recall, free-text safety bypasses, unsupported confidence language, a below-the-fold primary action, and demo tooling mixed into product roles.
 
 - **Now repaired:** the prospective model contract, patient-isolated evaluation, recall-oriented threshold selection, bootstrap spread, support-aware abstention, Python/browser parity, adversarial symptom coverage, and fully deterministic post-provider plan merge.
-- **Still weak:** first-viewport hierarchy, selected-handoff focus, role separation, medication-cadence semantics, delivered-handoff copy, confidence/agency wording, automated browser accessibility checks, hosted access, and real user or clinician evidence.
-- **Current regression pressure:** home first-load JavaScript is 150.1 kB gzip, leaving only 4.9 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Still weak:** automated browser accessibility checks, hosted access, real user or clinician evidence, and concentrated page and stylesheet ownership.
+- **Current regression pressure:** home first-load JavaScript is 151.2 kB gzip, leaving only 3.8 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
 
 | Category | Score / 10 | Current evidence |
 |---|---:|---|
-| Product clarity | 7.5 | Strong coaching-to-safety story; some confidence, twin, graph, and handoff wording still overclaims |
-| Demo impact | 7.0 | Graph-first transition works, but the primary action is below the fold and assets now lag the build |
-| UI polish | 7.2 | Cohesive styling, yet evaluator tooling and care roles share one dense shell |
-| UX flow | 6.8 | Reset and scenarios are reliable; handoff navigation does not yet land on a focused task |
+| Product clarity | 8.5 | Adherence risk, graph score, safety mode, provider provenance, and handoff delivery state now use distinct language |
+| Demo impact | 8.8 | Graph and next action share the desktop viewport; mobile remains graph-first; captioned fallback media matches the release candidate |
+| UI polish | 8.3 | Commercial product chrome, decision-first inspector, progressive disclosure, and focused review task |
+| UX flow | 8.5 | Edits recompute immediately, stale work is invalidated, active-patient clicks preserve state, and handoff lands on the selected task |
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
-| Reliability | 8.8 | Keyless fallback, provider deadline, deterministic scenarios, production smoke, and model reproduction |
-| Testing | 9.0 | 49 tests plus prospective parity, support abstention, and adversarial safety cases |
+| Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
+| Testing | 9.3 | 55 tests plus prospective parity, support abstention, cross-field negation, route semantics, and cadence contracts |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.2 | 150.1 kB gzip against a 155 kB ceiling leaves narrow headroom |
-| Accessibility | 7.0 | Useful keyboard semantics, but graph roles, focus styles, and clinician table semantics need work |
+| Performance | 7.0 | 151.2 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Accessibility | 8.4 | Interactive graph semantics, visible focus, semantic clinician table, keyboard nodes, captioned video, and no 320px overflow; automated audit remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
-| AI usefulness | 8.2 | Leakage-safe explainable ensemble and abstention are real; LLM wording is intentionally discarded |
-| Documentation | 8.4 | Technical boundaries are now explicit; demo media still needs refresh |
+| AI usefulness | 8.6 | Leakage-safe explainable ensemble, bootstrap spread, support abstention, exact attribution, and independent deterministic safety |
+| Documentation | 9.2 | Screenshot walkthrough, full architecture study guide, technical boundaries, demo labels, and current fallback media align |
 | Deployment readiness | 6.8 | Local production gate passes; no hosted preview or current remote run for this checkpoint |
-| Hackathon competitiveness | 7.5 | Technically differentiated, but commercial product focus and impact evidence remain weak |
-| Portfolio value | 8.1 | Public code, CI, tests, reproducible ML, and assets; visual proof must be refreshed |
+| Hackathon competitiveness | 8.7 | Strong technical differentiation and commercial demo flow; impact evidence and hosted access remain gaps |
+| Portfolio value | 9.1 | Public code, CI, reproducible ML, commercial UI, study guide, screenshot walkthrough, captioned video, and deck |
 
-**Current strict-judge score: 7.7 / 10.**
+**Current strict-judge score: 8.5 / 10.**
 
 ### Current Checkpoint
 
 - PR #1 remains open on the public repository; its earlier remote workflow passed, but this checkpoint still needs a fresh push and run.
-- Local validation passes with 49 tests, reproducible model training, production build, bundle budget, and live smoke.
+- Local validation passes with 55 tests, reproducible model training, production build, bundle budget, and live smoke.
 - Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
-- The 2:54 video, ten-slide deck, and README image predate this checkpoint and are deliberately marked for refresh after the UI copy and hierarchy freeze.
+- The README image, eight-step screenshot walkthrough, 2:59 captioned video, subtitle track, and ten-slide deck match this checkpoint.

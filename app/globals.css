@@ -439,6 +439,13 @@ button {
   line-height: 1.45;
 }
 
+.field:focus-within,
+.slider-field:focus-within,
+.toggle-row:focus-within {
+  border-color: rgba(15, 118, 110, 0.72);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
 .primary-action {
   display: inline-flex;
   align-items: center;
@@ -886,32 +893,39 @@ blockquote {
   grid-column: 1 / -1;
 }
 
-.clinician-table {
+.clinician-table-wrap {
   margin-top: 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 0.6fr 1.5fr;
-  gap: 10px;
+.clinician-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.clinician-table th,
+.clinician-table td {
   padding: 12px;
   border-top: 1px solid var(--line);
-  font-size: 0.9rem;
+  vertical-align: top;
 }
 
-.table-row:first-child {
+.clinician-table thead th {
   border-top: 0;
-}
-
-.table-head {
   background: var(--panel-strong);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 850;
   text-transform: uppercase;
+}
+
+.clinician-table tbody th {
+  font-weight: 850;
 }
 
 .handoff-grid {

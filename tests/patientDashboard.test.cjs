@@ -32,7 +32,7 @@ test("patient dashboard surfaces engagement and latest-snapshot risk", () => {
 
   assert.equal(maya.missedCheckIns, 1);
   assert.equal(maya.riskLevel, "watch");
-  assert.equal(buildLatestCheckIn(maya.patient).medicationTaken, false);
+  assert.equal(buildLatestCheckIn(maya.patient).medicationTaken, true);
   assert.ok(maya.modelRisk >= 0 && maya.modelRisk <= 1);
 });
 

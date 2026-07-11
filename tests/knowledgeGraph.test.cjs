@@ -48,10 +48,11 @@ test("normal graph creates a coaching rescue path with valid edges", () => {
 
 test("escalation graph routes through safety guardrail and clinician handoff", () => {
   const graph = buildGraph("escalation");
-  const distanceFeature = graph.mlFeatures.find((feature) => feature.id === "distance_to_escalation");
+  const safetyRoute = graph.mlFeatures.find((feature) => feature.id === "safety_route_state");
 
   assert.equal(graph.pathMode, "escalation");
-  assert.equal(distanceFeature.value, 1);
+  assert.equal(safetyRoute.value, 1);
+  assert.equal(safetyRoute.displayValue, "Handoff draft");
   assert.deepEqual(
     graph.rescuePath.map((step) => step.nodeId).slice(-2),
     ["safety-guardrail", "clinician-handoff"]
@@ -62,7 +63,7 @@ test("escalation graph routes through safety guardrail and clinician handoff", (
   );
 });
 
-test("graph analytics expose sorted centrality and ML feature inputs", () => {
+test("evidence map exposes sorted graph scores and transparent diagnostics", () => {
   const graph = buildGraph("normal");
   const featureIds = graph.mlFeatures.map((feature) => feature.id);
   const centralityScores = graph.centrality.map((item) => item.score);
@@ -71,17 +72,18 @@ test("graph analytics expose sorted centrality and ML feature inputs", () => {
   assert.deepEqual(centralityScores, sortedScores);
   assert.ok(["symptom", "routine", "biomarker"].includes(graph.topDriver.type));
   assert.deepEqual(featureIds, [
-    "risk_driver_centrality",
-    "distance_to_escalation",
-    "rescue_path_strength",
-    "repeated_loop_score",
-    "similar_pattern_score"
+    "top_driver_graph_score",
+    "safety_route_state",
+    "scenario_route_ratio",
+    "recent_friction_index",
+    "synthetic_tag_overlap"
   ]);
   assert.equal(graph.cohortMatches.length, patients.length - 1);
   assert.equal(graph.nodeExplanations.length, graph.nodes.length);
   assert.equal(graph.nodeExplanations.find((item) => item.nodeId === "routine").source, "model");
   assert.equal(graph.nodeExplanations.find((item) => item.nodeId === "safety-guardrail").source, "rule");
-  assert.equal(graph.nodeExplanations.find((item) => item.nodeId === "intervention-routine").source, "simulation");
+  const interventionExplanation = graph.nodeExplanations.find((item) => item.nodeId.startsWith("intervention-"));
+  assert.equal(interventionExplanation.source, "simulation");
   assert.equal(graph.nodeExplanations.find((item) => item.nodeId === "risk").impactShare, 1);
   assert.equal(graph.routeAlternatives.length, 4);
   assert.equal(graph.routeAlternatives[0].status, "recommended");
