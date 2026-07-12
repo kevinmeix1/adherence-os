@@ -148,3 +148,23 @@ test("out-of-support input abstains from numeric intervention ranking", () => {
   assert.equal(explainRiskScore(result), null);
   assert.equal(analyzeRiskSensitivity(result), null);
 });
+
+test("missing and non-finite feature values fail closed", () => {
+  const supportedRow = getModelSampleRows().find((row) => row.expected_supported === 1);
+  const missing = { ...supportedRow };
+  delete missing.nausea_score;
+  const nonFinite = { ...supportedRow, nausea_score: Number.NaN };
+
+  for (const [expectedReason, features] of [["missing", missing], ["non-finite", nonFinite]]) {
+    const result = scoreFeatureVector(features);
+    const violation = result.support.violations.find((item) => item.name === "nausea_score");
+
+    assert.equal(result.support.status, "out-of-support");
+    assert.equal(violation.reason, expectedReason);
+    assert.equal(violation.value, null);
+    assert.ok(Number.isFinite(result.risk));
+    assert.ok(Number.isFinite(result.logit));
+    assert.ok(Number.isFinite(result.modelSpread.p10));
+    assert.ok(Number.isFinite(result.modelSpread.p90));
+  }
+});

@@ -77,7 +77,7 @@ There is no message, queue, notification, emergency-call, or clinical-record tra
 
 ## Internal Heuristic Fields
 
-The care-plan and adherence-profile schemas contain no confidence field. When every feature passes its marginal range check, the UI reports model spread only from the patient-bootstrap ensemble and explicitly states that this is not a confidence interval or clinical certainty. If any feature exceeds its marginal bounds, patient score, attribution, spread, sensitivity, and tested-action ranking are withheld. This gate does not detect implausible joint combinations or semantic drift.
+The care-plan and adherence-profile schemas contain no confidence field. When every feature passes its completeness, finiteness, binary-value, and marginal-range checks, the UI reports model spread only from the patient-bootstrap ensemble and explicitly states that this is not a confidence interval or clinical certainty. Any violation withholds patient score, attribution, spread, sensitivity, and tested-action ranking. An unsupported but safety-clear check-in may still receive a deterministic non-model care plan, but the evidence path must terminate at abstention rather than claim lower modelled risk. This gate does not detect implausible joint combinations or semantic drift.
 
 ## Deterministic Provider Merge
 

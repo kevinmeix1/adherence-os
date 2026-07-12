@@ -42,7 +42,9 @@ The selected synthetic operating point is deliberately recall-oriented: it recov
 
 ## Marginal Bounds
 
-The presentation gate checks each feature independently. Continuous features use the training-only 0.5th-99.5th percentile range; binary features must remain in their valid set. Passing this gate means only that no individual value exceeded those configured ranges. It does not establish that the full feature combination is plausible, detect joint-distribution or semantic drift, or validate the prediction clinically.
+The presentation gate requires a complete finite feature vector and checks each feature independently. Continuous features use the training-only 0.5th-99.5th percentile range; binary features must remain in their valid set. Missing, non-finite, invalid-binary, and out-of-range values create typed violations and withhold numeric presentation. Passing this gate means only that no individual value exceeded those configured checks. It does not establish that the full feature combination is plausible, detect joint-distribution or semantic drift, or validate the prediction clinically.
+
+Model support and deterministic safety are evaluated independently. Supported and safety-clear inputs may expose bounded planning comparisons. Unsupported but safety-clear inputs keep the deterministic care plan active but show no patient score, ranked action, or risk-reduction path. Any active safety rule suppresses coaching whether the model is supported or abstains.
 
 ## Demo Talk Track
 

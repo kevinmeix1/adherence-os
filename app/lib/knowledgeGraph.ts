@@ -265,9 +265,9 @@ export function buildAdherenceKnowledgeGraph({
       edges,
       interventionNodeId(intervention),
       targetDriverForIntervention(intervention),
-      "breaks loop",
+      intervention.rankable ? "breaks loop" : "comparison withheld",
       clamp01((intervention.absoluteReduction ?? 0) / Math.max(edgeRisk.risk, 0.01)),
-      "action"
+      intervention.rankable ? "action" : "neutral"
     );
   });
 
@@ -292,7 +292,7 @@ export function buildAdherenceKnowledgeGraph({
     centrality.find((item) => item.nodeId === "risk") ??
     centrality[0];
   const bestIntervention = edgeRisk.interventions[0];
-  const rescuePath = buildRescuePath(carePlan, topDriver, bestIntervention);
+  const rescuePath = buildRescuePath(carePlan, topDriver, bestIntervention, edgeRisk.support.status === "supported");
   const repeatedLoopScore = calculateRepeatedLoopScore(patient, checkIn);
   const cohortMatches = findCohortMatches(patient, cohort);
   const similarPatternScore = cohortMatches[0]?.similarity ?? 0;
@@ -579,7 +579,8 @@ function calculateCentrality(nodes: KnowledgeGraphNode[], edges: KnowledgeGraphE
 function buildRescuePath(
   carePlan: CarePlan,
   topDriver: GraphCentrality,
-  bestIntervention: InterventionSimulation | undefined
+  bestIntervention: InterventionSimulation | undefined,
+  modelSupported: boolean
 ): RescuePathStep[] {
   if (carePlan.escalation.needed) {
     return [
@@ -597,6 +598,26 @@ function buildRescuePath(
         nodeId: "clinician-handoff",
         label: "Clinician handoff",
         summary: carePlan.escalation.channel
+      }
+    ];
+  }
+
+  if (!modelSupported) {
+    return [
+      {
+        nodeId: topDriver.nodeId,
+        label: topDriver.label,
+        summary: "Observed context remains visible without patient-specific model attribution."
+      },
+      {
+        nodeId: "risk",
+        label: "Model abstained",
+        summary: "No patient score, ranked action, or risk-reduction claim is produced."
+      },
+      {
+        nodeId: "safety-guardrail",
+        label: "Rules remain active",
+        summary: "The deterministic care plan continues without using an unsupported model comparison."
       }
     ];
   }

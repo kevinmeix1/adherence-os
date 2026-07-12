@@ -69,9 +69,10 @@ export type InterventionSimulation = {
 export type SupportViolation = {
   name: string;
   label: string;
-  value: number;
+  value: number | null;
   low: number;
   high: number;
+  reason: "missing" | "non-finite" | "outside-bounds" | "invalid-binary";
 };
 
 export type FeatureVectorScore = {
@@ -113,7 +114,7 @@ export function scorePatientRisk(patient: Patient, checkIn: CheckInInput): EdgeR
   const baseScore = scoreFeatureVector(features, artifact);
   const contributions = artifact.features
     .map((feature) => {
-      const rawValue = features[feature.name] ?? feature.mean;
+      const rawValue = resolveFeatureValue(features, feature);
       const z = (rawValue - feature.mean) / feature.std;
       const contribution = z * feature.weight;
       return {
@@ -147,14 +148,35 @@ export function scoreFeatureVector(
   const memberScores = artifact.ensemble.members
     .map((member) => {
       const logit = artifact.features.reduce((sum, feature, index) => {
-        const rawValue = features[feature.name] ?? feature.mean;
+        const rawValue = resolveFeatureValue(features, feature);
         return sum + ((rawValue - feature.mean) / feature.std) * member.weights[index];
       }, member.intercept);
       return sigmoid(logit);
     })
     .sort((a, b) => a - b);
-  const violations = artifact.features.flatMap((feature) => {
-    const value = features[feature.name] ?? feature.mean;
+  const violations = artifact.features.flatMap<SupportViolation>((feature) => {
+    const hasValue = Object.prototype.hasOwnProperty.call(features, feature.name);
+    const value = features[feature.name];
+    if (!hasValue || typeof value !== "number") {
+      return [{
+        name: feature.name,
+        label: feature.label,
+        value: null,
+        low: feature.support.low,
+        high: feature.support.high,
+        reason: "missing" as const
+      }];
+    }
+    if (!Number.isFinite(value)) {
+      return [{
+        name: feature.name,
+        label: feature.label,
+        value: null,
+        low: feature.support.low,
+        high: feature.support.high,
+        reason: "non-finite" as const
+      }];
+    }
     const outsideRange = value < feature.support.low || value > feature.support.high;
     const outsideBinarySet = feature.support.kind === "binary" && value !== 0 && value !== 1;
     return outsideRange || outsideBinarySet
@@ -164,7 +186,8 @@ export function scoreFeatureVector(
             label: feature.label,
             value,
             low: feature.support.low,
-            high: feature.support.high
+            high: feature.support.high,
+            reason: outsideBinarySet ? ("invalid-binary" as const) : ("outside-bounds" as const)
           }
         ]
       : [];
@@ -341,11 +364,16 @@ function extractFeatures(patient: Patient, checkIn: CheckInInput): Record<string
 
 function scoreFeatures(features: Record<string, number>, artifact: ModelArtifact) {
   const logit = artifact.features.reduce((sum, feature) => {
-    const rawValue = features[feature.name] ?? feature.mean;
+    const rawValue = resolveFeatureValue(features, feature);
     return sum + ((rawValue - feature.mean) / feature.std) * feature.weight;
   }, artifact.intercept);
 
   return { logit, risk: sigmoid(logit) };
+}
+
+function resolveFeatureValue(features: Record<string, number>, feature: ModelArtifact["features"][number]) {
+  const value = features[feature.name];
+  return typeof value === "number" && Number.isFinite(value) ? value : feature.mean;
 }
 
 function simulateInterventions(
