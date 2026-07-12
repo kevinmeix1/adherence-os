@@ -13,6 +13,7 @@
     "check:bundle": "node scripts/check-bundle-budget.mjs",
     "start": "next start",
     "smoke": "node scripts/smoke.mjs",
+    "test:browser": "playwright test",
     "typecheck": "tsc --noEmit",
     "test": "node --require ./tests/register-typescript.cjs --test tests/*.test.cjs",
     "check:model": "python3 scripts/train_adherence_model.py --check",
@@ -27,6 +28,8 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.61.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

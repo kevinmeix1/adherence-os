@@ -32,7 +32,7 @@ Do not add a feature unless it appears in this story or materially protects it.
 - ML: browser-side monotonic logistic inference from exported JSON.
 - Graph: typed in-memory evidence graph and bounded route comparison.
 - Data: checked-in synthetic JSON only.
-- Tests: Node test runner with the local TypeScript registration shim.
+- Tests: Node test runner with the local TypeScript registration shim, plus Chromium interaction and axe contracts.
 
 ## Folder Structure
 
@@ -44,7 +44,7 @@ Do not add a feature unless it appears in this story or materially protects it.
 - `app/patients/`: routed synthetic patient directory and records.
 - `data/`: synthetic patient data and exported model artifact.
 - `scripts/`: model training and live smoke checks.
-- `tests/`: deterministic contract tests.
+- `tests/`: deterministic contracts and the bounded production-browser suite.
 - `docs/`: audit, backlog, architecture, safety, ML, design, and demo material.
 - `outputs/`: checked-in demo video and slide deck.
 - `public/`: browser-served README and social preview imagery.
@@ -81,10 +81,11 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm check:bundle
+pnpm test:browser
 pnpm smoke
 ```
 
-`pnpm smoke` expects a running app at `http://localhost:3000`, or at `APP_URL` when provided.
+`pnpm test:browser` starts the existing production build on port 3100 when `APP_URL` is absent. `pnpm smoke` expects a running app at `http://localhost:3000`, or at `APP_URL` when provided.
 
 Run focused checks after each meaningful change and the full set before declaring a phase complete.
 

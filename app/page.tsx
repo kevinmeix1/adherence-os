@@ -125,6 +125,9 @@ export default function HomePage() {
   function navigateTo(nextView: View) {
     setView(nextView);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.requestAnimationFrame(() => {
+      document.getElementById("main-workspace")?.focus({ preventScroll: true });
+    });
   }
 
   function resetDemo() {
@@ -187,7 +190,16 @@ export default function HomePage() {
       </a>
       <ProductHeader view={view} patient={selectedPatient} onNavigate={navigateTo} onReset={resetDemo} />
 
-      <section className="workspace product-workspace" id="main-workspace" tabIndex={-1}>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {carePlanAnnouncement}
+      </p>
+
+      <section
+        aria-label="Current care workspace"
+        className="workspace product-workspace"
+        id="main-workspace"
+        tabIndex={-1}
+      >
         {view !== "graph" && (
           <header className="topbar">
             <div>
@@ -215,7 +227,6 @@ export default function HomePage() {
             carePlan={carePlan}
             isLoading={isLoading}
             generationNotice={generationNotice}
-            carePlanAnnouncement={carePlanAnnouncement}
             onChange={updateCheckIn}
             onScenario={loadScenario}
             onSubmit={submitCheckIn}
@@ -386,7 +397,6 @@ function PatientView({
   carePlan,
   isLoading,
   generationNotice,
-  carePlanAnnouncement,
   onChange,
   onScenario,
   onSubmit
@@ -397,7 +407,6 @@ function PatientView({
   carePlan: CarePlan;
   isLoading: boolean;
   generationNotice: string | null;
-  carePlanAnnouncement: string;
   onChange: (input: CheckInInput) => void;
   onScenario: (scenario: "normal" | "escalation") => void;
   onSubmit: () => void;
@@ -551,9 +560,6 @@ function PatientView({
             <span>{generationNotice}</span>
           </div>
         )}
-        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-          {carePlanAnnouncement}
-        </p>
       </section>
 
       <section className="panel result-panel">
@@ -797,7 +803,12 @@ function ClinicianView({
           />
         </div>
 
-        <div className="clinician-table-wrap">
+        <div
+          aria-label="Patient review table"
+          className="clinician-table-wrap"
+          role="region"
+          tabIndex={0}
+        >
           <table className="clinician-table">
             <thead>
               <tr>
@@ -1580,7 +1591,7 @@ function GraphNodeInspector({
   const primaryView: View = carePlan.escalation.needed ? "clinician" : "patient";
 
   return (
-    <aside className={`graph-inspector decision-panel ${node.status}`}>
+    <aside className={`graph-inspector decision-panel ${node.status}`} id="graph-node-inspector">
       <header className="decision-panel-head">
         <div>
           <p className="section-kicker">Decision summary</p>
@@ -1956,8 +1967,9 @@ function KnowledgeGraphCanvas({
                 tabIndex={isFocused ? 0 : -1}
                 aria-hidden={!isFocused}
                 aria-label={`${node.label}: ${node.evidence}`}
+                aria-controls="graph-node-inspector"
+                aria-pressed={isSelected}
                 onPointerUp={() => onSelectNode(node.id)}
-                onClick={() => onSelectNode(node.id)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();

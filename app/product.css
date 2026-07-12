@@ -3665,6 +3665,11 @@ body {
   color: var(--product-coral) !important;
 }
 
+.provenance-badge.neutral {
+  background: transparent;
+  color: #4d5b56 !important;
+}
+
 .provenance-features span {
   padding: 3px 5px;
   border-radius: 1px;

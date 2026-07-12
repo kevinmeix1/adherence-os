@@ -50,6 +50,16 @@ pnpm smoke
 The health endpoint is available at `http://localhost:3000/api/health`.
 After `pnpm build`, `pnpm check:bundle` enforces a 155 kB gzip budget for home first-load JavaScript.
 
+Run the production-browser quality gate:
+
+```bash
+pnpm exec playwright install chromium
+pnpm build
+pnpm test:browser
+```
+
+The suite starts the built app on port 3100 when `APP_URL` is unset. It covers the judged Coaching/Escalation/handoff path, keyboard announcements and focus, 390/320px ordering and overflow, console errors, and serious or critical axe findings across the four core views. Automated accessibility checks catch only a subset of accessibility problems; manual assistive-technology and user testing are still required.
+
 ## Demo Assets
 
 - [2:59 narrated and captioned video walkthrough](outputs/adherence-os-demo.mp4)

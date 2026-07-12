@@ -900,6 +900,11 @@ blockquote {
   overflow-x: auto;
 }
 
+.clinician-table-wrap:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
 .clinician-table {
   width: 100%;
   min-width: 680px;

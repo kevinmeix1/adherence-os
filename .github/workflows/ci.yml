@@ -59,6 +59,12 @@ jobs:
       - name: Check home bundle budget
         run: pnpm check:bundle
 
+      - name: Install Chromium runtime
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Test browser and accessibility contracts
+        run: pnpm test:browser
+
       - name: Smoke production app
         shell: bash
         run: |

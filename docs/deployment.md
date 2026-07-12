@@ -24,6 +24,8 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm check:bundle
+pnpm exec playwright install chromium
+pnpm test:browser
 ```
 
 Before the event-day build, confirm that no production server is still running on the intended port. A development server may remain available on another port without sharing build output, although stopping it reduces CPU and memory pressure during judging.
@@ -49,7 +51,7 @@ Smoke must confirm `/`, `/api/health`, the patient directory and record, a norma
 | `OPENAI_API_KEY` | No | Keyless deterministic mode | Leave unset for public demos. Never commit it. |
 | `OPENAI_MODEL` | No | `gpt-5.5` | Used only when an API key is configured. |
 | `NEXT_PUBLIC_SITE_URL` | No | `http://localhost:3000` | Set to the public preview origin so social image links are absolute. |
-| `APP_URL` | No | `http://localhost:3000` | Override only when smoke targets another port or host. |
+| `APP_URL` | No | Browser test: `http://127.0.0.1:3100`; smoke: `http://localhost:3000` | Point browser and smoke checks at an already-running local or hosted build. |
 
 Copy `.env.example` to `.env.local` only for local provider testing. Local environment files are ignored by Git.
 
@@ -71,9 +73,10 @@ After deployment:
 
 ```bash
 APP_URL=https://your-preview.example pnpm smoke
+APP_URL=https://your-preview.example pnpm test:browser
 ```
 
-The preview is ready only when the expanded smoke command passes. The current CI workflow runs the equivalent keyless production gate on pushes and pull requests.
+The preview is ready only when smoke and browser contracts pass. The current CI workflow runs the equivalent keyless production gate on pushes and pull requests.
 
 ## Health And Observability
 
