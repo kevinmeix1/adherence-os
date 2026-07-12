@@ -152,6 +152,10 @@ await checkCarePlan("normal", normalCheckIn, async ({ plan }) => {
     throw new Error("normal care-plan smoke check unexpectedly entered urgent mode");
   }
 
+  if (plan.headline !== "Coaching can continue" || !/does not mean symptoms were assessed or found safe/i.test(plan.explanation)) {
+    throw new Error("normal care-plan smoke check is missing the bounded non-triage copy contract");
+  }
+
   if (plan.unsafeRequestDemo?.blocked !== true || plan.rescuePlan?.length !== 7) {
     throw new Error("normal care-plan smoke check is missing safety or rescue-plan output");
   }
@@ -164,6 +168,10 @@ await checkCarePlan("escalation", escalationCheckIn, async ({ plan }) => {
 
   if (!plan.ruleHits?.some((hit) => hit.startsWith("red flag:"))) {
     throw new Error("escalation care-plan smoke check is missing deterministic red-flag evidence");
+  }
+
+  if (plan.headline !== "Call NHS 111 now") {
+    throw new Error("escalation care-plan smoke check did not put the NHS 111 destination in the headline");
   }
 
   if (plan.rescuePlan?.length !== 1 || !/draft|pending/i.test(`${plan.escalation?.channel} ${plan.clinicianDraft}`)) {
@@ -180,6 +188,9 @@ await checkCarePlan("uncertain chest pain", uncertainChestPainCheckIn, async ({ 
   if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: chest pain")) {
     throw new Error("uncertain chest-pain language did not activate the deterministic emergency route");
   }
+  if (plan.headline !== "Call 999 now") {
+    throw new Error("uncertain chest-pain language did not put the 999 destination in the headline");
+  }
   if (!/call 999/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
     throw new Error("uncertain chest-pain language did not expose the 999 destination");
   }
@@ -188,6 +199,9 @@ await checkCarePlan("uncertain chest pain", uncertainChestPainCheckIn, async ({ 
 await checkCarePlan("immediate self-safety", immediateSelfSafetyCheckIn, async ({ plan }) => {
   if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: immediate self-harm language")) {
     throw new Error("immediate self-safety language did not activate the deterministic emergency route");
+  }
+  if (plan.headline !== "Call 999 or go to A&E now") {
+    throw new Error("immediate self-safety language did not put the emergency destination in the headline");
   }
   if (!/call 999|go to A&E/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
     throw new Error("immediate self-safety language did not expose an emergency destination");

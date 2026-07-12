@@ -708,7 +708,7 @@ function ClinicianView({
           </div>
           <div>
             <span>Ownership</span>
-            <strong>{selectedNeedsReview ? "Unassigned" : "Monitoring"}</strong>
+            <strong>{selectedNeedsReview ? "Unassigned" : "No active review"}</strong>
           </div>
           <div>
             <span>Delivery</span>
@@ -1332,9 +1332,9 @@ function KnowledgeGraphView({
           tone={graph.pathMode === "escalation" ? "urgent" : "action"}
         />
         <DecisionMetric
-          label="Safety ownership"
-          value={graph.pathMode === "escalation" ? "Handoff draft" : "Coaching permitted"}
-          note={graph.pathMode === "escalation" ? "Pending human review" : "No red-flag rule active"}
+          label="Rule state"
+          value={graph.pathMode === "escalation" ? "Handoff draft" : "Coaching path"}
+          note={graph.pathMode === "escalation" ? "Pending human review" : "No configured urgent rule matched"}
           tone={graph.pathMode === "escalation" ? "urgent" : "protective"}
         />
       </section>
@@ -1531,8 +1531,8 @@ function GraphNodeInspector({
       </header>
 
       <section className={`recommended-action ${carePlan.escalation.needed ? "urgent" : ""}`}>
-        <span>Next safe move</span>
-        <strong>{carePlan.escalation.needed ? "Prepare urgent clinical review" : bestIntervention.label}</strong>
+        <span>{carePlan.escalation.needed ? "Urgent action now" : "Next action"}</span>
+        <strong>{carePlan.escalation.needed ? carePlan.headline : bestIntervention.label}</strong>
         <p>{carePlan.patientAction}</p>
       </section>
 
@@ -1606,7 +1606,7 @@ function GraphNodeInspector({
             <strong>{decisionBrief.signal}</strong>
           </div>
           <div>
-            <span>Safe next move</span>
+            <span>Next graph step</span>
             <strong>{decisionBrief.nextMove}</strong>
           </div>
         </div>
@@ -2033,7 +2033,7 @@ function ScriptsView() {
           <li>Point to one next action, trend context, and the inspectable decision trace.</li>
         </ol>
         <p className="talk-track">
-          "This is the boring middle of chronic care. Maya is not in crisis, but the system keeps her adherent by catching friction while it is still small."
+          "This is the quiet middle of chronic care. Maya's configured rules do not activate a handoff, so the system keeps support lightweight while tracking friction."
         </p>
       </section>
 
@@ -2274,10 +2274,10 @@ function getGenerationNotice(reason: CarePlanResponse["fallbackReason"], meta?: 
     return `OpenAI is not configured. The deterministic local safety engine produced this result.${timing}`;
   }
   if (reason === "invalid-openai-output") {
-    return `OpenAI returned an invalid result. The deterministic local safety engine took over safely.${timing}`;
+    return `OpenAI returned an invalid result. The deterministic local safety engine produced the displayed result.${timing}`;
   }
   if (reason === "openai-error") {
-    return `OpenAI was unavailable. The deterministic local safety engine took over safely.${timing}`;
+    return `OpenAI was unavailable. The deterministic local safety engine produced the displayed result.${timing}`;
   }
   return meta?.providerAttempted
     ? `Provider output was schema-valid in ${meta.durationMs} ms. The complete rules-owned plan was recomputed before display.`
@@ -2285,7 +2285,9 @@ function getGenerationNotice(reason: CarePlanResponse["fallbackReason"], meta?: 
 }
 
 function buildCarePlanAnnouncement(plan: CarePlan) {
-  const nextStep = plan.escalation.needed ? "A clinician handoff draft is ready for review." : "Coaching can continue.";
+  const nextStep = plan.escalation.needed
+    ? `Next action: ${plan.patientAction}`
+    : "No clinician handoff is active; follow the displayed adherence action.";
   return `Care plan updated. ${plan.headline} Risk level: ${riskLabels[plan.riskLevel]}. ${nextStep}`;
 }
 

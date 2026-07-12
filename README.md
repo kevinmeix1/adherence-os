@@ -2,7 +2,7 @@
 
 AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health with eMed hackathon.
 
-![Adherence OS evidence map showing Maya Patel's adherence risk, safe next move, and decision graph](public/adherence-os-live-twin.jpg)
+![Adherence OS evidence map showing Maya Patel's adherence risk, bounded next action, and decision graph](public/adherence-os-live-twin.jpg)
 
 *The care decision ledger connects synthetic home signals, local ML attribution, one bounded support assumption, and an independent safety boundary without hiding clinical ownership.*
 

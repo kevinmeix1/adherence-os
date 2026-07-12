@@ -4,7 +4,7 @@ Audit date: 2026-07-12
 
 ## 1. Product Summary
 
-Adherence OS is a hackathon MVP for at-home GLP-1 adherence support. It combines a short patient check-in, deterministic clinical guardrails, a browser-side adherence-risk model, explainable graph analytics, bounded what-if support routes, and an asynchronous clinician handoff. The intended users are patients managing a long programme and care teams monitoring many patients between appointments. The immediate audience is the eMed hackathon judging panel.
+Adherence OS is a hackathon MVP for at-home GLP-1 adherence support. It combines a short patient check-in, deterministic clinical guardrails, a browser-side adherence-risk model, explainable graph analytics, bounded what-if support routes, and a pending clinician-review draft. The intended users are patients managing a long programme and care teams prioritising review between appointments. The immediate audience is the eMed hackathon judging panel.
 
 The product's strongest proposition is the dual-track decision: ML estimates adherence failure risk while an independent safety layer decides whether coaching must stop. The stricter path wins.
 
@@ -19,7 +19,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - **Graph:** a typed in-memory graph built from the patient, check-in, model score, care plan, and synthetic cohort.
 - **AI:** optional OpenAI structured output validated with Zod; a complete deterministic fallback works without a key.
 - **Data:** three synthetic patients with eight weekly snapshots each; no database or real patient data.
-- **Testing:** Node test runner with a small TypeScript registration shim; 55 tests across safety, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
+- **Testing:** Node test runner with a small TypeScript registration shim; 58 tests across safety, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
 - **Deployment:** checked-in GitHub Actions production gate, a successful remote PR run, and a keyless-first deployment runbook. No hosted preview is configured.
 
 ## 3. Core User Journey
@@ -29,7 +29,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 3. Inspect the active risk driver, graph path, provenance, and model attribution.
 4. Compare bounded support routes and show why one ranks first.
 5. Switch to Escalation.
-6. Observe that deterministic red flags suppress every simulated intervention and activate a clinician handoff.
+6. Observe that deterministic red flags suppress every simulated intervention, show the urgent destination, and prepare a clinician-review draft.
 7. Open the Review queue and review the structured audit trail.
 8. Use Model record only when technical depth is requested.
 
@@ -40,6 +40,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - Normal and escalation paths are seeded, deterministic, and visually distinct.
 - Safety is independent from both the LLM and the adherence model.
 - Red-flag matching distinguishes symptom-scoped denial from uncertainty and normalises typographic contractions before deterministic routing.
+- Destination-aware urgent headlines place 999 or NHS 111 before workflow detail, while non-urgent copy reports rule state without claiming negative triage.
 - The app remains complete without a network connection or API key.
 - Structured AI output and request data are validated with Zod.
 - Model explainability is unusually strong for a hackathon: exact log-odds reconstruction, local sensitivity, calibration, and provenance.
@@ -67,6 +68,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 - A public deployment with `OPENAI_API_KEY` configured would expose an unauthenticated cost-bearing endpoint. This is acceptable only for a bounded hackathon demo.
 - Smoke testing requires the user or CI job to start the server first.
+- A same-worktree `next build` can overwrite `.next` while `next dev` is serving it; the event-day build preflight remains the next reliability repair.
 - Large component and stylesheet files increase regression risk for last-minute edits.
 
 ## 7. UX Gaps
@@ -121,15 +123,15 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - README setup is portable and the app builds without secrets.
 - The local demo requires the presenter to start the server before running smoke checks.
 - The optional AI path should not be relied on during judging; deterministic fallback is the safer live-demo mode.
-- The checked-in 2:59 captioned video, subtitle track, screenshot walkthrough, and 10-slide deck are current; regenerate them after future material UI changes.
+- The checked-in 2:59 captioned video, subtitle track, screenshot walkthrough, and 10-slide deck show the previous copy checkpoint; a final refresh is queued after the remaining bounded UI repairs.
 - The presenter should keep a production build running locally and avoid dependency installation on event Wi-Fi.
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
-2. Add a keyless hosted preview only when an existing deployment account makes it low risk.
-3. Add automated browser or accessibility checks only after the judged demo is frozen.
-4. Defer component and CSS decomposition until after judging.
+1. Prevent same-worktree development and production builds from sharing an active `.next` directory.
+2. Gate every unsupported patient-specific ML number after support-aware abstention.
+3. Put the urgent destination before graph exploration on narrow escalation layouts.
+4. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
 
 ## Baseline Validation
 
@@ -207,16 +209,16 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 
 ### 2026-07-12 Independent Critique
 
-Five read-only reviews covered judging impact, clinical safety and ML, healthcare UX and accessibility, release engineering, and the three-minute story. The confirmed red-flag bypass was repaired first. Remaining findings are ranked by likely judging harm, blast radius, and implementation risk:
+Five read-only reviews covered judging impact, clinical safety and ML, healthcare UX and accessibility, release engineering, and the three-minute story. The confirmed red-flag bypass was repaired first. Findings are tracked by likely judging harm, blast radius, and implementation risk:
 
-| Rank | Unresolved finding | Judging or demo impact | Change risk | Next evidence |
-|---:|---|---|---|---|
-| 1 | Emergency routes can retain the generic “Same-day clinical attention needed” headline, and non-urgent copy sometimes overstates negative triage | Safety trust and claim calibration | Low | Destination-aware copy tests and browser check |
-| 2 | `next dev` and `next build` share `.next`; a concurrent build can corrupt the active local demo | Event-day reliability | Low | Release preflight plus clean production rehearsal |
-| 3 | Some patient-specific numeric model evidence remains visible after support-aware abstention | ML credibility | Medium | Presentation-gate assertions across Decision map, Model record, and patient records |
-| 4 | On narrow escalation layouts, the urgent action follows the graph rather than preceding it | Patient safety hierarchy | Low | 390px and 320px escalation screenshots |
-| 5 | Demo copy conflates authored context ranking, model contribution, and the highest-ranked tested action | Three-minute clarity | Low | One authoritative run-of-show and label audit |
-| 6 | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
+| Rank | Status | Finding | Judging or demo impact | Change risk | Next evidence |
+|---:|---|---|---|---|---|
+| 1 | Repaired | Emergency routes retained a generic same-day headline, and non-urgent copy overstated negative triage. Destination-aware headlines, literal non-match wording, exact support-plan triggers, and a Unicode follow-on regression now pass focused tests, smoke, and desktop browser review. | Safety trust and claim calibration | Low | Preserve in regression suite |
+| 2 | Open | `next dev` and `next build` share `.next`; a concurrent build can corrupt the active local demo | Event-day reliability | Low | Release preflight plus clean production rehearsal |
+| 3 | Open | Some patient-specific numeric model evidence remains visible after support-aware abstention | ML credibility | Medium | Presentation-gate assertions across Decision map, Model record, and patient records |
+| 4 | Open | On narrow escalation layouts, the urgent action follows the graph rather than preceding it | Patient safety hierarchy | Low | 390px and 320px escalation screenshots |
+| 5 | Open | Demo copy conflates authored context ranking, model contribution, and the highest-ranked tested action | Three-minute clarity | Low | One authoritative run-of-show and label audit |
+| 6 | External | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
 
 No new feature is justified ahead of these repairs. CSS decomposition, extra graph modes, and multi-condition expansion remain deferred.
 - **Still weak:** automated browser accessibility checks, hosted access, real user or clinician evidence, and concentrated page and stylesheet ownership.
@@ -234,7 +236,7 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.3 | 55 tests plus prospective parity, support abstention, cross-field negation, route semantics, and cadence contracts |
+| Testing | 9.3 | 58 tests plus prospective parity, support abstention, copy calibration, cross-field negation, route semantics, and cadence contracts |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
 | Performance | 7.0 | 151.5 kB gzip against a 155 kB ceiling leaves narrow headroom |
@@ -251,6 +253,6 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 ### Current Checkpoint
 
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
-- Local validation passes with 55 tests, reproducible model training, production build, bundle budget, and live smoke.
+- The copy-calibration checkpoint passes typecheck, 58 tests, model reproduction, production build, bundle budget, live smoke, and desktop Coaching/Escalation browser review.
 - Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
-- The README image, eight-step screenshot walkthrough, 2:59 captioned video, subtitle track, and ten-slide deck match this checkpoint.
+- The README image, screenshot walkthrough, video, subtitle track, and deck remain valid fallback assets for the previous checkpoint and are queued for one final refresh after the remaining bounded UI repairs.

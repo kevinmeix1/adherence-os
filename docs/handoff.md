@@ -8,7 +8,7 @@ Updated: 2026-07-12
 - Pull request: https://github.com/kevinmeix1/adherence-os/pull/2
 - Public repository: https://github.com/kevinmeix1/adherence-os
 - Local demo URL: http://localhost:3001
-- Product status: validated release candidate published in draft PR #2
+- Product status: copy-calibrated release checkpoint on draft PR #2
 
 ## What Changed
 
@@ -19,9 +19,10 @@ Updated: 2026-07-12
 - Kept graph geometry stable and limited node feedback to a short one-shot selection animation.
 - Preserved the deterministic Coaching and Escalation paths, model abstention, route suppression, and draft-only clinician handoff.
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
+- Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
+- Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
-- Rebuilt the README image and all eight walkthrough screenshots from the current UI.
-- Rebuilt the 10-slide pitch deck and the 2:59 narrated, captioned walkthrough from those verified states.
+- The README image, eight walkthrough screenshots, deck, and video currently show the preceding UI checkpoint; one final refresh is queued after the remaining bounded UI repairs.
 - Updated UI labels, smoke contracts, route-state tests, demo scripts, architecture notes, design rationale, audit, and backlog.
 
 ## Main Study Files
@@ -47,13 +48,13 @@ Updated: 2026-07-12
 ## Validation
 
 - `pnpm typecheck`: pass.
-- `pnpm test`: pass, 55/55.
-- Focused care-engine safety suite: pass, 17/17, including uncertain chest pain and self-safety contraction regressions.
+- `pnpm test`: pass, 58/58.
+- Focused care-engine safety suite: pass, 20/20, including destination-aware headlines, negative-triage copy, exact support-plan triggers, uncertain chest pain, and mixed Unicode/negation regressions.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
 - `pnpm build`: pass; `/` is 45.4 kB with 151 kB reported first-load JavaScript.
 - `pnpm check:bundle`: pass, `151.5 kB gzip / 155.0 kB`, leaving 3.5 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against a temporary production server, including normal, escalation, uncertain chest-pain, and immediate self-safety API paths.
-- Production browser rehearsal: pass for Attribution, risk-driver node, bounded route, Escalation abstention, clinician handoff, Reset, and Check-in.
+- Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail. Narrow Escalation confirms the separately tracked inspector-order issue.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; 320 px document and graph surfaces have no horizontal overflow.
 - Deck QA: all ten slides reviewed at full size; overflow check passes.
 - Video QA: 2:59, 1280x720, 5 fps static demonstration frames, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, clean full-file decode, and -2.7 dB peak audio.
@@ -66,7 +67,7 @@ Updated: 2026-07-12
 - The evidence graph is authored and explanatory; bounded rescoring is not causal evidence.
 - `app/page.tsx` remains roughly 2,400 lines, and the two stylesheets exceed 7,600 lines. Decomposition is intentionally deferred until after judging to avoid destabilising the demo.
 - Browser interaction and visual regression are manually rehearsed rather than automated in CI.
-- The fallback assets must be regenerated after any material UI or label change.
+- The fallback assets are queued for regeneration after the remaining build, unsupported-evidence, and narrow-layout repairs.
 
 ## Event-Day Commands
 
@@ -84,4 +85,4 @@ APP_URL=http://localhost:3001 pnpm smoke
 
 ## Recommended Next Step
 
-Freeze feature work. Rehearse Coaching, Attribution, Hydration nudge, Escalation, Review handoff draft, Reset, video, and deck from a clean checkout before judging.
+Implement the event-day build preflight (P1-22), then finish unsupported-evidence gating and narrow-screen urgent-action order before the final asset refresh and clean-checkout rehearsal.

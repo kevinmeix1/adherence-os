@@ -2,7 +2,7 @@
 
 ## 1. One-Line Pitch
 
-Adherence OS is an AI decision layer that predicts when at-home GLP-1 adherence may fail, explains the active driver, tests a bounded support action, and lets independent safety rules hand the patient to a clinician.
+Adherence OS is an AI decision layer that predicts when at-home GLP-1 adherence may fail, explains the active driver, tests a bounded support action, and lets independent safety rules stop coaching and prepare a clinician-review draft.
 
 ## 2. Problem
 
@@ -12,7 +12,7 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 
 **Primary patient:** Maya Patel, 36, in week eight of a synthetic at-home GLP-1 programme. She works irregular hours, responds well to reminders, and is most likely to disengage when nausea disrupts meals and routine.
 
-**Care-team user:** a clinician or care navigator who needs to identify which patients need routine coaching, asynchronous review, or urgent handoff without reading every raw check-in.
+**Care-team user:** a clinician or care navigator who needs to identify which patients remain in routine coaching and which have a review draft to inspect without reading every raw check-in.
 
 ## 4. Before State
 
@@ -29,7 +29,7 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 4. Identify and explain the most connected active risk driver.
 5. Rescore explicit, bounded support assumptions and rank the routes.
 6. Independently evaluate red flags with deterministic safety rules.
-7. Allow coaching only when safety permits it; otherwise create a clinician handoff.
+7. Allow coaching only when no configured safety rule matches; otherwise show an urgent action and prepare a clinician-review draft.
 
 ## 6. Main Wow Moment
 
@@ -49,9 +49,9 @@ Switch from **Coaching** to **Escalation** on the Decision map. The symptom vect
 
 ## 8. Why It Matters To eMed And Judges
 
-- **User impact:** one safe next action instead of generic chronic-care content.
+- **User impact:** one bounded next action instead of generic chronic-care content.
 - **Innovation:** an explainable decision workflow rather than a chatbot wrapper.
-- **Feasibility:** local ML, synthetic structured data, asynchronous handoff, and no new clinical infrastructure in the prototype.
+- **Feasibility:** local ML, synthetic structured data, pending review drafts, and no new clinical infrastructure in the prototype.
 - **Demo quality:** a visible normal-to-escalation transition that can be understood in seconds.
 - **eMed fit:** extends high-adherence at-home programmes with proactive support and scalable oversight between appointments.
 
@@ -71,7 +71,7 @@ Point to the headline and four metrics.
 
 Say:
 
-> Maya is on track today. The edge model estimates low next-week adherence-interruption risk, and the evidence map surfaces appetite and energy drag as the active driver. Attribution shows that routine disruption carries the largest structured share, while hydration is the smallest supported route to try.
+> Maya remains in coaching mode. The edge model estimates low next-week adherence-interruption risk, and the evidence map surfaces appetite and energy drag as the active context signal. Attribution shows that routine disruption carries the largest structured share, while hydration is the highest-ranked supported route to try.
 
 Do not open every panel. Keep the audience on the decision.
 
@@ -91,7 +91,7 @@ Click **Escalation**.
 
 Say:
 
-> Now Maya reports vomiting, worsening pain, poor hydration, and lightheadedness. The input is outside synthetic model support, so numeric ranking abstains. Every coaching route is blocked, and deterministic safety prepares an urgent handoff draft.
+> Maya now reports vomiting, worsening pain, poor hydration, and lightheadedness. The model abstains outside synthetic support. Safety blocks every coaching route and tells her to call NHS 111 now; if the pain is sudden or so severe that it is hard to think or talk, she should call 999 or go to A&E now. The clinician handoff is a draft, not a sent message.
 
 Point to **Abstained**, **Suppressed**, **Handoff draft**, and the red route.
 
@@ -101,7 +101,7 @@ Click **Review handoff draft**.
 
 Say:
 
-> The selected review task opens with longitudinal context, current red flags, ownership and delivery state, a safe draft response, and the audit trail. The prototype is explicit that nothing has been sent.
+> The review task opens with longitudinal context, current red flags, ownership and delivery state, a rules-owned draft response, and the audit trail. Nothing has been sent.
 
 ### 2:40-3:00 — Establish Credibility And Close
 
@@ -109,7 +109,7 @@ Optionally click **Model record** only if the audience wants technical depth.
 
 Say:
 
-> The model runs locally from an exported artifact, the explanations are exact, and the LLM is optional. eMed has already shown what high-adherence at-home care can achieve. Adherence OS is the decision layer that helps keep patients in that programme safely.
+> The model runs locally from an exported artifact, the explanations are exact, and the LLM is optional. eMed has already shown what high-adherence at-home care can achieve. Adherence OS is the decision layer that helps keep patients in that programme within explicit clinical boundaries.
 
 ## 10. Thirty-Second Backup Pitch
 
@@ -147,7 +147,7 @@ Expected result: coaching allowed, Hydration nudge selected, no escalation.
 - Vomiting and inability to keep fluids down
 - Worsening abdominal pain and lightheadedness
 
-Expected result: urgent clinical attention, simulations suppressed, safety guardrail and clinician handoff active.
+Expected result: NHS 111 now, with the 999/A&E contingency visible; simulations suppressed; safety guardrail and clinician handoff draft active.
 
 ## 13. Screens And Pages That Must Work Perfectly
 
@@ -167,6 +167,7 @@ Expected result: urgent clinical attention, simulations suppressed, safety guard
 - Never call graph routes causal.
 - Never call synthetic metrics clinical validation.
 - Never imply that Adherence OS diagnoses or changes medication.
+- Never describe a rule non-match as proof that symptoms are safe, manageable, or "not a crisis".
 - Keep the graph explanation to one driver, one route, and one safety override.
 - Model record is technical proof, not the main story.
 

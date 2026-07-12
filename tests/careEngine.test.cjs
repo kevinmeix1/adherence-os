@@ -73,6 +73,64 @@ test("escalation check-in routes red flags to urgent clinical review", () => {
   );
 });
 
+test("urgent headlines name the configured destination without downplaying emergency routes", () => {
+  const cases = [
+    {
+      input: buildBoundaryCheckIn({ freeText: "I have chest pain now." }),
+      headline: "Call 999 now",
+      destination: /call 999/i
+    },
+    {
+      input: buildBoundaryCheckIn({ freeText: "I can't keep myself safe." }),
+      headline: "Call 999 or go to A&E now",
+      destination: /call 999|go to A&E/i
+    },
+    {
+      input: buildBoundaryCheckIn({ freeText: "I have severe abdominal pain and I am vomiting." }),
+      headline: "Call NHS 111 now",
+      destination: /call NHS 111/i
+    },
+    {
+      input: buildBoundaryCheckIn({ freeText: "I am thinking about hurting myself." }),
+      headline: "Call NHS 111 now",
+      destination: /NHS 111|mental-health/i
+    },
+    {
+      input: buildBoundaryCheckIn({ hydrationScore: 1 }),
+      headline: "Call NHS 111 now",
+      destination: /call NHS 111/i
+    }
+  ];
+
+  for (const { input, headline, destination } of cases) {
+    const plan = evaluateCheckIn(patient, input);
+    assert.equal(plan.riskLevel, "urgent", headline);
+    assert.equal(plan.headline, headline);
+    assert.match(`${plan.patientAction} ${plan.escalation.channel}`, destination, headline);
+    assert.doesNotMatch(plan.headline, /same-day/i, headline);
+  }
+});
+
+test("non-urgent copy reports configured rule state without clinical reassurance", () => {
+  const plans = [
+    evaluateCheckIn(patient, buildCheckIn("normal")),
+    evaluateCheckIn(patient, buildBoundaryCheckIn({ nauseaScore: 5 })),
+    evaluateCheckIn(patient, buildBoundaryCheckIn({ hydrationScore: 2 }))
+  ];
+  const copy = plans.map((plan) => `${plan.headline} ${plan.explanation} ${plan.clinicianDraft}`).join("\n");
+
+  assert.equal(plans[0].headline, "Coaching can continue");
+  assert.equal(plans[1].headline, "Monitor this adherence pattern");
+  assert.match(plans[0].explanation, /No configured watch, same-day, or urgent rule matched/i);
+  assert.match(plans[0].explanation, /does not mean symptoms were assessed or found safe/i);
+  assert.match(plans[1].explanation, /This is not a clinical assessment/i);
+  assert.match(plans[2].explanation, /No message has been sent/i);
+  assert.doesNotMatch(
+    copy,
+    /not in crisis|symptoms are manageable|looks manageable|looks steady|preserved clinician oversight|without needing another appointment/i
+  );
+});
+
 test("post-generation merge keeps every care-plan field deterministic", () => {
   const checkIn = buildCheckIn("escalation");
   const rulesPlan = evaluateCheckIn(patient, checkIn);
@@ -223,18 +281,36 @@ test("watch stays in coaching while review creates only a pending same-day draft
   assert.equal(reviewPlan.escalation.urgency, "same_day");
   assert.match(reviewPlan.escalation.channel, /draft.*pending/i);
   assert.match(reviewPlan.patientAction, /draft.*pending/i);
-  assert.match(reviewPlan.clinicianDraft, /draft pending/i);
+  assert.match(reviewPlan.clinicianDraft, /draft only; pending manual review/i);
 
-  const planText = JSON.stringify([
+  const plans = [
     evaluateCheckIn(patient, buildCheckIn("normal")),
     watchPlan,
     reviewPlan,
     evaluateCheckIn(patient, buildCheckIn("escalation"))
-  ]);
+  ];
+  const planText = JSON.stringify(plans);
   assert.doesNotMatch(
     planText,
-    /\b(?:send|sent|delivered|receives?|routed|created|queued?)\b/i,
+    /\b(?:we|the prototype|the system) (?:sent|delivered|contacted|routed|queued)|\b(?:message|handoff) (?:sent|delivered|routed|queued)\b/i,
     "care plans must describe drafts and pending review, not transport"
+  );
+  for (const plan of plans) {
+    assert.match(plan.clinicianDraft, /Draft only; pending manual review\. No clinician or service has been contacted\./i);
+  }
+});
+
+test("seven-day trigger notes match the implemented state rules", () => {
+  const plan = evaluateCheckIn(patient, buildCheckIn("normal"));
+  const triggerText = plan.rescuePlan.map((day) => day.clinicianTrigger).join("\n");
+
+  assert.match(triggerText, /missed dose with nausea at 6\/10 or higher/i);
+  assert.match(triggerText, /Nausea alone can activate watch; it does not activate same-day review/i);
+  assert.match(triggerText, /hydration is 2\/10 or lower/i);
+  assert.match(triggerText, /No mood-only escalation rule is implemented/i);
+  assert.doesNotMatch(
+    triggerText,
+    /Escalate if a dose is missed|Review if nausea reaches|No trigger unless mood|feels at risk|same trigger repeats twice/i
   );
 });
 
@@ -301,6 +377,12 @@ test("adversarial active phrases select destination-specific urgent routes", () 
       destination: /call 999/i
     },
     {
+      freeText: "I do not have chest pain, but I can’t breathe.",
+      labels: ["breathlessness"],
+      absentLabels: ["chest pain"],
+      destination: /call 999/i
+    },
+    {
       freeText: "There is no improvement and chest pain remains.",
       labels: ["chest pain"],
       destination: /call 999/i
@@ -337,7 +419,7 @@ test("adversarial active phrases select destination-specific urgent routes", () 
     }
   ];
 
-  for (const { freeText, labels, destination } of cases) {
+  for (const { freeText, labels, absentLabels = [], destination } of cases) {
     const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ freeText }));
 
     assert.equal(plan.riskLevel, "urgent", freeText);
@@ -355,6 +437,9 @@ test("adversarial active phrases select destination-specific urgent routes", () 
     );
     for (const label of labels) {
       assert.ok(plan.ruleHits.includes(`red flag: ${label}`), `${label}: ${freeText}`);
+    }
+    for (const label of absentLabels) {
+      assert.ok(!plan.ruleHits.includes(`red flag: ${label}`), `unexpected ${label}: ${freeText}`);
     }
   }
 });

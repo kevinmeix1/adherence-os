@@ -77,7 +77,7 @@ sequenceDiagram
     end
     alt Red flag active
         UI->>Clinician: Show pending draft, owner, trigger, and audit trail
-    else Coaching permitted
+    else Coaching path remains active
         UI-->>Patient: Show one bounded behavioral next step
     end
 ```

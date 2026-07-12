@@ -6,9 +6,9 @@ This walkthrough follows the exact production build used for release verificatio
 
 ![Decision map coaching overview](../public/walkthrough/01-live-twin-coaching.jpg)
 
-The opening view is a compact synthetic case record followed immediately by the evidence chain. It answers four questions: What is the next-week adherence-interruption risk? Which signal is active? Which bounded support assumption changes the score? Is coaching allowed by the independent safety layer?
+The opening view is a compact synthetic case record followed immediately by the evidence chain. It answers four questions: What is the next-week adherence-interruption risk? Which signal is active? Which bounded support assumption changes the score? Did a configured safety rule stop coaching?
 
-The graph is the first substantial surface, while the adjacent decision record keeps the next safe move and its provenance visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
+The graph is the first substantial surface, while the adjacent decision record keeps the next bounded action and its provenance visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
 
 ## 2. Inspect The Active Driver
 

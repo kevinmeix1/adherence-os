@@ -50,6 +50,7 @@ type RedFlagPattern = {
 };
 
 type UrgentRoute = {
+  headline: string;
   reason: string;
   channel: string;
   patientAction: string;
@@ -137,9 +138,9 @@ export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan
 
   return {
     riskLevel,
-    headline: buildHeadline(riskLevel),
+    headline: buildHeadline(riskLevel, urgentRoute),
     patientAction: buildPatientAction(riskLevel, input, urgentRoute),
-    explanation: buildExplanation(riskLevel, patient, input, insights, redFlags),
+    explanation: buildExplanation(riskLevel, patient, input, insights, redFlags, urgentRoute),
     safetyNotice: SAFETY_NOTICE,
     escalation,
     clinicianSummary,
@@ -167,7 +168,7 @@ function hasNonNegatedMatch(text: string, pattern: RegExp, ignoreResolvedHistory
     ) {
       return true;
     }
-    match = matcher.exec(text);
+    match = matcher.exec(normalizedText);
   }
 
   return false;
@@ -278,14 +279,16 @@ function chooseRiskLevel(
 function buildUrgentRoute(redFlags: string[]): UrgentRoute {
   if (redFlags.includes("immediate self-harm language")) {
     return {
+      headline: "Call 999 or go to A&E now",
       reason: "Immediate self-harm language indicates possible immediate danger, so coaching is suppressed.",
       channel: "Emergency mental-health route: call 999 or go to A&E now.",
-      patientAction: "Call 999 now or go to A&E because you may be in immediate danger. If possible, stay with a trusted person while you get help."
+      patientAction: "Call 999 now or go to A&E now because you may be in immediate danger. If possible, stay with a trusted person while you get help."
     };
   }
 
   if (redFlags.includes("chest pain") || redFlags.includes("breathlessness")) {
     return {
+      headline: "Call 999 now",
       reason: "Chest-pain or breathing language needs emergency assessment; this prototype cannot assess severity.",
       channel: "Emergency physical-health route: call 999 or go to A&E now. Do not drive yourself.",
       patientAction: "Call 999 now for chest pain or breathing difficulty. Do not drive yourself to A&E."
@@ -297,21 +300,24 @@ function buildUrgentRoute(redFlags: string[]): UrgentRoute {
     redFlags.includes("unable to keep fluids down")
   ) {
     return {
+      headline: "Call NHS 111 now",
       reason: "Severe or persistent abdominal-pain language appears with vomiting or inability to keep fluids down.",
-      channel: "Urgent physical-health route: call NHS 111 now; use 999 or A&E if the pain is sudden or so severe that it is hard to think or talk.",
-      patientAction: "Call NHS 111 now for urgent assessment. If the pain is sudden or so severe that it is hard to think or talk, call 999 or go to A&E."
+      channel: "Urgent physical-health route: call NHS 111 now. If the pain is sudden or so severe that it is hard to think or talk, call 999 or go to A&E now.",
+      patientAction: "Call NHS 111 now for urgent assessment. If the pain is sudden or so severe that it is hard to think or talk, call 999 or go to A&E now."
     };
   }
 
   if (redFlags.includes("self-harm language")) {
     return {
+      headline: "Call NHS 111 now",
       reason: "Self-harm language needs urgent mental-health support rather than in-app coaching.",
-      channel: "Urgent mental-health route: call NHS 111 and select the mental-health option; use 999 or A&E if there is immediate danger.",
-      patientAction: "Call NHS 111 now and select the mental-health option. If you might act now or cannot keep yourself safe, call 999 or go to A&E."
+      channel: "Urgent mental-health route: call NHS 111 and select the mental-health option. If there is immediate danger, call 999 or go to A&E now.",
+      patientAction: "Call NHS 111 now and select the mental-health option. If you might act now or cannot keep yourself safe, call 999 or go to A&E now."
     };
   }
 
   return {
+    headline: "Call NHS 111 now",
     reason: redFlags.length > 0
       ? `Urgent symptom language detected: ${redFlags.join(", ")}.`
       : "The hydration score crossed the prototype's urgent boundary.",
@@ -345,24 +351,24 @@ function buildEscalation(riskLevel: RiskLevel, input: CheckInInput, urgentRoute:
     return {
       needed: false,
       urgency: "none" as const,
-      reason: "An early adherence or side-effect pattern is being monitored in coaching mode.",
-      channel: "No active handoff; prepare a review draft only if the pattern repeats."
+      reason: "A configured watch rule matched an adherence or symptom pattern.",
+      channel: "No active handoff; re-evaluate configured rules at the next check-in."
     };
   }
 
   return {
     needed: false,
     urgency: "none" as const,
-    reason: "No escalation threshold crossed today.",
-    channel: "Continue normal daily check-ins."
+    reason: "No configured watch, same-day, or urgent rule matched this check-in.",
+    channel: "No handoff triggered; continue normal daily check-ins."
   };
 }
 
-function buildHeadline(riskLevel: RiskLevel) {
-  if (riskLevel === "urgent") return "Same-day clinical attention needed";
-  if (riskLevel === "review") return "Care-team review recommended today";
-  if (riskLevel === "watch") return "A small adherence risk is forming";
-  return "On track today";
+function buildHeadline(riskLevel: RiskLevel, urgentRoute: UrgentRoute) {
+  if (riskLevel === "urgent") return urgentRoute.headline;
+  if (riskLevel === "review") return "Same-day review rule matched";
+  if (riskLevel === "watch") return "Monitor this adherence pattern";
+  return "Coaching can continue";
 }
 
 function buildPatientAction(riskLevel: RiskLevel, input: CheckInInput, urgentRoute: UrgentRoute) {
@@ -377,7 +383,7 @@ function buildPatientAction(riskLevel: RiskLevel, input: CheckInInput, urgentRou
   if (riskLevel === "watch") {
     return input.medicationTaken
       ? "Keep the plan steady today. Pair the next planned-dose reminder with a meal cue and log nausea again tonight."
-      : "Log the missed planned dose and note it for a review draft if the pattern continues. Set a cue for the next scheduled dose and wait for clinician guidance before making medication changes.";
+      : "Log the missed planned dose and set a cue for the next scheduled dose. The next check-in will be re-evaluated against configured rules; wait for clinician guidance before making medication changes.";
   }
 
   return "Keep today's routine. Add one fluid cue before midday tomorrow and log any side effects before they become a pattern.";
@@ -388,30 +394,29 @@ function buildExplanation(
   patient: Patient,
   input: CheckInInput,
   insights: ReturnType<typeof getPatientInsights>,
-  redFlags: string[]
+  redFlags: string[],
+  urgentRoute: UrgentRoute
 ) {
   if (riskLevel === "urgent") {
-    return `The check-in mentions ${redFlags.join(", ") || "a high symptom burden"}, while ${patient.name.split(" ")[0]}'s recent programme data shows ${Math.round(
-      insights.lastTwoAdherence
-    )}% adherence over the last two weeks. The safest next step is clinical escalation rather than coaching.`;
+    return `${urgentRoute.patientAction} A deterministic urgent rule stopped coaching because the check-in matched: ${redFlags.join(", ") || "hydration at the urgent prototype boundary"}. This prototype cannot assess severity or contact services.`;
   }
 
   if (riskLevel === "review") {
     const reason = input.hydrationScore <= 2
       ? `hydration is ${input.hydrationScore}/10`
       : `medication was missed and nausea is ${input.nauseaScore}/10`;
-    return `Side effects may threaten adherence. Deterministic rules set same-day review because ${reason}.`;
+    return `The prototype's same-day review rule matched because ${reason}. A clinician-review draft is available for manual review; no message has been sent. This is not a clinical assessment.`;
   }
 
   if (riskLevel === "watch") {
-    return `The patient is not in crisis, but the combination of ${Math.round(
+    return `A configured watch rule matched this check-in. Recent adherence is ${Math.round(
       insights.lastTwoAdherence
-    )}% recent adherence, nausea ${input.nauseaScore}/10, and today's note suggests a preventable dropout risk.`;
+    )}% and nausea is ${input.nauseaScore}/10. No urgent or same-day rule matched, and no clinician handoff is active. This is not a clinical assessment.`;
   }
 
-  return `${patient.name.split(" ")[0]}'s check-in is consistent with the current programme trend: adherence is ${Math.round(
+  return `${patient.name.split(" ")[0]}'s structured check-in records ${Math.round(
     insights.adherenceAvg
-  )}% and symptoms are manageable today.`;
+  )}% average adherence, nausea ${input.nauseaScore}/10, and hydration ${input.hydrationScore}/10. No configured watch, same-day, or urgent rule matched. This does not mean symptoms were assessed or found safe.`;
 }
 
 function buildClinicianSummary(
@@ -440,20 +445,20 @@ function buildClinicianDraft(
   const firstName = patient.name.split(" ")[0];
 
   if (riskLevel === "urgent") {
-    return `Hi ${firstName}, thanks for logging this. Some of what you described needs clinical review now${
-      redFlags.length > 0 ? ` (${redFlags.join(", ")})` : ""
-    }. ${urgentRoute.patientAction} This message is a draft pending clinician review.`;
+    return `Hi ${firstName}. ${urgentRoute.patientAction} This check-in matched the configured urgent rule${
+      redFlags.length > 0 ? `: ${redFlags.join(", ")}` : " at the hydration boundary"
+    }. Draft only; pending manual review. No clinician or service has been contacted.`;
   }
 
   if (riskLevel === "review") {
-    return `Hi ${firstName}, thanks for the detail. A same-day care-team review is recommended. This message is a draft pending clinician review. Please do not change your medication unless a clinician advises it.`;
+    return `Hi ${firstName}. A configured rule matched for same-day care-team review. Please do not change your medication unless a clinician advises it. Draft only; pending manual review. No clinician or service has been contacted.`;
   }
 
   if (riskLevel === "watch") {
-    return `Hi ${firstName}, this looks manageable today, but we can see an early adherence pattern. Please check in again tonight so the team can spot whether this is settling or building.`;
+    return `Hi ${firstName}. Today's check-in matched a configured watch rule. Please check in again tonight, and seek clinical help sooner for new, severe, or worrying symptoms. Draft only; pending manual review. No clinician or service has been contacted.`;
   }
 
-  return `Hi ${firstName}, today's check-in looks steady. Keep your current routine and log again tomorrow so we can keep tracking the trend.`;
+  return `Hi ${firstName}. No configured watch or review rule matched today's check-in. Keep your current routine and log again tomorrow; seek clinical help for new, severe, or worrying symptoms. Draft only; pending manual review. No clinician or service has been contacted.`;
 }
 
 function buildSignals(
@@ -491,7 +496,7 @@ function buildAgentTrace(
 ): AgentTraceStep[] {
   const firstName = patient.name.split(" ")[0];
   const redFlagSummary = redFlags.length > 0 ? redFlags.join(", ") : "none";
-  const coachingMode = riskLevel === "steady" || riskLevel === "watch" ? "coaching allowed" : "clinical review mode";
+  const decisionMode = riskLevel === "steady" || riskLevel === "watch" ? "the coaching path" : "the review path";
 
   return [
     {
@@ -523,10 +528,10 @@ function buildAgentTrace(
       label: "Risk-mode rules",
       role: "applies coaching, watch, review or urgent thresholds",
       status: riskLevel === "urgent" || riskLevel === "review" ? "escalated" : "complete",
-      summary: `Risk mode set to ${riskLevel} using red flags, adherence and symptom burden.`,
+      summary: `Risk mode set to ${riskLevel} using configured rules over red flags, adherence and symptom fields.`,
       evidence: [
         `Red flags: ${redFlagSummary}`,
-        ruleHits.length > 0 ? ruleHits.slice(0, 3).join("; ") : "No rule threshold crossed"
+        ruleHits.length > 0 ? ruleHits.slice(0, 3).join("; ") : "No configured rule matched"
       ]
     },
     {
@@ -534,7 +539,7 @@ function buildAgentTrace(
       label: "Safety boundary",
       role: "blocks diagnosis and medication-change advice",
       status: riskLevel === "urgent" || redFlags.length > 0 ? "guarded" : "complete",
-      summary: `Safety layer selected ${coachingMode} and preserved clinician oversight.`,
+      summary: `Safety rules selected ${decisionMode}; the prototype did not contact a clinician or change medication.`,
       evidence: [
         "No diagnosis",
         "No dose changes",
@@ -560,7 +565,7 @@ function buildJudgeFit(patient: Patient, riskLevel: RiskLevel): JudgeFit {
   const impact =
     riskLevel === "urgent"
       ? `${firstName} is kept out of self-coaching, shown an immediate safety route, and given a clinician-handoff draft that remains pending review.`
-      : `${firstName} gets one small next action that protects adherence without needing another appointment.`;
+      : `${firstName} gets one bounded adherence action while clinical assessment remains outside the prototype.`;
 
   return {
     userImpact: impact,
@@ -613,14 +618,14 @@ function buildAdherenceTwin(
       impact: hydrationImpact,
       evidence: `Hydration is ${input.hydrationScore}/10 and energy is ${input.energyScore}/10 today.`,
       rescueMove: urgentRescueMove ?? (input.hydrationScore <= 2
-          ? "Escalate if poor fluid intake continues or lightheadedness appears."
+          ? "Use the pending same-day review draft; new, severe, or worrying symptoms need clinical help sooner."
           : "Prompt fluids early in the day before symptoms make adherence feel harder.")
     }
   ];
 
   const predictedFailurePoint =
     redFlags.length > 0
-      ? "Today: symptoms have crossed from adherence support into clinical safety review."
+      ? "Today: a configured urgent rule matched, so coaching is suppressed and clinical assessment remains outside the prototype."
       : input.nauseaScore >= 5
         ? "Next 48 hours: nausea may create dose anxiety or skipped meals."
         : !input.medicationTaken || insights.lastTwoAdherence < 90
@@ -662,7 +667,7 @@ function buildRescuePlan(
 
   const reviewTrigger = riskLevel === "review"
     ? "Same-day clinician-review draft remains pending manual review."
-    : "Prepare a review draft if nausea rises, hydration drops, or another dose is missed.";
+    : "Re-evaluate the configured rules after the next check-in; no handoff is active.";
   const routineAnchor = patient.riskFactors.some((factor) => /travel/i.test(factor))
     ? "travel packing routine"
     : patient.riskFactors.some((factor) => /shift/i.test(factor))
@@ -684,14 +689,14 @@ function buildRescuePlan(
       label: "Reminder anchor",
       patientMicroAction: `Attach the programme reminder to ${routineAnchor}.`,
       monitoringSignal: "Planned weekly dose status and check-in completion.",
-      clinicianTrigger: "Escalate if a dose is missed."
+      clinicianTrigger: "The same-day review rule requires a missed dose with nausea at 6/10 or higher."
     },
     {
       day: 3,
       label: "Side-effect prevention",
       patientMicroAction: "Use a smaller meal cue before the usual nausea window.",
       monitoringSignal: "Nausea and appetite scores.",
-      clinicianTrigger: "Review if nausea reaches 7/10."
+      clinicianTrigger: "Nausea alone can activate watch; it does not activate same-day review."
     },
     {
       day: 4,
@@ -705,21 +710,21 @@ function buildRescuePlan(
       label: "Motivation reset",
       patientMicroAction: "Show the patient one trend that is improving and one thing to keep steady.",
       monitoringSignal: `${insights.weightDelta.toFixed(1)} kg weight trend and ${Math.round(insights.adherenceAvg)}% adherence.`,
-      clinicianTrigger: "No trigger unless mood drops for two check-ins."
+      clinicianTrigger: "No mood-only escalation rule is implemented in this prototype."
     },
     {
       day: 6,
       label: "Friction forecast",
       patientMicroAction: "Ask whether tomorrow feels easy, uncertain or at risk.",
       monitoringSignal: "Self-rated ease and free-text hesitation.",
-      clinicianTrigger: "Prepare a review draft if the next adherence event feels at risk."
+      clinicianTrigger: "Re-evaluate configured rules at the next check-in; this rating alone does not create a handoff."
     },
     {
       day: 7,
       label: "Loop close",
       patientMicroAction: "Compare the week with the profile's likely friction point and update the plan.",
       monitoringSignal: "Adherence, symptoms and trigger match.",
-      clinicianTrigger: "Review if the same trigger repeats twice."
+      clinicianTrigger: "Repeated friction is context, not an implemented escalation rule."
     }
   ];
 }
@@ -735,7 +740,7 @@ function buildUnsafeRequestDemo(patient: Patient): UnsafeRequestDemo {
     guardrails: [
       "Medication-change advice blocked",
       "No diagnosis or dose instruction",
-      "Async clinician-review draft prepared",
+      "Clinician-review draft prepared",
       "Pending manual review; no message transport"
     ]
   };

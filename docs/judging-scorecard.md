@@ -2,7 +2,7 @@
 
 ## User Impact
 
-Adherence OS helps patients through the hard middle of chronic care: side effects, anxiety, missed doses, confusing home data, and long gaps between appointments. The patient gets one safe next action plus a 7-day rescue plan instead of a wall of generic advice.
+Adherence OS helps patients through the hard middle of chronic care: side effects, anxiety, missed doses, confusing home data, and long gaps between appointments. The patient gets one bounded next action plus a 7-day support plan instead of a wall of generic advice.
 
 ## Innovation
 

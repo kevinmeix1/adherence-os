@@ -7,7 +7,7 @@ Adherence OS is a chronic-care support prototype. It helps patients stay adheren
 1. Do not diagnose or suggest a differential diagnosis.
 2. Do not recommend medication dose changes, stopping medication, restarting medication, or substitutions.
 3. Do not reassure away severe or worsening symptoms.
-4. Red flags escalate to a clinician or urgent care language.
+4. Red flags suppress coaching and display a destination-specific urgent action.
 5. Patient guidance should stay behavioural, supportive, and bounded.
 6. Clinician output is a summary and draft message, not an automated clinical decision.
 
@@ -33,17 +33,23 @@ These are deterministic prototype rules for the synthetic demo, not clinically v
 
 ## Prototype Urgent Routes
 
-| Active phrase family | Route displayed by the prototype |
-|---|---|
-| Chest pain or breathlessness | Call 999 or go to A&E now; do not drive yourself |
-| Severe or persistent abdominal pain with vomiting or inability to keep fluids down | Call NHS 111 now for urgent assessment; use 999 or A&E if pain is sudden or so severe that it is hard to think or talk |
-| Immediate self-harm language | Call 999 or go to A&E now; stay with a trusted person while getting help if possible |
-| Other self-harm language | Call NHS 111 and select the mental-health option; use 999 or A&E if there is immediate danger |
-| Other urgent prototype rules | Call NHS 111; use 999 or A&E for immediate danger or severe symptoms |
+| Active phrase family | Headline | Route displayed by the prototype |
+|---|---|---|
+| Chest pain or breathlessness | Call 999 now | Call 999 now; do not drive yourself to A&E |
+| Severe or persistent abdominal pain with vomiting or inability to keep fluids down | Call NHS 111 now | Call NHS 111 now for urgent assessment; call 999 or go to A&E now if pain is sudden or so severe that it is hard to think or talk |
+| Immediate self-harm language | Call 999 or go to A&E now | Call 999 or go to A&E now; stay with a trusted person while getting help if possible |
+| Other self-harm language | Call NHS 111 now | Call NHS 111 and select the mental-health option; call 999 or go to A&E now if there is immediate danger |
+| Other urgent prototype rules | Call NHS 111 now | Call NHS 111 now; use 999 or A&E for immediate danger or severe symptoms |
 
 These destinations are conservative prototype messages, not validated triage. They are based on current public wording from [NHS chest-pain guidance](https://www.nhs.uk/conditions/chest-pain/), [NHS vomiting guidance](https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/), [NHS urgent mental-health guidance](https://www.nhs.uk/nhs-services/mental-health-services/), and the MHRA warning below. The prototype cannot assess severity, place calls, contact emergency services, or determine which service will accept a patient.
 
 Urgent mode returns one immediate safety action rather than a seven-day coaching sequence. All adherence-twin coaching moves are also suppressed while the urgent rule is active. A clinician handoff draft may be prepared for context, but it remains pending manual review.
+
+## Non-Urgent Copy Boundary
+
+A phrase or threshold that does not match is not negative triage. Steady and watch explanations therefore report only the configured rule state and observed structured values. They do not claim that symptoms are safe, manageable, stable, or "not a crisis". The UI explicitly states that a non-match is not a clinical assessment and does not mean symptoms were assessed or found safe.
+
+The seven-day support plan follows the same contract. Its care-team notes name the implemented boundaries: hydration at 2/10 creates same-day review; a missed dose requires nausea at 6/10 or higher for same-day review; nausea alone can create watch but not review; and no mood-only or repeated-friction escalation rule is implemented.
 
 ## Bounded Parser Limits
 
@@ -61,7 +67,7 @@ The severe, persistent abdominal-pain and dehydration framing follows current UK
 - `review`: `escalation.needed=true` and `urgency=same_day`; a clinician-review draft is prepared and remains pending manual review.
 - `urgent`: `escalation.needed=true` and `urgency=urgent`; coaching is suppressed, a destination-specific action is shown, and any clinician handoff remains a pending draft.
 
-There is no message, queue, notification, emergency-call, or clinical-record transport in this MVP. "Draft" never means that a clinician or service has been contacted.
+There is no message, queue, notification, emergency-call, or clinical-record transport in this MVP. Every clinician draft states that it is pending manual review and that no clinician or service has been contacted. "Draft" never means delivery.
 
 ## Internal Heuristic Fields
 
