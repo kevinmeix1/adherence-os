@@ -250,12 +250,14 @@ export function analyzeRiskSensitivity(
       const currentValue = result.features[feature.name] ?? feature.mean;
       const bounds = featureBounds(feature.name);
       const isBinary = feature.support.kind === "binary";
+      const supportedLow = Math.max(bounds[0], feature.support.low);
+      const supportedHigh = Math.min(bounds[1], feature.support.high);
       const lowValue = isBinary
         ? 0
-        : clamp(currentValue - feature.std * perturbationStd, bounds[0], bounds[1]);
+        : clamp(currentValue - feature.std * perturbationStd, supportedLow, supportedHigh);
       const highValue = isBinary
         ? 1
-        : clamp(currentValue + feature.std * perturbationStd, bounds[0], bounds[1]);
+        : clamp(currentValue + feature.std * perturbationStd, supportedLow, supportedHigh);
       const lowRisk = scoreFeatures({ ...result.features, [feature.name]: lowValue }, result.artifact).risk;
       const highRisk = scoreFeatures({ ...result.features, [feature.name]: highValue }, result.artifact).risk;
       const minRisk = Math.min(result.risk, lowRisk, highRisk);

@@ -52,4 +52,4 @@ The presentation gate checks each feature independently. Continuous features use
 
 The model predicts adherence risk only. It does not diagnose, prescribe, change medication, or make autonomous clinical triage decisions.
 
-The bootstrap spread is model variation inside one authored synthetic cohort. It is shown only when every marginal feature bound passes and is not a confidence interval or clinical uncertainty estimate. The sensitivity range is a separate one-feature-at-a-time stress test and is also withheld when a bound is exceeded. What-if score changes are assumptions, not treatment effects or causal estimates.
+The bootstrap spread is model variation inside one authored synthetic cohort. It is shown only when every marginal feature bound passes and is not a confidence interval or clinical uncertainty estimate. The sensitivity range is a separate one-feature-at-a-time stress test: the baseline must pass every marginal bound, and each perturbation is clamped to the same exported training-only range before it is scored. What-if score changes are assumptions, not treatment effects or causal estimates.

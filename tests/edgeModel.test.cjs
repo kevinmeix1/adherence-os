@@ -91,6 +91,24 @@ test("sensitivity analysis is bounded, sorted, and preserves monotonic direction
   assert.ok(sensitivity.features.every((feature) => feature.minRisk >= 0 && feature.maxRisk <= 1));
 });
 
+test("sensitivity perturbations stay inside exported marginal feature bounds", () => {
+  const base = scorePatientRisk(patient, buildCheckIn("normal"));
+  const nausea = base.artifact.features.find((feature) => feature.name === "nausea_score");
+  const features = { ...base.features, nausea_score: nausea.support.high - 0.001 };
+  const score = scoreFeatureVector(features, base.artifact);
+  const sensitivity = analyzeRiskSensitivity({ ...base, ...score, features });
+
+  assert.equal(score.support.status, "supported");
+  assert.ok(sensitivity, "expected a supported near-boundary input to produce sensitivity analysis");
+  for (const feature of sensitivity.features) {
+    const exported = base.artifact.features.find((item) => item.name === feature.name);
+    assert.ok(feature.lowValue >= exported.support.low, `${feature.name} escaped its lower support bound`);
+    assert.ok(feature.highValue <= exported.support.high, `${feature.name} escaped its upper support bound`);
+  }
+  const nauseaSensitivity = sensitivity.features.find((feature) => feature.name === "nausea_score");
+  assert.equal(nauseaSensitivity.highValue, nausea.support.high);
+});
+
 test("edge model scores escalation check-in higher than normal check-in", () => {
   const normal = scorePatientRisk(patient, buildCheckIn("normal"));
   const escalation = scorePatientRisk(patient, buildCheckIn("escalation"));
