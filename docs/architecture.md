@@ -7,19 +7,27 @@ Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. I
 ```mermaid
 flowchart TB
     subgraph Build["Offline synthetic model build"]
-        Seed["Seeded synthetic cohort generator"] --> Cohort["12,000 prospective patient-week rows"]
+        Seed["Seeded synthetic cohort generator"] --> Sources["12,000 versioned patient/check-in sources"]
+        Contract["adherence-feature-source-v1"] --> Sources
+        Sources --> Cohort["Python 14-feature construction"]
         Cohort --> Split["Patient-isolated 70 / 15 / 15 split"]
         Split --> Train["Constrained logistic training + 16 bootstraps"]
+        Split --> Challenger["Recent-adherence-only challenger"]
         Train --> Select["Validation-selected operating threshold"]
-        Select --> Artifact["Versioned JSON model artifact"]
-        Artifact --> Parity["Python / TypeScript parity fixtures"]
+        Challenger --> Compare["Common validation recall target"]
+        Select --> Compare
+        Compare --> Artifact["Browser JSON artifact<br/>all-row + runtime-gate evidence"]
+        Train --> ScoreParity["20 scoring-kernel fixtures"]
+        Sources --> RawParity["12 taken/missed raw-feature fixtures"]
     end
 
     subgraph Runtime["Keyless browser runtime"]
         CheckIn["60-second home check-in<br/>typed safety flags + structured values"] --> Session["Per-patient in-memory session"]
         Session --> Validate["Typed input validation"]
-        History["Synthetic 8-week history"] --> Features["Prospective feature builder"]
-        Validate --> Features
+        History["Synthetic 8-week history"] --> Source["Versioned raw feature source"]
+        Validate --> Source
+        Contract --> Source
+        Source --> Features["Prospective 14-feature builder"]
         Features --> Model["Local edge inference"]
         Artifact --> Model
         Model --> Support["Marginal feature-bounds gate"]
@@ -69,7 +77,7 @@ sequenceDiagram
 
     Patient->>UI: Submit or edit structured values and current-symptom flags
     UI->>Rules: Evaluate explicit flags, phrase backstop, adherence, and thresholds
-    UI->>ML: Build week-t features and score week-t+1 interruption
+    UI->>ML: Build v1 raw source, derive week-t features, and score week-t+1 interruption
     ML-->>UI: Support status; patient ML evidence only inside support
     Rules-->>UI: Coaching mode or destination-specific handoff draft
     UI->>UI: Preserve check-in and plan under the patient identifier
@@ -96,11 +104,12 @@ Edits and scenario changes invalidate any in-flight request before recomputing l
 - Every index-week row predicts a planned adherence event in the following week. Same-row outcomes cannot enter its features.
 - Patients, not rows, are isolated into deterministic 70/15/15 training, validation, and test partitions.
 - A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic patient-weeks with projected-gradient sign constraints.
-- The artifact exports coefficients, training-only support bounds, the selected threshold, held-out metrics, bootstrap members, reliability bins, and parity fixtures.
+- The browser artifact exports coefficients, its required raw-source contract version, training-only support bounds, the selected threshold, held-out metrics, a validation-matched recent-adherence challenger, runtime-gate coverage, bootstrap members, and reliability bins.
+- Twelve Python-generated taken/missed raw cases reproduce all 14 TypeScript features, and twenty additional rows reproduce consensus plus bootstrap scores. These test-only fixtures are not shipped to the browser.
 - Inference runs locally over 14 structured features. For supported inputs, exact signed contributions reconstruct the final log-odds score.
 - The bounds gate checks each feature independently against training-only 0.5th-99.5th percentile ranges, or the valid set for binary features. If any bound is exceeded, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and tested-action ranking. It does not detect joint-distribution or semantic drift. Routed patient records use the same gate.
 
-Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`data/adherence-model.json`](../data/adherence-model.json) and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
+Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`app/lib/modelFeatures.ts`](../app/lib/modelFeatures.ts), [`data/adherence-model.json`](../data/adherence-model.json), [`data/adherence-model-fixtures.json`](../data/adherence-model-fixtures.json), and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
 
 ### 2. Evidence Map
 
@@ -139,6 +148,7 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 | Concern | Source of truth | Runs where | Failure behavior |
 |---|---|---|---|
 | Synthetic patient history | `data/patients.json` | Build and browser | Runtime validation fails with a precise path |
+| Raw ML feature semantics | `app/lib/modelFeatures.ts` and artifact contract version | Python build and browser | Version drift throws; missing values become abstention violations |
 | Adherence prediction | `data/adherence-model.json` | Browser | Artifact validation fails; unsupported inputs abstain |
 | Safety mode and destination | `app/lib/careEngine.ts` | Browser and route handler | Deterministic handoff overrides coaching |
 | Evidence-map structure | `app/lib/knowledgeGraph.ts` | Browser | No causal claim; paths and tested actions remain inspectable |
@@ -153,6 +163,7 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 | `app/page.tsx` | Orchestrates patient, scenario, view, graph focus, and request state |
 | `app/product.css` | Owns the commercial workspace and graph presentation |
 | `app/lib/types.ts` | Shared contracts between engine, API, graph, and UI |
+| `app/lib/modelFeatures.ts` | Maps patient history and a current check-in into the versioned 14-feature vector |
 | `app/lib/schemas.ts` | Runtime API and provider-output validation |
 | `app/lib/patientData.ts` | Runtime validation for checked-in synthetic records |
 | `scripts/smoke.mjs` | Exercises production routes plus normal and escalation POST paths |

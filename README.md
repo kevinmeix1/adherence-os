@@ -2,7 +2,7 @@
 
 AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health with eMed hackathon.
 
-![Adherence OS evidence map showing Maya Patel's adherence risk, bounded next action, and decision graph](public/adherence-os-live-twin.jpg)
+![Adherence OS evidence map showing Maya Patel's adherence risk, bounded next action, and decision graph](public/adherence-os-live-twin.png)
 
 *The care decision ledger connects synthetic home signals, local ML attribution, one bounded support assumption, and an independent safety boundary without hiding clinical ownership.*
 
@@ -76,7 +76,7 @@ APP_URL=http://127.0.0.1:3000 pnpm capture:walkthrough
 ## Two-Minute Judge Path
 
 1. Open `/`. **Decision map** starts on synthetic patient Maya Patel with **Load coaching case** selected.
-2. Read the supported **46%** interruption risk and **Meal-timing prompt**, a bounded comparison that lowers the scenario score by **19 percentage points**.
+2. Read the supported **42%** interruption risk and **Meal-timing prompt**, a bounded comparison that lowers the scenario score by **16 percentage points**.
 3. Click **Attribution**, then **Nausea burden** and **Meal-timing prompt**, to connect the largest risk-raising model group to the top tested action.
 4. Click **Load safety case**. Point out **Abstained**, **Suppressed**, and the red path to the safety guardrail and local handoff draft.
 5. Click **Review handoff draft** to land in **Review drafts** on the selected local record, unsent state, and deterministic audit trail.
@@ -107,7 +107,9 @@ pnpm check:model
 pnpm train:model
 ```
 
-`pnpm check:model` retrains in memory and fails if feature order, consensus or bootstrap values, metrics, support bounds, or parity fixtures drift from the checked-in artifact. `pnpm train:model` is the explicit write command. The exported model lives at `data/adherence-model.json` and is used by the Model record view for local browser inference. Directional coefficients use authored projected-gradient constraints. The metrics are synthetic pipeline evidence, not clinical validation.
+`pnpm check:model` retrains in memory and fails if feature order, consensus or bootstrap values, metrics, support bounds, challenger results, or parity fixtures drift. `pnpm train:model` is the explicit write command. The browser artifact lives at `data/adherence-model.json`; Python/TypeScript score-parity and raw feature-contract fixtures live separately at `data/adherence-model-fixtures.json` and are not shipped to the browser.
+
+The Model record compares the 14-feature model with a predeclared recent-adherence-only challenger using the same patient split and validation recall target. On all held-out synthetic rows, the model flags 33% at 29% precision versus 57% at 16% precision for the challenger. The runtime gate scores 90% of those rows and abstains on 180; the scored subset has 26% precision and 74% recall. Twelve Python-generated taken/missed cases also reproduce all 14 TypeScript features under the artifact-bound `adherence-feature-source-v1` contract. These are synthetic pipeline and software-assurance results, not clinical validation or measured workflow savings.
 
 ## Troubleshooting
 
@@ -152,10 +154,21 @@ That is the recommended keyless demo mode, not an error. The complete determinis
 ## Product and Technical Notes
 
 - [Screenshot-led product walkthrough](docs/product-walkthrough.md)
+- [Repository audit and scorecard](docs/REPOSITORY_AUDIT.md)
+- [Implementation roadmap](docs/IMPLEMENTATION_ROADMAP.md)
+- [Current progress ledger](docs/PROGRESS.md)
+- [Portfolio and interview positioning](docs/PORTFOLIO_ARCHITECTURE.md)
 - [Project audit](docs/project_audit.md)
 - [Improvement backlog](docs/improvement_backlog.md)
 - [Architecture and study guide](docs/architecture.md)
 - [Deployment runbook](docs/deployment.md)
+- [Security controls](docs/SECURITY.md)
+- [Threat model](docs/THREAT_MODEL.md)
+- [Testing strategy](docs/TESTING.md)
+- [Operations and model monitoring](docs/OPERATIONS.md)
+- [Incident runbook](docs/RUNBOOK.md)
+- [Interview guide](docs/INTERVIEW_GUIDE.md)
+- [Architecture decisions](docs/DECISIONS/0001-modular-monolith.md)
 - [Design references](docs/design-references.md)
 - [Three-minute demo script](docs/demo_script.md)
 - [ML model record](docs/ml-model-lab.md)

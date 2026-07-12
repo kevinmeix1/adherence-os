@@ -19,7 +19,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - **Graph:** a typed in-memory graph built from the patient, check-in, model score, care plan, and synthetic cohort.
 - **AI:** optional OpenAI structured output validated with Zod; a complete deterministic fallback works without a key.
 - **Data:** three synthetic patients with eight weekly snapshots each; no database or real patient data.
-- **Testing:** 63 Node contract tests plus four production-browser contracts for the judged interaction path, keyboard/focus, responsive order and overflow, console health, and bounded axe scans; live API smoke remains separate.
+- **Testing:** 73 Node contract tests plus six production-browser contracts for the judged interaction path, raw-feature and scoring parity, keyboard/focus, responsive order and overflow, console health, and bounded axe scans; live API smoke remains separate.
 - **Deployment:** checked-in GitHub Actions production gate, a successful remote PR run, and a keyless-first deployment runbook. No hosted preview is configured.
 
 ## 3. Core User Journey
@@ -91,7 +91,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 9. Performance Risks
 
-- The home route measures 153.8 kB gzip, which leaves only 1.2 kB inside the enforced 155 kB budget.
+- The home route measures 151.8 kB gzip, which leaves 3.2 kB inside the enforced 155 kB budget.
 - Every primary workspace view ships in one client module even when only the graph is initially visible.
 - More than 7,600 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
 - Graph calculations are small for 13 nodes and three synthetic patients; they do not currently justify worker or server infrastructure.
@@ -116,12 +116,14 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - Provider timeout, invalid-output, exception, and unsafe-generation branches are exercised through controlled test doubles.
 - Synthetic model metrics are strong but must never be presented as clinical validation.
 - Local sensitivity is not a confidence interval; tested-action rescoring is not causal evidence.
+- Python/TypeScript fixtures prove scoring-kernel parity on engineered vectors, not raw patient/check-in feature construction parity. Dose-window, routine, and side-effect transforms remain authored serving heuristics.
 
 ## 12. Testing Gaps
 
 - Node and browser tests cover the most important deterministic and judged interaction contracts.
 - Pixel-level visual regression, overflow-menu behavior, provider loading timing under CPU throttling, and real assistive-technology testing remain manual.
 - Automated axe checks detect only a subset of accessibility failures and do not replace inclusive user testing.
+- Raw feature parity is proven on twelve synthetic taken/missed cases, but real retrospective data is still required to validate whether the authored feature semantics represent eMed workflows.
 
 ## 13. Deployment And Demo Risks
 
@@ -238,18 +240,30 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 | 1 | Repaired | Open-ended text could miss clinically equivalent urgent wording and continue coaching. | Added eight typed current-symptom flags that independently stop coaching, including overdose or poisoning, plus adversarial phrase regressions for chest discomfort, suicide plans, overdose language, inability to catch breath, and not wanting to be alive. |
 | 2 | Repaired | CI could pass without hydrating or clicking the product, and no automated accessibility scan protected the judged path. | Six Chromium contracts now cover the judged flow, patient-state round trips, model-claim calibration, keyboard/focus, narrow layouts, console health, and serious/critical axe findings. |
 | 3 | Repaired | Switching the selected patient reconstructed non-selected rows from normal seed data rather than preserving per-patient session state. | Each patient now owns an independent local session; a unit test and fifth production-browser contract preserve Maya's review through a James round trip and verify global Reset. |
-| 4 | Repaired | Synthetic model performance could be mistaken for clinical evidence, and independent feature bounds were labelled as general training support. | The Model record now puts 79.6% recall beside 31.6% precision and 41.8% rows flagged, calls the gate marginal feature bounds, and states that joint-distribution and semantic drift are not detected. |
+| 4 | Repaired | Synthetic model performance could be mistaken for clinical evidence, and independent feature bounds were labelled as general training support. | The Model record now puts 77.0% recall beside 29.3% precision and 32.9% rows flagged, calls the gate marginal feature bounds, and states that joint-distribution and semantic drift are not detected. |
 | 5 | External | No patient or clinician has validated comprehension, usefulness, or workflow savings. | Run a small task-based study and publish anonymised evidence without inventing outcomes. |
 
 The final commercial-quality pass also repaired four presentation gaps raised by the specialist reviews:
 
-- the opening fixture moved from a trivial 5% score to a supported 46% Watch state with a 19-point bounded comparison and no handoff;
+- the opening fixture moved from a trivial score to a supported 42% Watch state with a 16-point bounded comparison and no handoff;
 - graph risk-edge wording now derives from signed grouped attribution, so protective evidence cannot be labelled as friction;
 - Demo cases and Load coaching/safety wording separate presenter fixtures from the read-only care decision;
 - the patient check-in has a visible desktop/mobile review action, optional context notes, and a role-specific task grammar; the zero-draft clinician view is now genuinely empty.
 
+### ML Assurance Pass
+
+Three independent ML systems, safety-governance, and hackathon-judge reviews ranked the next evidence gaps:
+
+| Rank | Status | Finding | Bounded response |
+|---:|---|---|---|
+| 1 | Repaired | Sensitivity could score outside exported support, and missing or non-finite features failed open. | Perturbations now clamp to training-only support; incomplete vectors create typed abstention violations while arithmetic remains finite. |
+| 2 | Repaired | Unsupported inputs without red flags could still end on an intervention and “Lower adherence risk.” | A four-cell support-by-safety contract removes every unsupported action edge and terminates the clear unsupported path at rules-owned abstention. |
+| 3 | Repaired | All-row metrics were shown without describing the population that survives the runtime gate. | The artifact now reports 90% coverage, 180 abstentions, 48 abstained events, and scored-subset AUPRC, precision, recall, and review rate. |
+| 4 | Repaired | The 14-feature model had no credible simple challenger. | A recent-adherence-only logistic baseline uses the same split and validation recall target; the first Model record viewport compares 33% versus 57% rows flagged and 29% versus 16% precision. |
+| 5 | Repaired | Existing parity started after feature engineering, while dose-window, prior-failure, routine, and side-effect semantics differed. | The artifact now binds `adherence-feature-source-v1`; twelve Python-generated taken/missed sources reproduce all 14 TypeScript features and missing values fail closed. |
+
 - **Still weak:** hosted access, real user or clinician evidence, manual assistive-technology evidence, pixel-level visual regression, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 153.8 kB gzip, leaving only 1.2 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 151.8 kB gzip, leaving 3.2 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
@@ -263,25 +277,26 @@ The final commercial-quality pass also repaired four presentation gaps raised by
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.7 | 64 deterministic tests plus six Chromium contracts for judged behavior, patient-state round trips, action visibility, model-claim calibration, keyboard/focus, responsive layout, console health, and bounded axe scans |
+| Testing | 9.8 | 73 deterministic tests plus six Chromium contracts for judged behavior, raw feature and scoring parity, four support/safety states, patient-state round trips, action suppression, model-population calibration, keyboard/focus, responsive layout, console health, and bounded axe scans |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 153.8 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.8 | Test-only parity fixtures do not ship to the browser; 151.8 kB gzip against a 155 kB ceiling leaves 3.2 kB headroom |
 | Accessibility | 8.9 | Persistent announcements, focus-managed views, selected graph semantics, focusable scroll regions, visible focus, captioned video, and bounded axe scans; manual assistive-tech testing remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
-| AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
+| AI usefulness | 9.2 | Leakage-safe explainable ensemble, validation-matched challenger, versioned raw-feature parity, runtime-gate coverage, fail-closed abstention, and independent deterministic safety |
 | Documentation | 9.4 | Screenshot walkthrough, architecture study guide, design-reference rationale, technical boundaries, demo labels, and fallback media align |
 | Deployment readiness | 7.5 | Local, clean-checkout, and remote production gates pass; no hosted preview is configured |
 | Hackathon competitiveness | 8.7 | Strong technical differentiation and commercial demo flow; impact evidence and hosted access remain gaps |
 | Portfolio value | 9.1 | Public code, CI, reproducible ML, commercial UI, study guide, screenshot walkthrough, captioned video, and deck |
 
-**Current strict-judge score: 8.8 / 10.**
+**Current strict-judge score: 8.9 / 10.**
 
 ### Current Checkpoint
 
 - Ready-for-review PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
-- The current local checkpoint passes typecheck, 64 tests, model reproduction, production build, bundle budget, live smoke, and six browser/accessibility contracts at desktop, 390 px, and 320 px. Decorative graph edges no longer intercept node clicks.
+- The current local checkpoint passes typecheck, 73 tests, model reproduction, production build, a 151.8/155.0 kB bundle gate, live smoke, and six browser/accessibility contracts at desktop, 390 px, and 320 px.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
 - GitHub Actions run [`29192907061`](https://github.com/kevinmeix1/adherence-os/actions/runs/29192907061) passes the complete remote production gate for code checkpoint `b6a8853` in 1m59s, including 64 deterministic tests, model reproduction, Chromium installation, all six browser/accessibility contracts, bundle enforcement, and production smoke.
-- The coaching fixture passes every configured marginal feature bound at 46%, remains in Watch mode with no handoff, and exposes a 19-point Meal-timing prompt comparison. The safety fixture exceeds at least one bound, withholds all patient-specific ML evidence, and still routes through deterministic safety.
-- The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.
+- The coaching fixture passes every configured marginal feature bound at 42%, remains in Watch mode with no handoff, and exposes a 16-point Meal-timing prompt comparison. The safety fixture exceeds at least one bound, withholds all patient-specific ML evidence, and still routes through deterministic safety.
+- The Model record now shows the all-row validation-matched challenger and runtime-gated population separately; unsupported default paths contain no intervention nodes or action relationships.
+- The README image, nine-step PNG screenshot walkthrough with documentation mirrors, 2:59 video, 30-cue subtitle track, and ten-slide deck are verified fallback assets for the current production checkpoint.

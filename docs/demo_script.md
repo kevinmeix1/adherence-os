@@ -40,6 +40,9 @@ Switch from **Load coaching case** to **Load safety case** on the Decision map. 
 - The risk score comes from a real browser-side logistic model artifact, not an LLM guess.
 - Each synthetic row predicts a following-week event from index-week information, with patients isolated across train, validation, and test splits.
 - For supported inputs, sixteen patient-bootstrap members expose model spread; held-out AUPRC and Brier skill are shown alongside recall.
+- A predeclared recent-adherence-only challenger uses the same patient split and validation recall target: the 14-feature model flags 33% of all synthetic test rows at 29% precision versus 57% at 16% precision for the challenger.
+- Runtime-gate evidence is reported separately: 90% of held-out rows are scored, 180 abstain, and the scored subset retains 74% recall at 26% precision.
+- Twelve Python-generated taken/missed cases reproduce all 14 browser features under an artifact-bound raw-source contract; missing source values still abstain.
 - Directional constraints prevent synthetic correlated features from learning counterintuitive signs.
 - A supported score is reconstructed exactly from intercept and signed log-odds contributions.
 - Supported one-feature-at-a-time sensitivity shows local score stability without pretending to be a confidence interval.
@@ -68,11 +71,11 @@ Say:
 
 ### 0:25-1:00 — Show The Coachable Window
 
-Point to **46%**, **Watch**, and **Meal-timing prompt** in the first viewport.
+Point to **42%**, **Watch**, and **Meal-timing prompt** in the first viewport.
 
 Say:
 
-> Maya has elevated but supported next-week interruption risk. No configured safety rule matched, so coaching remains available. Appetite and energy is the highest-ranked risk-raising graph signal, and a bounded meal-timing assumption lowers this synthetic scenario score from 46% to 27%.
+> Maya has elevated but supported next-week interruption risk. No configured safety rule matched, so coaching remains available. Appetite and energy is the highest-ranked risk-raising graph signal, and a bounded meal-timing assumption lowers this synthetic scenario score from 42% to 25%.
 
 Do not open every panel. Keep the audience on the decision.
 
@@ -110,7 +113,7 @@ Optionally click **Model record** only if the audience wants technical depth.
 
 Say:
 
-> The model runs locally from an exported artifact, the explanations are exact, and the LLM is optional. eMed has already shown what high-adherence at-home care can achieve. Adherence OS is the decision layer that helps keep patients in that programme within explicit clinical boundaries.
+> The model runs locally from an exported artifact, and the LLM is optional. Against a validation-matched recent-adherence-only baseline, it flags substantially fewer synthetic rows at comparable recall; the runtime gate then reports coverage and abstentions separately. This is pipeline evidence, not measured workflow savings. eMed has already shown what high-adherence at-home care can achieve. Adherence OS is the decision layer that helps keep patients in that programme within explicit clinical boundaries.
 
 ## 10. Thirty-Second Backup Pitch
 
@@ -140,7 +143,7 @@ Use **Maya Patel** for both paths.
 - Strong recent adherence
 - Appetite and energy is the highest-ranked risk-raising graph signal; nausea burden is the largest risk-raising model group
 
-Expected result: supported 46% Watch state, Meal-timing prompt with a 19-point bounded decrease, coaching allowed, no handoff.
+Expected result: supported 42% Watch state, Meal-timing prompt with a 16-point bounded decrease, coaching allowed, no handoff.
 
 ### Escalation Seed
 
