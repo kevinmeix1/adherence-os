@@ -65,7 +65,7 @@ Updated: 2026-07-12
 - `pnpm test:browser`: pass, 4/4 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
-- Remote production gate: GitHub Actions run `29185705405` passed on release-verification commit `2d80c28` before the current structured-safety checkpoint.
+- Remote production gate: GitHub Actions run `29187107480` passed in 1m32s on commit `8e27671`, including the four Chromium/axe contracts and production smoke.
 - Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.

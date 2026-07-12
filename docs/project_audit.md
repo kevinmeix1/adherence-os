@@ -273,6 +273,6 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
 - The current local checkpoint passes typecheck, 63 tests, model reproduction, production build, bundle budget, live smoke, and structured-safety interaction checks at 1440 px, 390 px, and 320 px.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
-- GitHub Actions run `29185705405` passes the previous remote production gate for release-verification commit `2d80c28`; the current structured-safety checkpoint still needs its pushed remote gate.
+- GitHub Actions run `29187107480` passes the remote production gate for commit `8e27671`, including Chromium installation, all four browser/accessibility contracts, and production smoke.
 - Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.
