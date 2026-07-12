@@ -79,6 +79,7 @@ pnpm train:model
 ```bash
 pnpm typecheck
 pnpm test
+pnpm check:docs
 pnpm build
 pnpm check:bundle
 pnpm test:browser
