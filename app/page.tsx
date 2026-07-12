@@ -227,7 +227,7 @@ export default function HomePage() {
           <header className="topbar">
             <div>
               <p className="section-kicker">
-                {view === "patient" ? "Home check-in" : view === "clinician" ? "Review queue" : "Model record"}
+                {view === "patient" ? "Home check-in" : view === "clinician" ? "Local review" : "Model record"}
               </p>
               <h1>{selectedPatient.name}</h1>
               <p>{selectedPatient.programme}</p>
@@ -374,7 +374,7 @@ function ProductHeader({
         <NavButton label="Decision map" active={view === "graph"} icon={<Network size={17} />} onClick={() => onNavigate("graph")} />
         <NavButton label="Check-in" active={view === "patient"} icon={<Home size={17} />} onClick={() => onNavigate("patient")} />
         <NavButton
-          label="Review queue"
+          label="Review drafts"
           active={view === "clinician"}
           icon={<Stethoscope size={17} />}
           onClick={() => onNavigate("clinician")}
@@ -748,7 +748,7 @@ function ClinicianView({
   selectedPatientId: string;
   onSelect: (patientId: string) => void;
 }) {
-  const urgentCount = rows.filter((row) => row.plan.riskLevel === "urgent" || row.plan.riskLevel === "review").length;
+  const reviewDraftCount = rows.filter((row) => row.plan.riskLevel === "urgent" || row.plan.riskLevel === "review").length;
   const selectedRow = rows.find((row) => row.patient.id === selectedPatientId) ?? rows[0];
   const selectedNeedsReview = selectedRow.plan.riskLevel === "urgent" || selectedRow.plan.riskLevel === "review";
 
@@ -762,7 +762,7 @@ function ClinicianView({
             <p>{selectedRow.patient.conditionFocus}</p>
           </div>
           <span className={`review-state ${selectedNeedsReview ? "pending" : "clear"}`}>
-            {selectedNeedsReview ? "Pending review" : "No active review"}
+            {selectedNeedsReview ? "Review draft active" : "No review draft"}
           </span>
         </div>
 
@@ -776,12 +776,12 @@ function ClinicianView({
             <strong>{selectedRow.plan.escalation.reason}</strong>
           </div>
           <div>
-            <span>Ownership</span>
-            <strong>{selectedNeedsReview ? "Unassigned" : "No active review"}</strong>
+            <span>Draft scope</span>
+            <strong>{selectedNeedsReview ? "In-memory only" : "No review draft"}</strong>
           </div>
           <div>
             <span>Delivery</span>
-            <strong>{selectedNeedsReview ? "Draft only / not sent" : "No handoff created"}</strong>
+            <strong>{selectedNeedsReview ? "Not sent" : "No draft"}</strong>
           </div>
         </div>
 
@@ -797,8 +797,8 @@ function ClinicianView({
       <section className="panel queue-panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Clinical inbox</p>
-            <h2>{urgentCount} pending review</h2>
+            <p className="section-kicker">Local review set</p>
+            <h2>{reviewDraftCount} {reviewDraftCount === 1 ? "draft" : "drafts"} to review</h2>
           </div>
           <Stethoscope size={24} />
         </div>
@@ -824,15 +824,15 @@ function ClinicianView({
       <section className="panel population-panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Population view</p>
-            <h2>Signals before appointments</h2>
+            <p className="section-kicker">Synthetic cohort</p>
+            <h2>Source-order overview</h2>
           </div>
           <BarChart3 size={24} />
         </div>
 
         <div className="metric-row">
           <Metric icon={<UserRound size={18} />} label="Active patients" value={String(rows.length)} />
-          <Metric icon={<AlertTriangle size={18} />} label="Escalations" value={String(urgentCount)} />
+          <Metric icon={<AlertTriangle size={18} />} label="Review drafts" value={String(reviewDraftCount)} />
           <Metric
             icon={<TrendingDown size={18} />}
             label="Avg weight change"
@@ -841,7 +841,7 @@ function ClinicianView({
         </div>
 
         <div
-          aria-label="Patient review table"
+          aria-label="Synthetic cohort source-order table"
           className="clinician-table-wrap"
           role="region"
           tabIndex={0}
@@ -874,8 +874,8 @@ function ClinicianView({
       <section className="panel wide-panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Handoff drafts</p>
-            <h2>Review before delivery</h2>
+            <p className="section-kicker">Local message drafts</p>
+            <h2>Manual review before use</h2>
           </div>
         </div>
         <div className="handoff-grid">
@@ -2187,7 +2187,7 @@ function ScriptsView() {
           <li>Select Maya and load the escalation scenario.</li>
           <li>Show missed medication, high nausea, low hydration, and worsening pain.</li>
           <li>Review the care plan.</li>
-          <li>Switch to the clinician inbox and show the prioritised handoff plus audit trail.</li>
+          <li>Open Review drafts and show the local, unsent handoff plus audit trail.</li>
         </ol>
         <p className="talk-track">
           "The system does not pretend to be a doctor. Deterministic safety rules recognise that coaching is the wrong mode and prepare a review draft."

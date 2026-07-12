@@ -30,15 +30,15 @@ This is a planning comparison, not a treatment-effect estimate or medication rec
 
 ![Escalation scenario with model abstention and safety handoff](../public/walkthrough/04-safety-escalation.jpg)
 
-Select **Escalation**. The synthetic symptom vector moves outside model support, so numeric ML ranking **abstains**. Deterministic rules remain active, suppress tested actions, and switch the decision to the safety guardrail and an urgent clinician-review draft.
+Select **Escalation**. The synthetic symptom vector exceeds configured marginal feature bounds, so numeric ML ranking **abstains**. Deterministic rules remain active, suppress tested actions, and switch the decision to the safety guardrail and an urgent clinician-review draft.
 
 This is the key product boundary: model uncertainty cannot disable safety, and a high adherence-risk score is not required for red-flag escalation.
 
 ## 5. Review, Do Not Auto-Send
 
-![Clinician handoff review workspace](../public/walkthrough/05-clinician-handoff-review.jpg)
+![Local clinician-review workspace](../public/walkthrough/05-clinician-handoff-review.jpg)
 
-Select **Review handoff draft**. **Review queue** opens directly on the pending task with its trigger, unassigned owner, **Draft only / not sent** delivery state, longitudinal summary, patient-facing draft, and five-step audit trail.
+Select **Review handoff draft**. **Review drafts** opens directly on the local record with its trigger, **In-memory only** scope, **Not sent** delivery state, longitudinal summary, patient-facing draft, and five-step audit trail.
 
 The prototype prepares context for a human decision. It does not diagnose, make a medication change, assign a clinician, or claim that a message was delivered.
 

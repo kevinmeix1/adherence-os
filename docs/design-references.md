@@ -31,7 +31,7 @@ Patterns adapted:
 - make the pending task and its ownership visible;
 - use tabs only for related information that repeat users switch between often.
 
-Adherence OS translation: the review queue is a task list, the handoff is a summary record, and graph focus modes behave like compact inspection tabs.
+Adherence OS translation: the local review set borrows task-list scanning without implying a connected inbox, the handoff is a summary record, and graph focus modes behave like compact inspection tabs.
 
 ## Carbon Design System
 
@@ -49,7 +49,7 @@ Patterns adapted:
 - identify AI involvement at the relevant evidence layer instead of branding the whole interface as AI.
 - use one compact, high-contrast switcher for alternate views of the same evidence map.
 
-Adherence OS translation: the model record, population view, provenance rows, and metric register share one restrained data grammar. Model, simulation, rule, and context sources are labelled where they matter.
+Adherence OS translation: the model record, synthetic-cohort view, provenance rows, and metric register share one restrained data grammar. Model, simulation, rule, and context sources are labelled where they matter.
 
 ## OpenMRS O3
 
@@ -68,7 +68,7 @@ Patterns adapted:
 - make responsive behavior part of the workflow design rather than a scaled desktop afterthought.
 - keep focused review work beside patient context on desktop and move it ahead of exploration when an urgent mobile action takes priority.
 
-Adherence OS translation: Maya remains the active synthetic case across Decision map, Check-in, Review queue, and Model record. The evidence inspector stays beside the map on desktop. The 320-pixel layout preserves the same decision order without horizontal overflow, while urgent actions move ahead of graph exploration.
+Adherence OS translation: Maya remains the active synthetic case across Decision map, Check-in, Review drafts, and Model record. The evidence inspector stays beside the map on desktop. The 320-pixel layout preserves the same decision order without horizontal overflow, while urgent actions move ahead of graph exploration.
 
 ## eMed Product Context
 

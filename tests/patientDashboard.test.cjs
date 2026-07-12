@@ -44,7 +44,7 @@ test("patient dashboard surfaces engagement and latest-snapshot risk", () => {
   assert.equal(aisha.modelRisk, null);
 });
 
-test("clinician queue preserves each patient's live plan independently", () => {
+test("local review workspace preserves each patient's live plan independently", () => {
   const maya = patients.find((patient) => patient.id === "maya-patel");
   const coachingPlans = buildNormalPlanMap();
   const escalationPlans = {

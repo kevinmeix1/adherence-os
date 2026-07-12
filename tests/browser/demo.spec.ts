@@ -46,8 +46,9 @@ test("judged flow survives coaching, escalation, handoff, and reset", async ({ p
   await expect(page.locator(".graph-relationship-list")).not.toContainText(/nudge|prompt/i);
 
   await page.getByRole("button", { name: "Review handoff draft", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Review queue", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("Draft only / not sent", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Review drafts", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText("In-memory only", { exact: true })).toBeVisible();
+  await expect(page.getByText("Not sent", { exact: true })).toBeVisible();
   await expect(page.locator("#main-workspace")).toBeFocused();
 
   await page.getByRole("button", { name: "Reset demo", exact: true }).click();
@@ -83,7 +84,7 @@ test("keyboard changes announce safety state from every workspace", async ({ pag
   expect(runtimeErrors).toEqual([]);
 });
 
-test("patient switches preserve independent scenario and queue state", async ({ page }) => {
+test("patient switches preserve independent scenario and local review state", async ({ page }) => {
   const runtimeErrors = monitorRuntimeErrors(page);
   await page.goto("/");
 
@@ -92,20 +93,21 @@ test("patient switches preserve independent scenario and queue state", async ({ 
   await page.getByRole("button", { name: "Select James O'Connor", exact: true }).click();
   await expect(page.getByText("James's check-in remains on the coaching path.", { exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "Review queue", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "1 pending review" })).toBeVisible();
+  await page.getByRole("button", { name: "Review drafts", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "1 draft to review" })).toBeVisible();
   const mayaQueueItem = page.locator(".queue-item").filter({ hasText: "Maya Patel" });
   await expect(mayaQueueItem).toContainText("Urgent");
   await mayaQueueItem.click();
-  await expect(page.getByText("Draft only / not sent", { exact: true })).toBeVisible();
+  await expect(page.getByText("In-memory only", { exact: true })).toBeVisible();
+  await expect(page.getByText("Not sent", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Decision map", exact: true }).click();
   await expect(page.getByRole("button", { name: "Escalation", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("heading", { name: "Call NHS 111 now" })).toBeVisible();
 
   await page.getByRole("button", { name: "Reset demo", exact: true }).click();
-  await page.getByRole("button", { name: "Review queue", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "0 pending review" })).toBeVisible();
+  await page.getByRole("button", { name: "Review drafts", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "0 drafts to review" })).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -154,6 +156,12 @@ test("narrow coaching and escalation preserve safe reading order", async ({ page
     expect(escalationInspector?.y).toBeLessThan(escalationGraph?.y ?? 0);
     await expectNoHorizontalOverflow(page);
 
+    await page.getByRole("button", { name: "Review handoff draft", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "1 draft to review" })).toBeVisible();
+    await expect(page.getByText("In-memory only", { exact: true })).toBeVisible();
+    await expect(page.getByText("Not sent", { exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
     await page.getByRole("button", { name: "Check-in", exact: true }).click();
     await expect(page.getByRole("group", { name: "Symptoms needing urgent help now" }).getByRole("checkbox")).toHaveCount(7);
     await expectNoHorizontalOverflow(page);
@@ -170,7 +178,7 @@ test("core care states have no serious or critical automated accessibility viola
     ["Decision map Escalation", async () => {
       await page.getByRole("button", { name: "Escalation", exact: true }).click();
     }],
-    ["Review queue", async () => {
+    ["Review drafts", async () => {
       await page.getByRole("button", { name: "Review handoff draft", exact: true }).click();
     }],
     ["Check-in", async () => {

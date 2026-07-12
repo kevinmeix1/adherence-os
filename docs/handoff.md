@@ -15,7 +15,7 @@ Updated: 2026-07-12
 - Rebuilt the primary experience as an original **care decision ledger** rather than a generic AI dashboard.
 - Put the Decision map first and reorganised its hierarchy around the patient, observed evidence, context signal, model contributor, tested action, and safety owner.
 - Removed visible glow, glass, gradient, and decorative depth treatments from the judged path.
-- Reworked Check-in, Review queue, Model record, patient routes, navigation, controls, metrics, and error recovery into the same flat record system.
+- Reworked Check-in, Review drafts, Model record, patient routes, navigation, controls, metrics, and error recovery into the same flat record system.
 - Simplified the graph's default path, wrapped labels at word boundaries, and limited node and edge feedback to short one-shot selection animations.
 - Preserved the deterministic Coaching and Escalation paths, model abstention, tested-action suppression, and draft-only clinician handoff.
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
@@ -27,7 +27,7 @@ Updated: 2026-07-12
 - Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
 - Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
-- Applied the support gate to every presentation surface: unsupported inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, tested-action ranking, and routed-record risk.
+- Applied the marginal feature-bounds gate to every presentation surface: out-of-bounds inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, tested-action ranking, and routed-record risk.
 - Renamed that gate to marginal feature bounds, exposed held-out synthetic precision and review burden beside recall, and stated that independent ranges do not detect joint-distribution or semantic drift.
 - Preserved graph-first Coaching on narrow screens while moving the urgent destination and handoff action ahead of graph exploration in Escalation.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
@@ -38,7 +38,7 @@ Updated: 2026-07-12
 
 - `app/page.tsx`: client workspace, scenario state, graph interaction, request invalidation, and view routing.
 - `app/product.css`: Decision map, product shell, graph workbench, and routed patient surfaces.
-- `app/globals.css`: Check-in, Review queue, Model record, and shared primitives.
+- `app/globals.css`: Check-in, Review drafts, Model record, and shared primitives.
 - `app/lib/careEngine.ts`: deterministic coaching, review, urgent routing, and post-provider safety.
 - `app/lib/safetyFlags.ts`: typed checklist identifiers, patient labels, and deterministic rule mapping.
 - `app/lib/edgeModel.ts`: local prospective inference, attribution, support gate, and bounded rescoring.
@@ -72,9 +72,9 @@ Updated: 2026-07-12
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
 - Structured-safety browser rehearsal: pass at 1440 px, 390 px, and 320 px; every viewport renders seven named checkboxes, Normal clears them, Escalation selects three, the direct chest/breathing flag changes the headline to `Call 999 now`, and no console errors or horizontal overflow appear.
-- Interaction rehearsal: pointer selection opens Routine disruption, keyboard selection opens Hydration nudge, Escalation blocks four tested actions, Review queue shows `Draft only / not sent`, Reset restores Coaching, and no browser console errors were recorded.
-- Deck QA: all ten slides reviewed at full size; screenshot decoding and overflow checks pass.
-- Video QA: 2:59, 1280x720, 895 frames at 5 fps, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, exact 30-block sidecar parity, clean full-file decode, and -2.6 dB peak audio.
+- Interaction rehearsal: pointer selection opens Routine disruption, keyboard selection opens Hydration nudge, Escalation blocks four tested actions, Review drafts shows `In-memory only` and `Not sent`, Reset restores Coaching, and no browser console errors were recorded.
+- Deck QA: all ten exported slides reviewed at full size; template fidelity, screenshot decoding, and overflow checks pass.
+- Video QA: 2:59, 1280x720, 895 frames at 5 fps across the full 179-second video stream, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, exact 30-block sidecar parity, clean full-file decode, ten-state transition sampling, and -1.3 dB peak audio.
 
 ## Known Limits
 

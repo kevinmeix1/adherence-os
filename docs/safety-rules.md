@@ -1,6 +1,6 @@
 # Safety Rules
 
-Adherence OS is a chronic-care support prototype. It helps patients stay adherent and helps clinicians prioritise follow-up. It does not diagnose, prescribe, change doses, or replace care teams.
+Adherence OS is a chronic-care support prototype. It helps patients stay adherent and gives care teams a local review draft when configured rules match. It does not diagnose, prescribe, change doses, deliver messages, or replace care teams.
 
 ## Hard Rules
 

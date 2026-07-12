@@ -4,14 +4,14 @@ Audit date: 2026-07-12
 
 ## 1. Product Summary
 
-Adherence OS is a hackathon MVP for at-home GLP-1 adherence support. It combines a short patient check-in, deterministic clinical guardrails, a browser-side adherence-risk model, explainable graph analytics, bounded tested actions, and a pending clinician-review draft. The intended users are patients managing a long programme and care teams prioritising review between appointments. The immediate audience is the eMed hackathon judging panel.
+Adherence OS is a hackathon MVP for at-home GLP-1 adherence support. It combines a short patient check-in, deterministic clinical guardrails, a browser-side adherence-risk model, explainable graph analytics, bounded tested actions, and a local clinician-review draft. The intended users are patients managing a long programme and care teams inspecting asynchronous-review drafts between appointments. The immediate audience is the eMed hackathon judging panel.
 
 The product's strongest proposition is the dual-track decision: ML estimates adherence failure risk while an independent safety layer decides whether coaching must stop. The stricter path wins.
 
 ## 2. Current Architecture
 
 - **Frontend:** Next.js 15 App Router, React 19, TypeScript, Lucide icons.
-- **Primary experience:** one client-rendered workspace in `app/page.tsx` with Decision map, Check-in, Review queue, Model record, Safety, Demo script, and Judge proof views.
+- **Primary experience:** one client-rendered workspace in `app/page.tsx` with Decision map, Check-in, Review drafts, Model record, Safety, Demo script, and Judge proof views.
 - **Routed records:** statically generated `/patients` and `/patients/[patientId]` pages with loading, error, empty, and not-found states.
 - **Backend:** `POST /api/care-plan` and `GET /api/health` route handlers.
 - **Safety:** deterministic rules in `app/lib/careEngine.ts`, applied before and after optional model generation.
@@ -30,7 +30,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 4. Compare bounded tested actions and show why one ranks first.
 5. Switch to Escalation.
 6. Observe that deterministic red flags suppress every tested action, show the urgent destination, and prepare a clinician-review draft.
-7. Open the Review queue and review the structured audit trail.
+7. Open Review drafts and inspect the local record and structured audit trail.
 8. Use Model record only when technical depth is requested.
 
 ## 4. Main Strengths
@@ -44,7 +44,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - The app remains complete without a network connection or API key.
 - Structured AI output and request data are validated with Zod.
 - Model explainability is unusually strong for a hackathon: exact log-odds reconstruction, local sensitivity, calibration, and provenance.
-- The training-support gate now withholds every patient-specific ML number across the Decision map, Model record, and routed records before extrapolation.
+- The marginal feature-bounds gate now withholds every patient-specific ML number across the Decision map, Model record, and routed records when any independent range is exceeded.
 - Tested actions are explicitly described as planning comparisons rather than causal treatment effects.
 - Mobile layouts at 390px and 320px are protected by a production-browser order and overflow contract.
 - Narrow layouts preserve graph-first Coaching but move the urgent destination and handoff action ahead of graph exploration in Escalation.
@@ -52,7 +52,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - Public documentation includes architecture, safety boundaries, model details, demo assets, and design references.
 - Patient and model artifacts fail early through typed runtime validation, and the synthetic model has a non-destructive reproduction check.
 - A single Reset command restores the rehearsed opening state after any demo path.
-- Coaching and Escalation now drive the clinician queue consistently: zero reviews becomes one review only when the safety path is active.
+- Coaching and Escalation now drive local review state consistently: zero drafts becomes one only when the safety path is active.
 - Check-ins, care plans, provider state, and notices are stored independently by synthetic patient identifier; selecting another record no longer erases a pending review.
 - One persistent live region announces safety changes in every workspace; client-view navigation focuses the named destination workspace.
 - Graph nodes expose selected state and inspector ownership without duplicate pointer activation; the scrollable review table is keyboard-focusable.
@@ -134,8 +134,8 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Rename and reframe the clinician workspace so it does not imply a transported or autonomously prioritised inbox.
-2. Gather real patient/clinician comprehension evidence.
+1. Gather real patient/clinician comprehension evidence.
+2. Configure a stable, keyless hosted preview if event rules permit it.
 3. Add a keyless hosted preview only when an existing account makes external access low risk.
 4. Defer component and stylesheet decomposition until after judging.
 

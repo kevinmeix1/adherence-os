@@ -4,7 +4,7 @@ Adherence OS is an AI decision layer for at-home GLP-1 care.
 
 2
 00:00:04,500 --> 00:00:15,400
-It is organised as a care decision ledger: predict next week's adherence interruption, show the evidence, compare one bounded support assumption, and hand off safely when rules detect a red flag.
+It is organised as a care decision ledger: estimate next week's adherence interruption, show the evidence, compare one bounded support assumption, and review safely when rules detect a red flag.
 
 3
 00:00:16,300 --> 00:00:23,000
@@ -40,7 +40,7 @@ The app changes explicit feature assumptions, rescores the same monotonic model,
 
 11
 00:01:04,400 --> 00:01:10,000
-The tested action is ranked only while observed and simulated vectors stay inside the synthetic training-support envelope.
+The comparison appears only while every observed and simulated feature remains inside configured marginal bounds.
 
 12
 00:01:10,400 --> 00:01:17,000
@@ -48,19 +48,19 @@ In Escalation, Maya reports severe abdominal pain, vomiting, poor hydration, and
 
 13
 00:01:17,000 --> 00:01:24,500
-The input moves outside model support. Numeric ranking abstains, and every tested action is suppressed.
+Several features exceed their marginal bounds. Patient-specific ML evidence is withheld, and every tested action is suppressed.
 
 14
 00:01:24,500 --> 00:01:30,200
-Independent deterministic rules remain active and prepare an urgent clinician-review draft.
+Independent deterministic rules remain active and prepare an urgent local review draft.
 
 15
 00:01:31,200 --> 00:01:36,000
-The Review queue opens directly on the selected task.
+Review drafts opens directly on Maya's local record.
 
 16
 00:01:36,000 --> 00:01:41,000
-It exposes the trigger, an unassigned owner, and the explicit delivery state: draft only, not sent.
+It exposes the rule trigger, in-memory scope, and explicit delivery state: not sent.
 
 17
 00:01:41,000 --> 00:01:47,000
@@ -72,7 +72,7 @@ Nothing is diagnosed or sent automatically.
 
 19
 00:01:51,000 --> 00:01:56,500
-The Check-in asks for the planned dose, four wellbeing scores, mood, and short notes.
+The Check-in asks for the planned dose, four wellbeing scores, named current-symptom flags, mood, and short notes.
 
 20
 00:01:56,500 --> 00:02:03,000
@@ -88,7 +88,7 @@ The Model record makes the machine-learning boundary inspectable.
 
 23
 00:02:15,500 --> 00:02:20,000
-Its prospective target predicts the following week's planned adherence event.
+Its prospective target is the following week's planned adherence event.
 
 24
 00:02:20,000 --> 00:02:24,000
@@ -96,7 +96,7 @@ Patients are isolated across training, validation, and test.
 
 25
 00:02:24,000 --> 00:02:33,000
-The browser loads fourteen constrained features, sixteen bootstrap members, exact attribution, reliability evidence, sensitivity checks, and support-aware abstention.
+The record shows synthetic recall beside precision and review burden, then states exactly what the marginal-bounds gate cannot detect.
 
 26
 00:02:33,000 --> 00:02:38,000
@@ -116,4 +116,4 @@ Innovation combines local ML, graph evidence, and independent safety.
 
 30
 00:02:53,000 --> 00:02:58,700
-The live story is simple: predict, explain, test a bounded action, and hand off safely.
+The live story is simple: estimate, explain, test a bounded action, and review safely.

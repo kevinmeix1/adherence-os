@@ -33,7 +33,7 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 
 ## 6. Main Wow Moment
 
-Switch from **Coaching** to **Escalation** on the Decision map. The symptom vector moves outside synthetic model support, numeric ML ranking abstains, every tested action becomes **Blocked by safety**, and the graph switches to the **Safety guardrail** and **Clinician handoff** path. The system demonstrates that safety remains active even when the model declines to score the decision.
+Switch from **Coaching** to **Escalation** on the Decision map. The symptom vector exceeds configured marginal feature bounds, numeric ML ranking abstains, every tested action becomes **Blocked by safety**, and the graph switches to the **Safety guardrail** and **Clinician handoff** path. The system demonstrates that safety remains active even when the model declines to score the decision.
 
 ## 7. Why It Is Technically Credible
 
@@ -155,7 +155,7 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; tested actio
 1. `/` Decision map in Coaching mode.
 2. `/` Decision map Attribution focus.
 3. `/` Decision map after Escalation.
-4. `/` Review queue with Maya selected.
+4. `/` Review drafts with Maya selected.
 5. `/` Check-in Review care plan loading and fallback notice.
 6. `/` Model record sensitivity and exact decomposition.
 7. `/patients` synthetic patient overview.
@@ -176,7 +176,7 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; tested actio
 ## Keyboard Rehearsal Checklist
 
 1. Reload and press `Tab` once. **Skip to main content** must appear; `Enter` must focus the workspace.
-2. Tab through **Decision map**, **Check-in**, and **Review queue**; focus must remain visible and `Enter` must switch views. Open **Model record** from the decision summary.
+2. Tab through **Decision map**, **Check-in**, and **Review drafts**; focus must remain visible and `Enter` must switch views. Open **Model record** from the decision summary.
 3. In **Check-in**, activate Normal/Escalation, toggle one named urgent-symptom checkbox, change one slider with arrow keys, and confirm **Custom** appears after either edit.
 4. Open prototype resources with `Enter`, press `Escape`, and confirm focus returns to the resources summary.
 5. In **Decision map**, activate graph focus modes with `Enter`, then reach graph nodes and use both `Enter` and `Space` to update the inspector.

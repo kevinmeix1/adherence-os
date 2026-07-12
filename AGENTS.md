@@ -20,7 +20,7 @@ Do not add a feature unless it appears in this story or materially protects it.
 ## Target Users
 
 - A patient managing a long at-home GLP-1 programme.
-- A clinician or care navigator prioritising asynchronous follow-up.
+- A clinician or care navigator inspecting local asynchronous-review drafts.
 - Hackathon judges evaluating impact, innovation, feasibility, and demo quality.
 
 ## Tech Stack
@@ -123,7 +123,7 @@ The following must remain reliable:
 2. Attribution explains model, simulation, rule, and context provenance.
 3. Escalation changes the decision to clinician handoff.
 4. Safety suppresses every simulated support route.
-5. Review handoff opens the Care queue at the top.
+5. Review handoff opens Review drafts at the top.
 6. Generate shows loading, provider mode, and a complete fallback result.
 7. Model lab remains available as optional technical proof.
 

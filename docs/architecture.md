@@ -36,7 +36,7 @@ flowchart TB
         History --> Graph
         Graph --> Live["Decision map"]
         Plan --> Patient["Home check-in"]
-        Plan --> Queue["Clinician review queue"]
+        Plan --> Review["Local review drafts"]
         Artifact --> Lab["Model record"]
         Abstain --> Lab
     end
@@ -50,7 +50,7 @@ flowchart TB
     Validate --> API
     Recompute --> Plan
     API -. "timeout, invalid, or no key" .-> Plan
-    Safety -. "urgent rules suppress coaching" .-> Queue
+    Safety -. "urgent rules suppress coaching" .-> Review
 ```
 
 The dotted provider fallback is deliberate. The judged demo is complete without a key; optional generated output cannot weaken, rewrite, or own the displayed care plan.
@@ -65,7 +65,7 @@ sequenceDiagram
     participant ML as Browser edge model
     participant Graph as Evidence-map builder
     participant API as Optional care-plan API
-    participant Clinician as Review queue
+    participant Reviewer as Local review workspace
 
     Patient->>UI: Submit or edit structured values and current-symptom flags
     UI->>Rules: Evaluate explicit flags, phrase backstop, adherence, and thresholds
@@ -81,7 +81,7 @@ sequenceDiagram
         UI->>Rules: Keep the recomputed deterministic plan
     end
     alt Red flag active
-        UI->>Clinician: Show pending draft, owner, trigger, and audit trail
+        UI->>Reviewer: Show in-memory draft, trigger, unsent state, and audit trail
     else Coaching path remains active
         UI-->>Patient: Show one bounded behavioral next step
     end

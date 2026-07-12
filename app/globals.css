@@ -2934,7 +2934,7 @@ blockquote {
   }
 }
 
-/* Care-ledger foundations for check-in, review queue, and model record. */
+/* Care-ledger foundations for check-in, local review, and model record. */
 :root {
   --bg: #f2f2ee;
   --panel: #ffffff;
