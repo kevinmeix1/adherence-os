@@ -54,6 +54,15 @@ test("care-plan API rejects invalid scores and mismatched patients", async () =>
   assert.match((await mismatchResponse.json()).error, /identifiers do not match/i);
 });
 
+test("care-plan API rejects unknown structured safety flags", async () => {
+  const body = validBody();
+  body.checkIn.safetyFlags = ["unconfigured-symptom"];
+
+  const response = await POST(requestFor(body));
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).error, /invalid care-plan request/i);
+});
+
 test("care-plan API returns a disclosed deterministic fallback without an API key", async () => {
   const originalApiKey = process.env.OPENAI_API_KEY;
   delete process.env.OPENAI_API_KEY;

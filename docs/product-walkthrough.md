@@ -46,7 +46,7 @@ The prototype prepares context for a human decision. It does not diagnose, make 
 
 ![Patient home check-in and care plan](../public/walkthrough/06-patient-check-in.jpg)
 
-The **Check-in** view turns a short structured input into a care plan, adherence profile, seven-day support plan, rule trace, and eight-week context. Editing any field recomputes the deterministic decision immediately and invalidates older in-flight provider requests.
+The **Check-in** view turns a short structured input into a care plan, adherence profile, seven-day support plan, rule trace, and eight-week context. A seven-item current-symptom checklist provides an explicit route into deterministic urgent mode; free-text phrase matching remains a secondary backstop. Editing any field recomputes the decision immediately and invalidates older in-flight provider requests.
 
 The seeded **Normal** and **Escalation** controls exist for a repeatable judged demo; a field edit visibly changes the state to **Custom**.
 

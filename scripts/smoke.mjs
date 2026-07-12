@@ -65,6 +65,7 @@ const sharedCheckIn = {
   date: "2026-07-08",
   appetiteScore: 5,
   mood: "steady",
+  safetyFlags: [],
   biomarkerNote: "Synthetic smoke-test biomarker note."
 };
 
@@ -88,6 +89,7 @@ const escalationCheckIn = {
   energyScore: 3,
   hydrationScore: 2,
   mood: "anxious",
+  safetyFlags: ["severe-abdominal-pain", "unable-to-keep-fluids-down"],
   sideEffects: "Vomiting twice today and struggling to keep fluids down.",
   freeText: "My stomach pain is getting worse and I feel lightheaded when I stand."
 };
@@ -102,6 +104,15 @@ const immediateSelfSafetyCheckIn = {
   ...normalCheckIn,
   scenario: "custom",
   freeText: "I can't keep myself safe."
+};
+
+const structuredSafetyCheckIn = {
+  ...normalCheckIn,
+  scenario: "custom",
+  safetyFlags: ["chest-or-breathing"],
+  sideEffects: "",
+  biomarkerNote: "",
+  freeText: ""
 };
 
 await check("/", async (response) => {
@@ -212,6 +223,15 @@ await checkCarePlan("immediate self-safety", immediateSelfSafetyCheckIn, async (
   }
   if (!/call 999|go to A&E/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
     throw new Error("immediate self-safety language did not expose an emergency destination");
+  }
+});
+
+await checkCarePlan("structured safety override", structuredSafetyCheckIn, async ({ plan }) => {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: chest pain or breathing difficulty")) {
+    throw new Error("structured safety flag did not activate the deterministic emergency route");
+  }
+  if (plan.headline !== "Call 999 now") {
+    throw new Error("structured safety flag did not put the 999 destination in the headline");
   }
 });
 

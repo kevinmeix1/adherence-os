@@ -10,6 +10,7 @@ import type {
   UnsafeRequestDemo,
   WeeklySnapshot
 } from "./types";
+import { SAFETY_FLAG_RULE_LABELS } from "./safetyFlags";
 
 export const SAFETY_NOTICE =
   "This prototype does not diagnose, change medication, or replace clinical care. New, severe, or worrying symptoms should be reviewed by a qualified clinician, and emergency symptoms need urgent help.";
@@ -23,6 +24,7 @@ export const DEMO_CHECK_INS: Record<"normal" | "escalation", Omit<CheckInInput, 
     energyScore: 6,
     hydrationScore: 7,
     mood: "steady",
+    safetyFlags: [],
     sideEffects: "Mild nausea after lunch, manageable with smaller meals.",
     biomarkerNote: "Weight is down 0.4 kg this week. No unusual blood pressure reading.",
     freeText:
@@ -36,6 +38,11 @@ export const DEMO_CHECK_INS: Record<"normal" | "escalation", Omit<CheckInInput, 
     energyScore: 3,
     hydrationScore: 2,
     mood: "anxious",
+    safetyFlags: [
+      "faint-or-severe-dizziness",
+      "severe-abdominal-pain",
+      "unable-to-keep-fluids-down"
+    ],
     sideEffects: "Vomiting twice today and struggling to keep fluids down.",
     biomarkerNote: "Weight dropped 1.2 kg since last week. Resting heart rate is higher than usual.",
     freeText:
@@ -57,8 +64,8 @@ type UrgentRoute = {
 };
 
 const redFlagPatterns: RedFlagPattern[] = [
-  { label: "chest pain", pattern: /\b(?:chest pain|tight chest|tightness (?:in|across) (?:my|the) chest|pressure (?:in|on) (?:my|the) chest)\b/i },
-  { label: "breathlessness", pattern: /\b(?:short of breath|breathless|cannot breathe|can't breathe|difficulty breathing|struggling to breathe)\b/i },
+  { label: "chest pain", pattern: /\b(?:chest pain|chest discomfort|crushing chest discomfort|tight chest|tightness (?:in|across) (?:my|the) chest|pressure (?:in|on) (?:my|the) chest)\b/i },
+  { label: "breathlessness", pattern: /\b(?:short of breath|breathless|cannot breathe|can't breathe|cannot catch my breath|can't catch my breath|difficulty breathing|struggling to breathe)\b/i },
   { label: "fainting or severe dizziness", pattern: /\b(?:fainted|fainting|feel(?:ing)? faint|felt faint|nearly fainted|almost fainted|passed out|black(?:ed|ing)? out|blackout|lightheaded|severely dizzy|severe dizziness)\b/i },
   { label: "severe abdominal pain", pattern: /\b(?:(?:(?:severe|persistent|worsening|agonising|agonizing|unbearable|excruciating)\s+){1,2}(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain\s+(?:is\s+)?(?:getting worse|worsening|won't go away|will not go away|unbearable|agonising|agonizing|excruciating)|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain(?:\s+(?:that|which))?\s+(?:spreads?|spread|spreading|radiat(?:es|ed|ing))\s+(?:into|to)\s+(?:(?:my|the)\s+)?back|(?:upper\s+)?(?:stomach|abdomen|belly|tummy)\s+(?:hurt|hurts|is hurting)\s+(?:severely|unbearably|agonisingly|agonizingly|excruciatingly|(?:so\s+)?badly))\b/i },
   { label: "unable to keep fluids down", pattern: /\b(?:(?:(?:have|has|had)\s+not|haven't|hasn't|hadn't)\s+been\s+able\s+to\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+drink(?:\s+(?:anything|(?:any\s+)?(?:fluids?|water)))?(?=\s*(?:[,.!?;]|$|\b(?:and|because|without)\b))|(?:(?:every|each|any)\s+(?:sip|drink)|(?:even\s+(?:a|one|tiny)\s+)?sips?|(?:all\s+)?(?:fluids?|water))\s+(?:comes?|come|came|is coming|are coming)\s+(?:(?:straight|right)\s+)?back\s+up|vomit(?:ing|ed|s)?|throw(?:ing|s|threw|thrown)\s+up|being\s+sick)\b/i, ignoreResolvedHistory: true },
@@ -67,7 +74,7 @@ const redFlagPatterns: RedFlagPattern[] = [
     label: "immediate self-harm language",
     pattern: /\b(?:kill myself|end my life|want to die|(?:(?:cannot|can't|unable to)|(?:do not|don't) feel (?:able to|(?:that )?i can)|(?:will not|won't) be able to)\s+keep myself safe)\b/i
   },
-  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal)\b/i }
+  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal|(?:do not|don't) want to be alive)\b/i }
 ];
 
 const unsafeGeneratedTextPatterns = [
@@ -116,9 +123,11 @@ export function getPatientInsights(patient: Patient) {
 export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan {
   const insights = getPatientInsights(patient);
   const text = [input.sideEffects, input.biomarkerNote, input.freeText].join("\n");
-  const redFlags = redFlagPatterns
+  const structuredRedFlags = input.safetyFlags.map((flag) => SAFETY_FLAG_RULE_LABELS[flag]);
+  const phraseRedFlags = redFlagPatterns
     .filter((flag) => hasNonNegatedMatch(text, flag.pattern, flag.ignoreResolvedHistory))
     .map((flag) => flag.label);
+  const redFlags = [...new Set([...structuredRedFlags, ...phraseRedFlags])];
   const ruleHits: string[] = [];
 
   if (!input.medicationTaken) ruleHits.push("missed medication check-in");
@@ -286,7 +295,11 @@ function buildUrgentRoute(redFlags: string[]): UrgentRoute {
     };
   }
 
-  if (redFlags.includes("chest pain") || redFlags.includes("breathlessness")) {
+  if (
+    redFlags.includes("chest pain") ||
+    redFlags.includes("breathlessness") ||
+    redFlags.includes("chest pain or breathing difficulty")
+  ) {
     return {
       headline: "Call 999 now",
       reason: "Chest-pain or breathing language needs emergency assessment; this prototype cannot assess severity.",

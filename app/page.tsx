@@ -31,6 +31,7 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEMO_CHECK_INS, evaluateCheckIn, getPatientInsights, SAFETY_NOTICE } from "@/app/lib/careEngine";
+import { SAFETY_FLAG_OPTIONS, type SafetyFlagId } from "@/app/lib/safetyFlags";
 import { analyzeRiskSensitivity, explainRiskScore, getModelSampleRows, scorePatientRisk } from "@/app/lib/edgeModel";
 import { buildAdherenceKnowledgeGraph } from "@/app/lib/knowledgeGraph";
 import { buildClinicianDashboardRows } from "@/app/lib/patientDashboard";
@@ -403,6 +404,14 @@ function PatientView({
 }) {
   const handoffPending = carePlan.riskLevel === "urgent" || carePlan.riskLevel === "review";
 
+  function updateSafetyFlag(flagId: SafetyFlagId, checked: boolean) {
+    const safetyFlags = checked
+      ? [...new Set([...checkIn.safetyFlags, flagId])]
+      : checkIn.safetyFlags.filter((candidate) => candidate !== flagId);
+
+    onChange({ ...checkIn, safetyFlags, scenario: "custom" });
+  }
+
   return (
     <div className="patient-grid">
       <section className="panel checkin-panel">
@@ -439,7 +448,7 @@ function PatientView({
         </div>
 
         <div className="form-grid">
-          <label className="toggle-row">
+          <label className="toggle-row wide">
             <span>
               <Pill size={18} />
               Planned weekly dose recorded
@@ -450,6 +459,23 @@ function PatientView({
               onChange={(event) => onChange({ ...checkIn, medicationTaken: event.target.checked, scenario: "custom" })}
             />
           </label>
+
+          <fieldset className="safety-checklist">
+            <legend>Symptoms needing urgent help now</legend>
+            <p>Select any that are happening now.</p>
+            <div className="safety-checklist-options">
+              {SAFETY_FLAG_OPTIONS.map((option) => (
+                <label className="safety-check-option" key={option.id}>
+                  <input
+                    type="checkbox"
+                    checked={checkIn.safetyFlags.includes(option.id)}
+                    onChange={(event) => updateSafetyFlag(option.id, event.target.checked)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           <Slider
             label="Nausea"
@@ -476,7 +502,7 @@ function PatientView({
             onChange={(value) => onChange({ ...checkIn, hydrationScore: value, scenario: "custom" })}
           />
 
-          <label className="field">
+          <label className="field wide">
             <span>Mood</span>
             <select value={checkIn.mood} onChange={(event) => onChange({ ...checkIn, mood: event.target.value, scenario: "custom" })}>
               <option value="steady">steady</option>

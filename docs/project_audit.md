@@ -19,7 +19,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - **Graph:** a typed in-memory graph built from the patient, check-in, model score, care plan, and synthetic cohort.
 - **AI:** optional OpenAI structured output validated with Zod; a complete deterministic fallback works without a key.
 - **Data:** three synthetic patients with eight weekly snapshots each; no database or real patient data.
-- **Testing:** Node test runner with a small TypeScript registration shim; 60 tests across safety, build isolation, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
+- **Testing:** Node test runner with a small TypeScript registration shim; 63 tests across structured and phrase-based safety, build isolation, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
 - **Deployment:** checked-in GitHub Actions production gate, a successful remote PR run, and a keyless-first deployment runbook. No hosted preview is configured.
 
 ## 3. Core User Journey
@@ -223,8 +223,21 @@ Five read-only reviews covered judging impact, clinical safety and ML, healthcar
 | 6 | External | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
 
 No new feature is justified ahead of these repairs. CSS decomposition, extra graph modes, and multi-condition expansion remain deferred.
+
+### Final Specialist Pass
+
+Three additional read-only reviews ranked the remaining gaps by judging harm and implementation risk:
+
+| Rank | Status | Finding | Smallest credible response |
+|---:|---|---|---|
+| 1 | Repaired | Open-ended text could miss clinically equivalent urgent wording and continue coaching. | Added seven typed current-symptom flags that independently stop coaching, plus adversarial phrase regressions for chest discomfort, inability to catch breath, and not wanting to be alive. |
+| 2 | Next | CI can pass without hydrating or clicking the product, and no automated accessibility scan protects the judged path. | Add one Chromium interaction suite with bounded axe, keyboard, error, and responsive assertions. |
+| 3 | Open | Switching the selected patient reconstructs non-selected rows from normal seed data rather than preserving per-patient session state. | Store local check-in and plan state by patient identifier before expanding the queue story. |
+| 4 | Open | Synthetic model performance can still be mistaken for clinical evidence, and the support gate checks marginal feature bounds rather than joint-distribution drift. | Tighten visible model labels and show the precision/review-burden trade-off without changing the judged path. |
+| 5 | External | No patient or clinician has validated comprehension, usefulness, or workflow savings. | Run a small task-based study and publish anonymised evidence without inventing outcomes. |
+
 - **Still weak:** automated browser accessibility checks, hosted access, real user or clinician evidence, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 152.0 kB gzip, leaving only 3.0 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 152.5 kB gzip, leaving only 2.5 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
@@ -238,10 +251,10 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.4 | 60 tests plus build isolation, presentation gating, prospective parity, support abstention, copy calibration, cross-field negation, tested-action semantics, and cadence contracts |
+| Testing | 9.4 | 63 tests plus structured safety overrides, build isolation, presentation gating, prospective parity, support abstention, copy calibration, cross-field negation, tested-action semantics, and cadence contracts |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 152.0 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.0 | 152.5 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.4 | Interactive graph semantics, visible focus, semantic clinician table, keyboard nodes, captioned video, and no 320px overflow; automated audit remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
@@ -255,8 +268,8 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 ### Current Checkpoint
 
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
-- The release checkpoint passes typecheck, 60 tests, model reproduction, production build, bundle budget, and live smoke. Development also stayed healthy through a concurrent clean production build.
+- The current local checkpoint passes typecheck, 63 tests, model reproduction, production build, bundle budget, live smoke, and structured-safety interaction checks at 1440 px, 390 px, and 320 px.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
-- GitHub Actions run `29185657156` passes the remote production gate for release-verification commit `8cbbbb2`.
+- GitHub Actions run `29185705405` passes the previous remote production gate for release-verification commit `2d80c28`; the current structured-safety checkpoint still needs its pushed remote gate.
 - Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.

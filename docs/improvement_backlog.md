@@ -20,6 +20,7 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 | P0-09 | Done | Prospective support-aware ML | ML | High | High | Medium | Remove same-row leakage and prevent unsupported extrapolation. | Week-t features predict week-t+1, patient splits are isolated, parity passes, and unsupported inputs abstain. | `pnpm check:model && pnpm test` | model training, artifact, edge model |
 | P0-10 | Done | Adversarial and destination-specific safety | Safety | High | Medium | Medium | Close phrase, negation, route, and generated-text gaps. | Active red flags select cautious UK routes, cross-field negation cannot hide them, and generated wording owns no plan field. | `pnpm test` | care engine, safety docs |
 | P0-11 | Done | Keep check-in and decision state atomic | Correctness | High | Low | Low | Prevent stale requests or active-patient clicks from overwriting the current scenario. | Edits recompute immediately, state changes invalidate in-flight work, and active patient clicks preserve escalation. | Browser rehearsal plus typecheck | page |
+| P0-12 | Done | Add explicit structured red-flag input | Safety | Critical | Medium | Low | Do not rely on open-ended English text to express every urgent symptom family. | Every configured checklist item independently suppresses coaching and selects a deterministic urgent route; phrase matching remains a tested secondary backstop. | Focused safety/API tests and desktop/mobile browser checks | safety flag contract, care engine, schema, Check-in UI, smoke |
 | P0-08 | Done | Portable local setup | Developer experience | High | Low | Low | Let another developer run the repository without laptop-specific paths. | README setup and model-training command work on a clean machine. | `pnpm install`, `pnpm train:model` | README, `package.json` |
 
 ## P1 — High Impact
@@ -94,4 +95,4 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 
 ## Selected Next Task
 
-**Run the clean-checkout rehearsal and freeze the judged-demo branch after the remote production gate passes.** Use P3-05 only if a keyless hosted-preview account is already available.
+**Add a bounded Chromium interaction and accessibility gate.** Cover the judged Coaching and Escalation paths, keyboard focus, serious/critical axe findings, console errors, and true overflow at desktop, 390px, and 320px before attempting CSS cleanup.

@@ -16,7 +16,7 @@ flowchart TB
     end
 
     subgraph Runtime["Keyless browser runtime"]
-        CheckIn["60-second home check-in"] --> Validate["Typed input validation"]
+        CheckIn["60-second home check-in<br/>typed safety flags + structured values"] --> Validate["Typed input validation"]
         History["Synthetic 8-week history"] --> Features["Prospective feature builder"]
         Validate --> Features
         Features --> Model["Local edge inference"]
@@ -66,8 +66,8 @@ sequenceDiagram
     participant API as Optional care-plan API
     participant Clinician as Review queue
 
-    Patient->>UI: Submit or edit a structured check-in
-    UI->>Rules: Evaluate symptoms, adherence, and red flags
+    Patient->>UI: Submit or edit structured values and current-symptom flags
+    UI->>Rules: Evaluate explicit flags, phrase backstop, adherence, and thresholds
     UI->>ML: Build week-t features and score week-t+1 interruption
     ML-->>UI: Support status; patient ML evidence only inside support
     Rules-->>UI: Coaching mode or destination-specific handoff draft
@@ -114,12 +114,14 @@ This is an explainable decision representation, not a learned knowledge-graph mo
 
 - No diagnosis.
 - No medication start, stop, or dose-change advice.
+- A typed current-symptom checklist provides the primary explicit red-flag input and always overrides coaching.
 - Clause-aware red-flag matching distinguishes active, negated, and explicitly resolved symptoms.
+- Phrase matching remains a secondary backstop rather than clinical-language understanding.
 - Active red flags select cautious UK destinations such as NHS 111, 999, or A&E according to the matched symptom family.
 - Safety is independent of the adherence score and can override it when the model abstains or reports a low score.
 - Review and urgent states prepare drafts only; the UI never claims that a message was sent.
 
-The implementation is in [`app/lib/careEngine.ts`](../app/lib/careEngine.ts), with adversarial and threshold tests in [`tests/careEngine.test.cjs`](../tests/careEngine.test.cjs).
+The typed flag contract is in [`app/lib/safetyFlags.ts`](../app/lib/safetyFlags.ts). Routing is implemented in [`app/lib/careEngine.ts`](../app/lib/careEngine.ts), with structured, adversarial, and threshold tests in [`tests/careEngine.test.cjs`](../tests/careEngine.test.cjs).
 
 ### 4. Optional OpenAI Boundary
 

@@ -7,11 +7,13 @@ Adherence OS is a chronic-care support prototype. It helps patients stay adheren
 1. Do not diagnose or suggest a differential diagnosis.
 2. Do not recommend medication dose changes, stopping medication, restarting medication, or substitutions.
 3. Do not reassure away severe or worsening symptoms.
-4. Red flags suppress coaching and display a destination-specific urgent action.
+4. Selected structured red flags suppress coaching and display a destination-specific urgent action; phrase matching provides a secondary backstop.
 5. Patient guidance should stay behavioural, supportive, and bounded.
 6. Clinician output is a summary and draft message, not an automated clinical decision.
 
 ## Red Flags In The Prototype
+
+The home check-in asks directly whether any configured urgent symptom family is happening now. Those typed selections are evaluated before free-text phrase matches and cannot be weakened by the adherence model or optional provider.
 
 - Chest pain or breathlessness.
 - Severe, persistent, worsening, agonising, or unbearable stomach, upper-abdominal, belly, or tummy pain, including pain that spreads or radiates to the back.
@@ -24,7 +26,7 @@ Adherence OS is a chronic-care support prototype. It helps patients stay adheren
 
 | Result | Prototype boundary |
 |---|---|
-| Urgent route | Any active red-flag phrase, or hydration at 1/10 or lower; coaching is suppressed and one immediate action is shown |
+| Urgent route | Any selected structured safety flag, active red-flag phrase, or hydration at 1/10 or lower; coaching is suppressed and one immediate action is shown |
 | Same-day review | Hydration at 2/10, or missed medication with nausea at 6/10 or higher; a draft is prepared and remains pending manual review |
 | Watch | Latest adherence below 85%, nausea at 5/10 or higher, or two soft rule hits; coaching continues with no active escalation |
 | High-nausea evidence | Nausea at 7/10 or higher; this records evidence but does not by itself create urgent status |
@@ -53,11 +55,13 @@ The seven-day support plan follows the same contract. Its care-team notes name t
 
 ## Bounded Parser Limits
 
+The structured checklist is the primary explicit safety input. Free-text matching remains a secondary backstop for entered notes and voice transcripts; it is not the only route into urgent mode.
+
 Each free-text input field is matched separately through hard newline boundaries, so a denial in `sideEffects` cannot suppress an active phrase in `freeText`. Within a field, only symptom-scoped denials such as "no chest pain", "I don't have chest pain", or "I am not experiencing chest pain" suppress that phrase. Uncertainty such as "I am not sure why I have chest pain" does not count as a denial. Apostrophes and common Unicode punctuation are normalised before matching, so direct phrases such as "I can’t keep myself safe" follow the same emergency route as their plain-ASCII form. A later positive clause still wins over an earlier denied clause.
 
 The only resolved-history exception applies to vomiting and fluid-intolerance matches. It requires a past-time marker such as "last week" or "yesterday", followed by `but` or `however`, followed by an explicit recovery phrase such as "I am fine now". A later current match still escalates. Immediate self-harm language is never suppressed by this history rule.
 
-This is a small English phrase parser, not clinical-language understanding. It can miss or misread spelling variants, slang, quoted or hypothetical speech, indirect references, complex timelines, and languages other than English. Its phrase coverage and routing need clinical governance, representative evaluation, and a safer fallback before real-world use.
+This is a small English phrase parser, not clinical-language understanding. It can miss or misread spelling variants, slang, quoted or hypothetical speech, indirect references, complex timelines, and languages other than English. The explicit checklist reduces reliance on that parser but does not guarantee complete symptom capture. Checklist wording, phrase coverage, routing, and the behavior when a patient skips the checklist all need clinical governance and representative evaluation before real-world use.
 
 The severe, persistent abdominal-pain and dehydration framing follows current UK medicines-safety guidance for GLP-1 medicines. See the [MHRA Drug Safety Update](https://www.gov.uk/drug-safety-update/glp-1-receptor-agonists-and-dual-glp-1-slash-gip-receptor-agonists-strengthened-warnings-on-acute-pancreatitis-including-necrotising-and-fatal-cases).
 

@@ -177,7 +177,7 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; tested actio
 
 1. Reload and press `Tab` once. **Skip to main content** must appear; `Enter` must focus the workspace.
 2. Tab through **Decision map**, **Check-in**, and **Review queue**; focus must remain visible and `Enter` must switch views. Open **Model record** from the decision summary.
-3. In **Check-in**, activate Normal/Escalation, change one slider with arrow keys, and confirm **Custom** appears after the edit.
+3. In **Check-in**, activate Normal/Escalation, toggle one named urgent-symptom checkbox, change one slider with arrow keys, and confirm **Custom** appears after either edit.
 4. Open prototype resources with `Enter`, press `Escape`, and confirm focus returns to the resources summary.
 5. In **Decision map**, activate graph focus modes with `Enter`, then reach graph nodes and use both `Enter` and `Space` to update the inspector.
 6. Tab to **Reset demo**, activate it, and confirm Maya, Coaching, Decision path, and top scroll are restored.

@@ -1,3 +1,5 @@
+import type { SafetyFlagId } from "./safetyFlags";
+
 export type RiskLevel = "steady" | "watch" | "review" | "urgent";
 
 export type EscalationUrgency = "none" | "routine_async" | "same_day" | "urgent";
@@ -67,6 +69,7 @@ export type CheckInInput = {
   energyScore: number;
   hydrationScore: number;
   mood: string;
+  safetyFlags: SafetyFlagId[];
   sideEffects: string;
   biomarkerNote: string;
   freeText: string;

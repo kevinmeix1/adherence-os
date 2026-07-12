@@ -10,7 +10,7 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 
 - GLP-1 obesity and metabolic-care focus.
 - Synthetic 8-week JSON data for 3 patients.
-- Patient check-in flow with normal and escalation scenarios.
+- Patient check-in flow with normal and escalation scenarios plus a typed current-symptom safety checklist.
 - Review queue with prioritised async summaries and explicit draft ownership.
 - Routed synthetic patient directory with summary metrics, clickable records, and loading/error/empty states.
 - Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
@@ -22,7 +22,7 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 - Unsafe medication-request demo that blocks dose-change advice.
 - Model record with prospective synthetic-cohort training, a 16-member patient-bootstrap ensemble, exact supported local decomposition, complete patient-evidence abstention, reliability bins, and transparent what-if simulation.
 - Judging scorecard mapped to user impact, innovation, feasibility, and demo quality.
-- Safety rules: no diagnosis, no medication changes, red flags escalate.
+- Safety rules: no diagnosis, no medication changes, structured red flags override coaching, and free-text matching remains a secondary backstop.
 - Optional OpenAI structured-output API route with deterministic safety fallback.
 - Original care-ledger UI informed by the NHS service manual, Carbon data patterns, OpenMRS O3 clinical workflows, and eMed product context; no external screen or template code is copied.
 

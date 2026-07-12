@@ -19,6 +19,8 @@ Updated: 2026-07-12
 - Simplified the graph's default path, wrapped labels at word boundaries, and limited node and edge feedback to short one-shot selection animations.
 - Preserved the deterministic Coaching and Escalation paths, model abstention, tested-action suppression, and draft-only clinician handoff.
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
+- Added a seven-item typed current-symptom checklist that overrides coaching without depending on free-text interpretation; phrase matching remains a secondary backstop.
+- Flattened the Check-in grid so dose, safety, mood, and note fields no longer leave empty placeholder-like cells.
 - Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
 - Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
@@ -34,6 +36,7 @@ Updated: 2026-07-12
 - `app/product.css`: Decision map, product shell, graph workbench, and routed patient surfaces.
 - `app/globals.css`: Check-in, Review queue, Model record, and shared primitives.
 - `app/lib/careEngine.ts`: deterministic coaching, review, urgent routing, and post-provider safety.
+- `app/lib/safetyFlags.ts`: typed checklist identifiers, patient labels, and deterministic rule mapping.
 - `app/lib/edgeModel.ts`: local prospective inference, attribution, support gate, and bounded rescoring.
 - `app/lib/knowledgeGraph.ts`: typed evidence graph and tested-action composition.
 - `docs/architecture.md`: whole-system Mermaid diagram, sequence, ownership table, and suggested study order.
@@ -51,18 +54,19 @@ Updated: 2026-07-12
 ## Validation
 
 - `pnpm typecheck`: pass.
-- `pnpm test`: pass, 60/60.
-- Focused care-engine safety suite: pass, 20/20, including destination-aware headlines, negative-triage copy, exact support-plan triggers, uncertain chest pain, and mixed Unicode/negation regressions.
+- `pnpm test`: pass, 63/63.
+- Focused safety/API/dashboard suite: pass, 29/29, including all seven structured safety flags, destination-aware headlines, negative-triage copy, uncertain chest pain, three new paraphrase regressions, and schema rejection of unknown flags.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
-- `pnpm build`: pass; `/` is 45.9 kB with 151 kB reported first-load JavaScript.
-- `pnpm check:bundle`: pass, `152.0 kB gzip / 155.0 kB`, leaving 3.0 kB headroom.
-- `APP_URL=http://localhost:3001 pnpm smoke`: pass against a temporary production server, including normal, escalation, uncertain chest-pain, and immediate self-safety API paths.
+- `pnpm build`: pass; `/` is 46.3 kB with 152 kB reported first-load JavaScript.
+- `pnpm check:bundle`: pass, `152.5 kB gzip / 155.0 kB`, leaving 2.5 kB headroom.
+- `APP_URL=http://localhost:3001 pnpm smoke`: pass against the production server, including normal, escalation, uncertain chest-pain, immediate self-safety, and structured-safety API paths.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
-- Remote production gate: GitHub Actions run `29185657156` passed on release-verification commit `8cbbbb2`.
+- Remote production gate: GitHub Actions run `29185705405` passed on release-verification commit `2d80c28` before the current structured-safety checkpoint.
 - Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
+- Structured-safety browser rehearsal: pass at 1440 px, 390 px, and 320 px; every viewport renders seven named checkboxes, Normal clears them, Escalation selects three, the direct chest/breathing flag changes the headline to `Call 999 now`, and no console errors or horizontal overflow appear.
 - Interaction rehearsal: pointer selection opens Routine disruption, keyboard selection opens Hydration nudge, Escalation blocks four tested actions, Review queue shows `Draft only / not sent`, Reset restores Coaching, and no browser console errors were recorded.
 - Deck QA: all ten slides reviewed at full size; screenshot decoding and overflow checks pass.
 - Video QA: 2:59, 1280x720, 895 frames at 5 fps, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, exact 30-block sidecar parity, clean full-file decode, and -2.6 dB peak audio.

@@ -354,6 +354,52 @@ test("common red-flag phrases trigger urgent handoff", () => {
   }
 });
 
+test("structured safety flags override neutral text and suppress coaching", () => {
+  const cases = [
+    ["chest-or-breathing", "chest pain or breathing difficulty", /call 999/i],
+    ["faint-or-severe-dizziness", "fainting or severe dizziness", /call NHS 111/i],
+    ["severe-abdominal-pain", "severe abdominal pain", /call NHS 111/i],
+    ["unable-to-keep-fluids-down", "unable to keep fluids down", /call NHS 111/i],
+    ["pregnancy-concern", "pregnancy concern", /call NHS 111/i],
+    ["self-harm-thoughts", "self-harm language", /NHS 111|mental-health/i],
+    ["cannot-stay-safe", "immediate self-harm language", /call 999|go to A&E/i]
+  ];
+
+  for (const [flag, ruleLabel, destination] of cases) {
+    const plan = evaluateCheckIn(
+      patient,
+      buildBoundaryCheckIn({
+        safetyFlags: [flag],
+        sideEffects: "",
+        biomarkerNote: "",
+        freeText: ""
+      })
+    );
+
+    assert.equal(plan.riskLevel, "urgent", flag);
+    assert.equal(plan.escalation.urgency, "urgent", flag);
+    assert.ok(plan.ruleHits.includes(`red flag: ${ruleLabel}`), flag);
+    assert.match(`${plan.patientAction} ${plan.escalation.channel}`, destination, flag);
+    assert.equal(plan.rescuePlan.length, 1, flag);
+  }
+});
+
+test("secondary phrase matching catches common urgent paraphrases", () => {
+  const cases = [
+    ["I have crushing chest discomfort.", "chest pain", /call 999/i],
+    ["I can't catch my breath.", "breathlessness", /call 999/i],
+    ["I don't want to be alive.", "self-harm language", /NHS 111|mental-health/i]
+  ];
+
+  for (const [freeText, ruleLabel, destination] of cases) {
+    const plan = evaluateCheckIn(patient, buildBoundaryCheckIn({ freeText }));
+
+    assert.equal(plan.riskLevel, "urgent", freeText);
+    assert.ok(plan.ruleHits.includes(`red flag: ${ruleLabel}`), freeText);
+    assert.match(`${plan.patientAction} ${plan.escalation.channel}`, destination, freeText);
+  }
+});
+
 test("adversarial active phrases select destination-specific urgent routes", () => {
   const cases = [
     {

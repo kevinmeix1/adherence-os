@@ -73,6 +73,7 @@ export function buildLatestCheckIn(patient: Patient): CheckInInput {
     energyScore: latest.energyScore,
     hydrationScore,
     mood: latest.mood,
+    safetyFlags: [],
     sideEffects: latest.notes,
     biomarkerNote: latest.biomarkers ? "Latest at-home biomarker snapshot received." : "No new biomarker snapshot this week.",
     freeText: latest.notes
