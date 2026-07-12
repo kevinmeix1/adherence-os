@@ -16,7 +16,8 @@ flowchart TB
     end
 
     subgraph Runtime["Keyless browser runtime"]
-        CheckIn["60-second home check-in<br/>typed safety flags + structured values"] --> Validate["Typed input validation"]
+        CheckIn["60-second home check-in<br/>typed safety flags + structured values"] --> Session["Per-patient in-memory session"]
+        Session --> Validate["Typed input validation"]
         History["Synthetic 8-week history"] --> Features["Prospective feature builder"]
         Validate --> Features
         Features --> Model["Local edge inference"]
@@ -71,6 +72,7 @@ sequenceDiagram
     UI->>ML: Build week-t features and score week-t+1 interruption
     ML-->>UI: Support status; patient ML evidence only inside support
     Rules-->>UI: Coaching mode or destination-specific handoff draft
+    UI->>UI: Preserve check-in and plan under the patient identifier
     UI->>Graph: Combine context, model evidence, and safety state
     Graph-->>UI: Nodes, typed edges, provenance, and rescue path
     opt Provider key configured
@@ -85,7 +87,7 @@ sequenceDiagram
     end
 ```
 
-Edits and scenario changes invalidate any in-flight request before recomputing locally. That prevents an older response from replacing the decision for the currently visible check-in.
+Edits and scenario changes invalidate any in-flight request before recomputing locally. That prevents an older response from replacing the decision for the currently visible check-in. Each synthetic patient keeps an independent in-memory check-in, care plan, provider state, and notice while the app is open; Reset or a full page refresh restores all three seeded sessions.
 
 ## Intelligence Layers
 

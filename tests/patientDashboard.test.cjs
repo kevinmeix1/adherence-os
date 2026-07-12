@@ -17,6 +17,10 @@ function buildDemoPlan(patient, scenario) {
   });
 }
 
+function buildNormalPlanMap() {
+  return Object.fromEntries(patients.map((patient) => [patient.id, buildDemoPlan(patient, "normal")]));
+}
+
 test("patient dashboard creates a typed summary for every synthetic patient", () => {
   const rows = buildPatientDashboardRows(patients);
 
@@ -40,22 +44,18 @@ test("patient dashboard surfaces engagement and latest-snapshot risk", () => {
   assert.equal(aisha.modelRisk, null);
 });
 
-test("clinician queue follows the selected live demo scenario", () => {
+test("clinician queue preserves each patient's live plan independently", () => {
   const maya = patients.find((patient) => patient.id === "maya-patel");
-  const coachingRows = buildClinicianDashboardRows(
-    patients,
-    maya.id,
-    buildDemoPlan(maya, "normal"),
-    "2026-07-08"
-  );
-  const escalationRows = buildClinicianDashboardRows(
-    patients,
-    maya.id,
-    buildDemoPlan(maya, "escalation"),
-    "2026-07-08"
-  );
+  const coachingPlans = buildNormalPlanMap();
+  const escalationPlans = {
+    ...coachingPlans,
+    [maya.id]: buildDemoPlan(maya, "escalation")
+  };
+  const coachingRows = buildClinicianDashboardRows(patients, coachingPlans);
+  const escalationRows = buildClinicianDashboardRows(patients, escalationPlans);
 
   assert.equal(coachingRows.filter((row) => ["review", "urgent"].includes(row.plan.riskLevel)).length, 0);
   assert.equal(escalationRows.filter((row) => ["review", "urgent"].includes(row.plan.riskLevel)).length, 1);
   assert.equal(escalationRows.find((row) => row.patient.id === maya.id).plan.riskLevel, "urgent");
+  assert.equal(escalationRows.find((row) => row.patient.id === "james-oconnor").plan.riskLevel, coachingPlans["james-oconnor"].riskLevel);
 });

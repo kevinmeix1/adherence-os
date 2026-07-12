@@ -21,8 +21,9 @@ Updated: 2026-07-12
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
 - Added a seven-item typed current-symptom checklist that overrides coaching without depending on free-text interpretation; phrase matching remains a secondary backstop.
 - Flattened the Check-in grid so dose, safety, mood, and note fields no longer leave empty placeholder-like cells.
-- Added four Chromium contracts for the judged flow, keyboard/focus, 390/320px order and overflow, console health, and serious/critical axe findings across four core states.
+- Added five Chromium contracts for the judged flow, per-patient state round trips, keyboard/focus, 390/320px order and overflow, console health, and serious/critical axe findings across four core states.
 - Made safety announcements persistent across views, focused the named workspace after client navigation, exposed graph selection semantics, removed duplicate pointer activation, and made the scrollable review table keyboard-accessible.
+- Replaced the single selected-patient plan with independent in-memory sessions; Maya's pending review survives a James round trip and Reset clears all three synthetic records.
 - Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
 - Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
@@ -60,9 +61,9 @@ Updated: 2026-07-12
 - Focused safety/API/dashboard suite: pass, 29/29, including all seven structured safety flags, destination-aware headlines, negative-triage copy, uncertain chest pain, three new paraphrase regressions, and schema rejection of unknown flags.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
 - `pnpm build`: pass; `/` is 46.3 kB with 152 kB reported first-load JavaScript.
-- `pnpm check:bundle`: pass, `152.7 kB gzip / 155.0 kB`, leaving 2.3 kB headroom.
+- `pnpm check:bundle`: pass, `152.8 kB gzip / 155.0 kB`, leaving 2.2 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against the production server, including normal, escalation, uncertain chest-pain, immediate self-safety, and structured-safety API paths.
-- `pnpm test:browser`: pass, 4/4 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
+- `pnpm test:browser`: pass, 5/5 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
 - Remote production gate: GitHub Actions run `29187107480` passed in 1m32s on commit `8e27671`, including the four Chromium/axe contracts and production smoke.
@@ -81,6 +82,7 @@ Updated: 2026-07-12
 - All records and model metrics are synthetic. They demonstrate an executable pipeline, not clinical validation.
 - The evidence map is authored and explanatory; bounded rescoring is not causal evidence.
 - `app/page.tsx` remains roughly 2,400 lines, and the two stylesheets exceed 7,600 lines. Decomposition is intentionally deferred until after judging to avoid destabilising the demo.
+- Per-patient sessions are intentionally in-memory only; Reset or a full refresh restores the seeded synthetic scenarios.
 - Pixel-level visual regression and real assistive-technology testing remain manual; structural browser behavior and bounded axe checks now run in CI.
 
 ## Event-Day Commands

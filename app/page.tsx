@@ -42,6 +42,12 @@ import type { AdherenceKnowledgeGraph, KnowledgeGraphNode } from "@/app/lib/know
 
 type View = "patient" | "clinician" | "model" | "graph" | "scorecard" | "scripts" | "safety";
 type GraphFocusMode = "decision" | "neighborhood" | "attribution" | "all";
+type PatientSession = {
+  checkIn: CheckInInput;
+  carePlan: CarePlan;
+  source: CarePlanResponse["source"];
+  generationNotice: string | null;
+};
 
 const riskLabels: Record<RiskLevel, string> = {
   steady: "Steady",
@@ -54,10 +60,9 @@ export default function HomePage() {
   const [selectedPatientId, setSelectedPatientId] = useState(patients[0].id);
   const [view, setView] = useState<View>("graph");
   const selectedPatient = patients.find((patient) => patient.id === selectedPatientId) ?? patients[0];
-  const [checkIn, setCheckIn] = useState<CheckInInput>(() => buildCheckIn(selectedPatient.id, "normal"));
-  const [carePlan, setCarePlan] = useState<CarePlan>(() => evaluateCheckIn(selectedPatient, checkIn));
-  const [source, setSource] = useState<CarePlanResponse["source"]>("rules-fallback");
-  const [generationNotice, setGenerationNotice] = useState<string | null>(null);
+  const [patientSessions, setPatientSessions] = useState<Record<string, PatientSession>>(buildInitialPatientSessions);
+  const activeSession = patientSessions[selectedPatient.id] ?? buildPatientSession(selectedPatient);
+  const { checkIn, carePlan, source, generationNotice } = activeSession;
   const [carePlanAnnouncement, setCarePlanAnnouncement] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [graphResetVersion, setGraphResetVersion] = useState(0);
@@ -76,9 +81,15 @@ export default function HomePage() {
       }),
     [selectedPatient, checkIn, carePlan, edgeRisk]
   );
+  const carePlansByPatientId = useMemo<Record<string, CarePlan>>(
+    () => Object.fromEntries(
+      Object.entries(patientSessions).map(([patientId, session]) => [patientId, session.carePlan])
+    ),
+    [patientSessions]
+  );
   const clinicianPlans = useMemo(
-    () => buildClinicianDashboardRows(patients, selectedPatient.id, carePlan, checkIn.date),
-    [carePlan, checkIn.date, selectedPatient.id]
+    () => buildClinicianDashboardRows(patients, carePlansByPatientId),
+    [carePlansByPatientId]
   );
 
   useEffect(() => {
@@ -88,13 +99,8 @@ export default function HomePage() {
   function selectPatient(patientId: string) {
     const patient = patients.find((candidate) => candidate.id === patientId) ?? patients[0];
     if (patient.id === selectedPatientId) return;
-    const nextCheckIn = buildCheckIn(patient.id, "normal");
     requestVersionRef.current += 1;
     setSelectedPatientId(patient.id);
-    setCheckIn(nextCheckIn);
-    setCarePlan(evaluateCheckIn(patient, nextCheckIn));
-    setSource("rules-fallback");
-    setGenerationNotice(null);
     setCarePlanAnnouncement("");
     setIsLoading(false);
   }
@@ -102,11 +108,16 @@ export default function HomePage() {
   function loadScenario(scenario: "normal" | "escalation") {
     const nextCheckIn = buildCheckIn(selectedPatient.id, scenario);
     requestVersionRef.current += 1;
-    setCheckIn(nextCheckIn);
     const nextPlan = evaluateCheckIn(selectedPatient, nextCheckIn);
-    setCarePlan(nextPlan);
-    setSource("rules-fallback");
-    setGenerationNotice(null);
+    setPatientSessions((current) => ({
+      ...current,
+      [selectedPatient.id]: {
+        checkIn: nextCheckIn,
+        carePlan: nextPlan,
+        source: "rules-fallback",
+        generationNotice: null
+      }
+    }));
     setCarePlanAnnouncement(buildCarePlanAnnouncement(nextPlan));
     setIsLoading(false);
   }
@@ -114,10 +125,15 @@ export default function HomePage() {
   function updateCheckIn(nextCheckIn: CheckInInput) {
     requestVersionRef.current += 1;
     const nextPlan = evaluateCheckIn(selectedPatient, nextCheckIn);
-    setCheckIn(nextCheckIn);
-    setCarePlan(nextPlan);
-    setSource("rules-fallback");
-    setGenerationNotice("Check-in changed. The deterministic safety result updated immediately.");
+    setPatientSessions((current) => ({
+      ...current,
+      [selectedPatient.id]: {
+        checkIn: nextCheckIn,
+        carePlan: nextPlan,
+        source: "rules-fallback",
+        generationNotice: "Check-in changed. The deterministic safety result updated immediately."
+      }
+    }));
     setCarePlanAnnouncement(buildCarePlanAnnouncement(nextPlan));
     setIsLoading(false);
   }
@@ -131,14 +147,9 @@ export default function HomePage() {
   }
 
   function resetDemo() {
-    const patient = patients[0];
-    const nextCheckIn = buildCheckIn(patient.id, "normal");
     requestVersionRef.current += 1;
-    setSelectedPatientId(patient.id);
-    setCheckIn(nextCheckIn);
-    setCarePlan(evaluateCheckIn(patient, nextCheckIn));
-    setSource("rules-fallback");
-    setGenerationNotice(null);
+    setSelectedPatientId(patients[0].id);
+    setPatientSessions(buildInitialPatientSessions());
     setCarePlanAnnouncement("");
     setIsLoading(false);
     setView("graph");
@@ -167,16 +178,28 @@ export default function HomePage() {
       if (!response.ok) throw new Error("Care plan request failed");
       const payload = (await response.json()) as CarePlanResponse;
       if (requestVersion !== requestVersionRef.current) return;
-      setCarePlan(payload.plan);
-      setSource(payload.source);
-      setGenerationNotice(getGenerationNotice(payload.fallbackReason, payload.meta));
+      setPatientSessions((current) => ({
+        ...current,
+        [selectedPatient.id]: {
+          checkIn,
+          carePlan: payload.plan,
+          source: payload.source,
+          generationNotice: getGenerationNotice(payload.fallbackReason, payload.meta)
+        }
+      }));
       setCarePlanAnnouncement(buildCarePlanAnnouncement(payload.plan));
     } catch {
       if (requestVersion !== requestVersionRef.current) return;
       const fallbackPlan = evaluateCheckIn(selectedPatient, checkIn);
-      setCarePlan(fallbackPlan);
-      setSource("rules-fallback");
-      setGenerationNotice("Care-plan API unavailable. The deterministic local safety engine produced this result.");
+      setPatientSessions((current) => ({
+        ...current,
+        [selectedPatient.id]: {
+          checkIn,
+          carePlan: fallbackPlan,
+          source: "rules-fallback",
+          generationNotice: "Care-plan API unavailable. The deterministic local safety engine produced this result."
+        }
+      }));
       setCarePlanAnnouncement(buildCarePlanAnnouncement(fallbackPlan));
     } finally {
       if (requestVersion === requestVersionRef.current) setIsLoading(false);
@@ -263,6 +286,20 @@ function buildCheckIn(patientId: string, scenario: "normal" | "escalation"): Che
     date: "2026-07-08",
     ...DEMO_CHECK_INS[scenario]
   };
+}
+
+function buildPatientSession(patient: Patient, scenario: "normal" | "escalation" = "normal"): PatientSession {
+  const checkIn = buildCheckIn(patient.id, scenario);
+  return {
+    checkIn,
+    carePlan: evaluateCheckIn(patient, checkIn),
+    source: "rules-fallback",
+    generationNotice: null
+  };
+}
+
+function buildInitialPatientSessions(): Record<string, PatientSession> {
+  return Object.fromEntries(patients.map((patient) => [patient.id, buildPatientSession(patient)]));
 }
 
 function NavButton({

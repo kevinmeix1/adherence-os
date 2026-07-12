@@ -11,7 +11,7 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 - GLP-1 obesity and metabolic-care focus.
 - Synthetic 8-week JSON data for 3 patients.
 - Patient check-in flow with normal and escalation scenarios plus a typed current-symptom safety checklist.
-- Review queue with prioritised async summaries and explicit draft ownership.
+- Review workspace with async summaries, explicit draft ownership, and independent in-memory state for each synthetic patient.
 - Routed synthetic patient directory with summary metrics, clickable records, and loading/error/empty states.
 - Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
 - Clickable decision evidence graph with decision-path, selected-neighbourhood, attribution, and all-signal focus modes.

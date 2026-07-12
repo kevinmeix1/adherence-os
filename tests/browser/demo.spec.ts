@@ -83,6 +83,32 @@ test("keyboard changes announce safety state from every workspace", async ({ pag
   expect(runtimeErrors).toEqual([]);
 });
 
+test("patient switches preserve independent scenario and queue state", async ({ page }) => {
+  const runtimeErrors = monitorRuntimeErrors(page);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Escalation", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Call NHS 111 now" })).toBeVisible();
+  await page.getByRole("button", { name: "Select James O'Connor", exact: true }).click();
+  await expect(page.getByText("James's check-in remains on the coaching path.", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Review queue", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "1 pending review" })).toBeVisible();
+  const mayaQueueItem = page.locator(".queue-item").filter({ hasText: "Maya Patel" });
+  await expect(mayaQueueItem).toContainText("Urgent");
+  await mayaQueueItem.click();
+  await expect(page.getByText("Draft only / not sent", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Decision map", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Escalation", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("heading", { name: "Call NHS 111 now" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Reset demo", exact: true }).click();
+  await page.getByRole("button", { name: "Review queue", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "0 pending review" })).toBeVisible();
+  expect(runtimeErrors).toEqual([]);
+});
+
 test("narrow coaching and escalation preserve safe reading order", async ({ page }) => {
   const runtimeErrors = monitorRuntimeErrors(page);
 

@@ -51,6 +51,7 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 | P1-22 | Done | Protect production builds from active dev output | Reliability | Critical | Low | Low | Give development and production separate Next output directories and document the production-server preflight. | Release verification cannot corrupt the running development demo and provides a clear recovery message. | Config contract test; live dev stayed healthy through clean build and production smoke | Next config, TypeScript config, deployment docs |
 | P1-23 | Done | Gate unsupported patient-specific ML evidence | ML safety | High | Medium | Medium | When the support gate abstains, suppress numeric patient score, decomposition, spread, sensitivity, and derived patient-record risk. | No unsupported patient-specific number survives in Decision map, Model record, or routed records. | 20 focused tests, 60-test suite, production smoke, and Decision map/Model record/routed-record browser checks pass | edge model consumers, page, patient summary tests |
 | P1-24 | Done | Automate the judged browser contract | Testing | Critical | Medium | Low | Hydrate and exercise the production UI in Chromium instead of allowing HTTP-only CI to pass a broken interface. | Coaching, node selection, Escalation suppression, handoff, Reset, focus, live announcements, console health, and narrow ordering pass in CI. | `pnpm test:browser` | Playwright config, browser tests, CI, page/CSS |
+| P1-25 | Done | Preserve per-patient local decision state | Correctness | High | Medium | Low | Selecting another synthetic record must not rebuild the rest of the review workspace from the Normal seed. | Maya's pending review survives a switch to James, selecting Maya restores Escalation, and Reset clears every session. | Focused dashboard test and fifth production-browser contract | page, patient dashboard, tests |
 
 ## P2 — Polish
 
@@ -96,4 +97,4 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 
 ## Selected Next Task
 
-**Preserve local check-in and care-plan state per patient.** Switching records must change presentation without silently reconstructing another patient's session from the Normal seed; add a focused dashboard/browser contract before changing queue claims.
+**Calibrate the remaining synthetic-model labels.** Replace “within training support” with marginal-bound wording, show the precision/review-burden trade-off beside recall, and state explicitly that joint-distribution drift detection is not implemented.

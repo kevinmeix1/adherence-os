@@ -53,6 +53,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - Patient and model artifacts fail early through typed runtime validation, and the synthetic model has a non-destructive reproduction check.
 - A single Reset command restores the rehearsed opening state after any demo path.
 - Coaching and Escalation now drive the clinician queue consistently: zero reviews becomes one review only when the safety path is active.
+- Check-ins, care plans, provider state, and notices are stored independently by synthetic patient identifier; selecting another record no longer erases a pending review.
 - One persistent live region announces safety changes in every workspace; client-view navigation focuses the named destination workspace.
 - Graph nodes expose selected state and inspector ownership without duplicate pointer activation; the scrollable review table is keyboard-focusable.
 - CI hydrates and clicks the judged path in Chromium and rejects serious or critical axe findings on four core states.
@@ -63,7 +64,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - `app/page.tsx` is approximately 2,400 lines and owns most view state and UI composition.
 - `app/globals.css` and `app/product.css` total more than 7,600 lines, with legacy and product-specific rules sharing ownership.
 - No hosted preview URL is configured; the public repository, local production build, and fallback assets are the current sharing paths.
-- The main workspace views are state-based rather than URL-addressable, so a refresh always returns to the opening graph.
+- The main workspace views are state-based rather than URL-addressable, so a refresh returns to the opening graph and restores all seeded in-memory sessions.
 - There is no cross-platform pixel-diff visual regression test; behavior and responsive structure are automated instead.
 - Runtime data validators add a small amount of client code because the graph workspace consumes static artifacts directly.
 
@@ -90,7 +91,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 9. Performance Risks
 
-- The home route measures 152.7 kB gzip, which leaves only 2.3 kB inside the enforced 155 kB budget.
+- The home route measures 152.8 kB gzip, which leaves only 2.2 kB inside the enforced 155 kB budget.
 - Every primary workspace view ships in one client module even when only the graph is initially visible.
 - More than 7,600 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
 - Graph calculations are small for 13 nodes and three synthetic patients; they do not currently justify worker or server infrastructure.
@@ -133,9 +134,9 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Preserve independent local check-in and care-plan state when switching patients.
-2. Tighten synthetic-model labels around precision, review burden, and marginal support bounds.
-3. Gather real patient/clinician comprehension evidence and add a keyless hosted preview only when external access is available.
+1. Tighten synthetic-model labels around precision, review burden, and marginal support bounds.
+2. Gather real patient/clinician comprehension evidence.
+3. Add a keyless hosted preview only when an existing account makes external access low risk.
 4. Defer component and stylesheet decomposition until after judging.
 
 ## Baseline Validation
@@ -235,12 +236,12 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 |---:|---|---|---|
 | 1 | Repaired | Open-ended text could miss clinically equivalent urgent wording and continue coaching. | Added seven typed current-symptom flags that independently stop coaching, plus adversarial phrase regressions for chest discomfort, inability to catch breath, and not wanting to be alive. |
 | 2 | Repaired | CI could pass without hydrating or clicking the product, and no automated accessibility scan protected the judged path. | Four Chromium contracts now cover the judged flow, keyboard/focus, narrow layouts, console health, and serious/critical axe findings. |
-| 3 | Open | Switching the selected patient reconstructs non-selected rows from normal seed data rather than preserving per-patient session state. | Store local check-in and plan state by patient identifier before expanding the queue story. |
+| 3 | Repaired | Switching the selected patient reconstructed non-selected rows from normal seed data rather than preserving per-patient session state. | Each patient now owns an independent local session; a unit test and fifth production-browser contract preserve Maya's review through a James round trip and verify global Reset. |
 | 4 | Open | Synthetic model performance can still be mistaken for clinical evidence, and the support gate checks marginal feature bounds rather than joint-distribution drift. | Tighten visible model labels and show the precision/review-burden trade-off without changing the judged path. |
 | 5 | External | No patient or clinician has validated comprehension, usefulness, or workflow savings. | Run a small task-based study and publish anonymised evidence without inventing outcomes. |
 
 - **Still weak:** hosted access, real user or clinician evidence, manual assistive-technology evidence, pixel-level visual regression, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 152.7 kB gzip, leaving only 2.3 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 152.8 kB gzip, leaving only 2.2 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
@@ -254,10 +255,10 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.7 | 63 deterministic tests plus four Chromium contracts for judged behavior, keyboard/focus, responsive layout, console health, and bounded axe scans |
+| Testing | 9.7 | 63 deterministic tests plus five Chromium contracts for judged behavior, patient-state round trips, keyboard/focus, responsive layout, console health, and bounded axe scans |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 152.7 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.0 | 152.8 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.9 | Persistent announcements, focus-managed views, selected graph semantics, focusable scroll regions, visible focus, captioned video, and bounded axe scans; manual assistive-tech testing remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |

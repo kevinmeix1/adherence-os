@@ -21,20 +21,15 @@ export type ClinicianDashboardRow = {
 
 export function buildClinicianDashboardRows(
   patients: Patient[],
-  selectedPatientId: string,
-  selectedPlan: CarePlan,
-  date: string
+  carePlansByPatientId: Readonly<Record<string, CarePlan>>
 ): ClinicianDashboardRow[] {
   return patients.map((patient) => ({
     patient,
-    plan:
-      patient.id === selectedPatientId
-        ? selectedPlan
-        : evaluateCheckIn(patient, {
-            patientId: patient.id,
-            date,
-            ...DEMO_CHECK_INS.normal
-          }),
+    plan: carePlansByPatientId[patient.id] ?? evaluateCheckIn(patient, {
+      patientId: patient.id,
+      date: patient.weeklyData.at(-1)?.date ?? "2026-07-08",
+      ...DEMO_CHECK_INS.normal
+    }),
     insights: getPatientInsights(patient)
   }));
 }

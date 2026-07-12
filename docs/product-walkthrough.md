@@ -42,6 +42,8 @@ Select **Review handoff draft**. **Review queue** opens directly on the pending 
 
 The prototype prepares context for a human decision. It does not diagnose, make a medication change, assign a clinician, or claim that a message was delivered.
 
+Each synthetic patient's local decision state is independent while the app remains open. Selecting another record does not clear Maya's review; **Reset demo** or a full refresh restores every seeded session.
+
 ## 6. See The Patient-Side Input
 
 ![Patient home check-in and care plan](../public/walkthrough/06-patient-check-in.jpg)
