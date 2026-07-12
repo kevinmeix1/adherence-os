@@ -13,7 +13,7 @@ These definitions are the approved language for the demo, README, and judge Q&A.
 | Exact decomposition | The intercept plus all signed feature contributions reconstructs the displayed logistic score. | Exact refers to the calculation, not predictive certainty. |
 | Local sensitivity | One input is moved within a bounded synthetic range while others remain fixed. | It is a stress test, not a confidence interval. |
 | Bootstrap model spread | The 10th-90th percentile of scores from 16 patient-bootstrap models. | It describes model variation in one synthetic cohort, not clinical uncertainty or calibrated confidence. |
-| Training support | Training-only 0.5th-99.5th percentile feature bounds used to detect extrapolation. | Outside-support status triggers abstention; it does not classify clinical severity. |
+| Training support | Training-only 0.5th-99.5th percentile feature bounds used to detect extrapolation. | Outside-support status withholds patient score, attribution, spread, sensitivity, and ranking; it does not classify clinical severity. |
 | Bounded what-if | The model is rescored after an explicit support assumption, such as lower routine disruption. | It is a planning comparison, not a causal treatment-effect estimate. |
 | Knowledge graph | An in-memory explanation graph linking synthetic context, model signals, support options, safety rules, and handoff. | Edges express the prototype's decision structure, not clinical causality. |
 | Centrality | A weighted measure of how connected a node is inside the current explanation graph. | More connected does not mean medically more important. |

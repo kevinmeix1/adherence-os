@@ -1072,6 +1072,23 @@ body {
   line-height: 1.42;
 }
 
+.graph-provenance-withheld {
+  display: grid;
+  gap: 4px;
+  padding: 9px 0;
+  border-top: 1px solid rgba(23, 32, 31, 0.08);
+}
+
+.graph-provenance-withheld strong {
+  font-size: 0.82rem;
+}
+
+.graph-provenance-withheld p {
+  color: var(--product-muted);
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
 .provenance-features {
   display: flex;
   flex-wrap: wrap;

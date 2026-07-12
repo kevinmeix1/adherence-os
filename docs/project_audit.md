@@ -19,7 +19,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - **Graph:** a typed in-memory graph built from the patient, check-in, model score, care plan, and synthetic cohort.
 - **AI:** optional OpenAI structured output validated with Zod; a complete deterministic fallback works without a key.
 - **Data:** three synthetic patients with eight weekly snapshots each; no database or real patient data.
-- **Testing:** Node test runner with a small TypeScript registration shim; 59 tests across safety, build isolation, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
+- **Testing:** Node test runner with a small TypeScript registration shim; 60 tests across safety, build isolation, API/provider failure handling, data validation, ML, graph analytics, health, patient dashboards, queue consistency, and routed states, plus live normal/escalation smoke.
 - **Deployment:** checked-in GitHub Actions production gate, a successful remote PR run, and a keyless-first deployment runbook. No hosted preview is configured.
 
 ## 3. Core User Journey
@@ -44,6 +44,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - The app remains complete without a network connection or API key.
 - Structured AI output and request data are validated with Zod.
 - Model explainability is unusually strong for a hackathon: exact log-odds reconstruction, local sensitivity, calibration, and provenance.
+- The training-support gate now withholds every patient-specific ML number across the Decision map, Model record, and routed records before extrapolation.
 - Graph interventions are explicitly described as planning comparisons rather than causal treatment effects.
 - Mobile layouts at 390px and 320px have been manually verified without page overflow.
 - Patient directory routes include realistic loading, error, empty, and not-found states.
@@ -128,10 +129,10 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Gate every unsupported patient-specific ML number after support-aware abstention.
-2. Put the urgent destination before graph exploration on narrow escalation layouts.
-3. Unify context, model-attribution, and tested-action terminology in the judged path.
-4. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
+1. Put the urgent destination before graph exploration on narrow escalation layouts.
+2. Unify context, model-attribution, and tested-action terminology in the judged path.
+3. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
+4. Add a keyless hosted preview only if an existing account makes it low risk.
 
 ## Baseline Validation
 
@@ -215,7 +216,7 @@ Five read-only reviews covered judging impact, clinical safety and ML, healthcar
 |---:|---|---|---|---|---|
 | 1 | Repaired | Emergency routes retained a generic same-day headline, and non-urgent copy overstated negative triage. Destination-aware headlines, literal non-match wording, exact support-plan triggers, and a Unicode follow-on regression now pass focused tests, smoke, and desktop browser review. | Safety trust and claim calibration | Low | Preserve in regression suite |
 | 2 | Repaired | Development now writes `.next-dev`; production continues to use `.next`. A live development server stayed healthy through a clean build and concurrent production smoke. | Event-day reliability | Low | Preserve config test and runbook preflight |
-| 3 | Open | Some patient-specific numeric model evidence remains visible after support-aware abstention | ML credibility | Medium | Presentation-gate assertions across Decision map, Model record, and patient records |
+| 3 | Repaired | The support gate now withholds patient score, model attribution, bootstrap spread, sensitivity, and numeric route ranking in the Decision map, Model record, and routed records. | ML credibility | Medium | Preserve core, graph, route, smoke, and browser checks |
 | 4 | Open | On narrow escalation layouts, the urgent action follows the graph rather than preceding it | Patient safety hierarchy | Low | 390px and 320px escalation screenshots |
 | 5 | Open | Demo copy conflates authored context ranking, model contribution, and the highest-ranked tested action | Three-minute clarity | Low | One authoritative run-of-show and label audit |
 | 6 | External | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
@@ -236,13 +237,13 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.3 | 59 tests plus build isolation, prospective parity, support abstention, copy calibration, cross-field negation, route semantics, and cadence contracts |
+| Testing | 9.4 | 60 tests plus build isolation, presentation gating, prospective parity, support abstention, copy calibration, cross-field negation, route semantics, and cadence contracts |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
 | Performance | 7.0 | 151.5 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.4 | Interactive graph semantics, visible focus, semantic clinician table, keyboard nodes, captioned video, and no 320px overflow; automated audit remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
-| AI usefulness | 8.6 | Leakage-safe explainable ensemble, bootstrap spread, support abstention, exact attribution, and independent deterministic safety |
+| AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
 | Documentation | 9.4 | Screenshot walkthrough, architecture study guide, design-reference rationale, technical boundaries, demo labels, and fallback media align |
 | Deployment readiness | 6.8 | Local production gate passes; no hosted preview or current remote run for this checkpoint |
 | Hackathon competitiveness | 8.7 | Strong technical differentiation and commercial demo flow; impact evidence and hosted access remain gaps |
@@ -253,6 +254,6 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 ### Current Checkpoint
 
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
-- The release checkpoint passes typecheck, 59 tests, model reproduction, production build, bundle budget, and live smoke. Development also stayed healthy through a concurrent clean production build.
-- Coaching is inside synthetic model support; Escalation is outside support, abstains from numeric ranking, and still routes through deterministic safety.
+- The release checkpoint passes typecheck, 60 tests, model reproduction, production build, bundle budget, and live smoke. Development also stayed healthy through a concurrent clean production build.
+- Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, screenshot walkthrough, video, subtitle track, and deck remain valid fallback assets for the previous checkpoint and are queued for one final refresh after the remaining bounded UI repairs.

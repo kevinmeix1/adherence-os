@@ -22,6 +22,7 @@ Updated: 2026-07-12
 - Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
 - Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
+- Applied the support gate to every presentation surface: unsupported inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, route ranking, and routed-record risk.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
 - The README image, eight walkthrough screenshots, deck, and video currently show the preceding UI checkpoint; one final refresh is queued after the remaining bounded UI repairs.
 - Updated UI labels, smoke contracts, route-state tests, demo scripts, architecture notes, design rationale, audit, and backlog.
@@ -49,14 +50,15 @@ Updated: 2026-07-12
 ## Validation
 
 - `pnpm typecheck`: pass.
-- `pnpm test`: pass, 59/59.
+- `pnpm test`: pass, 60/60.
 - Focused care-engine safety suite: pass, 20/20, including destination-aware headlines, negative-triage copy, exact support-plan triggers, uncertain chest pain, and mixed Unicode/negation regressions.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
-- `pnpm build`: pass; `/` is 45.4 kB with 151 kB reported first-load JavaScript.
-- `pnpm check:bundle`: pass, `151.5 kB gzip / 155.0 kB`, leaving 3.5 kB headroom.
+- `pnpm build`: pass; `/` is 45.7 kB with 151 kB reported first-load JavaScript.
+- `pnpm check:bundle`: pass, `151.8 kB gzip / 155.0 kB`, leaving 3.2 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against a temporary production server, including normal, escalation, uncertain chest-pain, and immediate self-safety API paths.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail. Narrow Escalation confirms the separately tracked inspector-order issue.
+- ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; 320 px document and graph surfaces have no horizontal overflow.
 - Deck QA: all ten slides reviewed at full size; overflow check passes.
 - Video QA: 2:59, 1280x720, 5 fps static demonstration frames, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, clean full-file decode, and -2.7 dB peak audio.
@@ -69,7 +71,7 @@ Updated: 2026-07-12
 - The evidence graph is authored and explanatory; bounded rescoring is not causal evidence.
 - `app/page.tsx` remains roughly 2,400 lines, and the two stylesheets exceed 7,600 lines. Decomposition is intentionally deferred until after judging to avoid destabilising the demo.
 - Browser interaction and visual regression are manually rehearsed rather than automated in CI.
-- The fallback assets are queued for regeneration after the remaining unsupported-evidence and narrow-layout repairs.
+- The fallback assets are queued for regeneration after the remaining narrow-layout and terminology repairs.
 
 ## Event-Day Commands
 
@@ -87,4 +89,4 @@ APP_URL=http://localhost:3001 pnpm smoke
 
 ## Recommended Next Step
 
-Finish unsupported-evidence gating and narrow-screen urgent-action order before the final asset refresh and clean-checkout rehearsal.
+Finish narrow-screen urgent-action order and judged-path terminology before the final asset refresh and clean-checkout rehearsal.

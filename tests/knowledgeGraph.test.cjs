@@ -93,10 +93,16 @@ test("evidence map exposes sorted graph scores and transparent diagnostics", () 
 test("escalation explanation keeps the safety override outside the adherence model", () => {
   const graph = buildGraph("escalation");
   const safety = graph.nodeExplanations.find((item) => item.nodeId === "safety-guardrail");
+  const modelExplanations = graph.nodeExplanations.filter((item) => item.source === "model");
+  const simulationExplanations = graph.nodeExplanations.filter((item) => item.source === "simulation");
 
   assert.equal(safety.source, "rule");
   assert.equal(safety.direction, "override");
   assert.equal(safety.contribution, null);
   assert.match(safety.summary, /outside the ML score/i);
   assert.ok(graph.routeAlternatives.every((route) => route.status === "blocked-by-safety"));
+  assert.ok(modelExplanations.length > 0);
+  assert.ok(modelExplanations.every((item) => item.contribution === null && item.impactShare === 0));
+  assert.ok(modelExplanations.every((item) => /attribution is withheld/i.test(item.summary)));
+  assert.ok(simulationExplanations.every((item) => item.contribution === null && item.impactShare === 0));
 });

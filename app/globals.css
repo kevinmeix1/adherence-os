@@ -3427,6 +3427,38 @@ body {
   background: transparent;
 }
 
+.model-abstention-record {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.model-abstention-record svg {
+  margin-top: 2px;
+  color: var(--red);
+}
+
+.model-abstention-record div {
+  display: grid;
+  gap: 5px;
+}
+
+.model-abstention-record strong {
+  font-size: 0.92rem;
+}
+
+.model-abstention-record p {
+  max-width: 850px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 .explanation-summary,
 .sensitivity-summary {
   gap: 0;

@@ -39,10 +39,11 @@ Switch from **Coaching** to **Escalation** on the Decision map. The symptom vect
 
 - The risk score comes from a real browser-side logistic model artifact, not an LLM guess.
 - Each synthetic row predicts a following-week event from index-week information, with patients isolated across train, validation, and test splits.
-- Sixteen patient-bootstrap members expose model spread, and held-out AUPRC and Brier skill are shown alongside recall.
+- For supported inputs, sixteen patient-bootstrap members expose model spread; held-out AUPRC and Brier skill are shown alongside recall.
 - Directional constraints prevent synthetic correlated features from learning counterintuitive signs.
-- The score is reconstructed exactly from intercept and signed log-odds contributions.
-- One-feature-at-a-time sensitivity shows local score stability without pretending to be a confidence interval.
+- A supported score is reconstructed exactly from intercept and signed log-odds contributions.
+- Supported one-feature-at-a-time sensitivity shows local score stability without pretending to be a confidence interval.
+- Outside support, patient score, attribution, spread, sensitivity, and route ranking are all withheld.
 - Graph nodes identify whether evidence comes from the model, a bounded simulation, a deterministic rule, or patient context.
 - Optional OpenAI output is schema-validated, then the complete deterministic plan is recomputed; generated wording does not survive the current MVP merge.
 - The full product works without a provider key.

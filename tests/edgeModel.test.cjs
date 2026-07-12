@@ -61,8 +61,9 @@ test("parity fixtures preserve the prospective temporal contract and Python scor
 });
 
 test("risk explanation reconstructs the final probability from additive log-odds", () => {
-  const result = scorePatientRisk(patient, buildCheckIn("escalation"));
+  const result = scorePatientRisk(patient, buildCheckIn("normal"));
   const explanation = explainRiskScore(result, 5);
+  assert.ok(explanation, "expected supported input to produce a risk explanation");
   const finalStep = explanation.steps.at(-1);
 
   assert.ok(finalStep, "expected at least one decomposition step");
@@ -73,8 +74,9 @@ test("risk explanation reconstructs the final probability from additive log-odds
 });
 
 test("sensitivity analysis is bounded, sorted, and preserves monotonic direction", () => {
-  const result = scorePatientRisk(patient, buildCheckIn("escalation"));
+  const result = scorePatientRisk(patient, buildCheckIn("normal"));
   const sensitivity = analyzeRiskSensitivity(result);
+  assert.ok(sensitivity, "expected supported input to produce sensitivity analysis");
   const spans = sensitivity.features.map((feature) => feature.span);
   const sortedSpans = [...spans].sort((a, b) => b - a);
   const adherence = sensitivity.features.find((feature) => feature.name === "adherence_last_2wk");
@@ -125,4 +127,6 @@ test("out-of-support input abstains from numeric intervention ranking", () => {
   assert.ok(result.interventions.every((intervention) => !intervention.rankable));
   assert.ok(result.interventions.every((intervention) => intervention.risk === null));
   assert.ok(result.interventions.every((intervention) => intervention.absoluteReduction === null));
+  assert.equal(explainRiskScore(result), null);
+  assert.equal(analyzeRiskSensitivity(result), null);
 });

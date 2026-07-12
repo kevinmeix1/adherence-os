@@ -184,7 +184,9 @@ export function scoreFeatureVector(
   };
 }
 
-export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskExplanation {
+export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskExplanation | null {
+  if (result.support.status !== "supported") return null;
+
   const ranked = result.contributions;
   const top = ranked.slice(0, Math.max(1, maxFeatures));
   const remaining = ranked.slice(top.length);
@@ -240,7 +242,9 @@ export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskE
 export function analyzeRiskSensitivity(
   result: EdgeRiskResult,
   perturbationStd = 0.5
-): RiskSensitivityAnalysis {
+): RiskSensitivityAnalysis | null {
+  if (result.support.status !== "supported") return null;
+
   const features = result.artifact.features
     .map((feature) => {
       const currentValue = result.features[feature.name] ?? feature.mean;

@@ -10,8 +10,8 @@ The product is not a chatbot. It is an inspectable decision pipeline:
 
 1. Check-in intake structures the patient report.
 2. Trend calculation derives longitudinal context from home data.
-3. Local edge ML estimates prospective adherence-interruption risk and exposes bootstrap spread.
-4. A training-support gate abstains before extrapolation.
+3. Local edge ML estimates prospective adherence-interruption risk and exposes bootstrap spread only for supported inputs.
+4. A training-support gate withholds every patient-specific ML number before extrapolation.
 5. Deterministic safety rules choose coaching, review, or urgent handoff independently of ML.
 
 The Adherence Twin reframes monitoring as pre-emptive support: it shows the current risk drivers, the smallest bounded support assumption, and when safety rules require a human instead.

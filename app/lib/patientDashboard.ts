@@ -7,7 +7,7 @@ export type PatientDashboardRow = {
   adherencePct: number;
   missedCheckIns: number;
   riskLevel: RiskLevel;
-  modelRisk: number;
+  modelRisk: number | null;
   nextAction: string;
   weightChangeKg: number;
   lastCheckInDate: string;
@@ -51,7 +51,7 @@ export function buildPatientDashboardRows(patients: Patient[]): PatientDashboard
       adherencePct: Math.round(insights.adherenceAvg),
       missedCheckIns: Math.max(0, patient.engagement.expectedCheckIns - patient.engagement.completedCheckIns),
       riskLevel: plan.riskLevel,
-      modelRisk: edgeRisk.risk,
+      modelRisk: edgeRisk.support.status === "supported" ? edgeRisk.risk : null,
       nextAction: plan.patientAction,
       weightChangeKg: insights.weightDelta,
       lastCheckInDate: insights.latest.date

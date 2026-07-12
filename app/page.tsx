@@ -831,15 +831,15 @@ function ModelLabView({
   edgeRisk: EdgeRiskResult;
 }) {
   const artifact = edgeRisk.artifact;
+  const modelSupported = edgeRisk.support.status === "supported";
   const explanation = explainRiskScore(edgeRisk, 6);
   const sensitivity = analyzeRiskSensitivity(edgeRisk);
-  const topSensitivityFeatures = sensitivity.features.slice(0, 5);
+  const topSensitivityFeatures = sensitivity?.features.slice(0, 5) ?? [];
   const maxSensitivitySpan = Math.max(...topSensitivityFeatures.map((feature) => feature.span), 0.001);
-  const maxStepContribution = Math.max(...explanation.steps.map((step) => Math.abs(step.contribution)), 0.01);
+  const maxStepContribution = Math.max(...(explanation?.steps ?? []).map((step) => Math.abs(step.contribution)), 0.01);
   const parityRows = getModelSampleRows();
   const sampleRows = [...parityRows.slice(0, 3), ...parityRows.slice(-3)];
   const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
-  const modelSupported = edgeRisk.support.status === "supported";
 
   return (
     <div className="model-grid">
@@ -940,15 +940,23 @@ function ModelLabView({
               : "Numeric route ranking is disabled outside synthetic training support."}
           </span>
         </div>
-        <div className="inference-list" aria-label="Bootstrap model spread">
-          <span>{artifact.ensemble.members.length} bootstrap members</span>
-          <span>
-            Spread {formatPercent(edgeRisk.modelSpread.p10)}-{formatPercent(edgeRisk.modelSpread.p90)}
-          </span>
-          <span>{edgeRisk.support.violations.length} support exceptions</span>
-        </div>
+        {modelSupported ? (
+          <div className="inference-list" aria-label="Bootstrap model spread">
+            <span>{artifact.ensemble.members.length} bootstrap members</span>
+            <span>Spread {formatPercent(edgeRisk.modelSpread.p10)}-{formatPercent(edgeRisk.modelSpread.p90)}</span>
+            <span>No support exceptions</span>
+          </div>
+        ) : (
+          <div className="inference-list" aria-label="Abstention reason">
+            <span>Patient spread withheld</span>
+            <span>Attribution and sensitivity withheld</span>
+            <span>{edgeRisk.support.violations.map((violation) => violation.label).join(", ")}</span>
+          </div>
+        )}
       </section>
 
+      {modelSupported && explanation && sensitivity ? (
+        <>
       <section className="panel wide-panel">
         <div className="panel-heading">
           <div>
@@ -1071,6 +1079,27 @@ function ModelLabView({
           One feature is varied at a time within bounded synthetic ranges. This is a local sensitivity test, not a confidence interval or clinical uncertainty estimate.
         </p>
       </section>
+        </>
+      ) : (
+        <section className="panel wide-panel model-abstention-panel">
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">Patient-specific ML boundary</p>
+              <h2>Attribution and sensitivity withheld</h2>
+            </div>
+            <ShieldCheck size={24} />
+          </div>
+          <div className="model-abstention-record">
+            <AlertTriangle size={22} />
+            <div>
+              <strong>Outside synthetic training support</strong>
+              <p>
+                This record does not show a patient score, feature decomposition, bootstrap spread, or local sensitivity. Unsupported features: {edgeRisk.support.violations.map((violation) => violation.label).join(", ")}.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="panel wide-panel">
         <div className="panel-heading">
@@ -1514,6 +1543,7 @@ function GraphNodeInspector({
   const connectedEdges = graph.edges.filter((edge) => edge.source === node.id || edge.target === node.id).slice(0, 3);
   const decisionBrief = getGraphDecisionBrief(graph, node, centrality);
   const explanation = graph.nodeExplanations.find((item) => item.nodeId === node.id);
+  const modelAttributionWithheld = explanation?.source === "model" && explanation.contribution === null;
   const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
   const primaryView: View = carePlan.escalation.needed ? "clinician" : "patient";
 
@@ -1574,21 +1604,30 @@ function GraphNodeInspector({
             </div>
             <span className={`provenance-badge ${explanation.direction}`}>{explanation.direction}</span>
           </div>
-          <div className="graph-provenance-metrics">
-            <div>
-              <span>{explanation.contributionUnit === "log-odds" ? "Net attribution" : explanation.contributionUnit === "absolute-risk" ? "What-if delta" : "Model contribution"}</span>
-              <strong>{formatGraphContribution(explanation)}</strong>
+          {modelAttributionWithheld ? (
+            <div className="graph-provenance-withheld">
+              <strong>Patient-specific attribution withheld</strong>
+              <p>{explanation.summary}</p>
             </div>
-            <div>
-              <span>{explanation.source === "model" ? "Attribution share" : "Evidence links"}</span>
-              <strong>{explanation.source === "model" ? formatPercent(explanation.impactShare) : String(explanation.evidenceEdgeCount)}</strong>
-            </div>
-          </div>
-          <p>{explanation.summary}</p>
-          {explanation.featureLabels.length > 0 && (
-            <div className="provenance-features">
-              {explanation.featureLabels.map((label) => <span key={`${node.id}-${label}`}>{label}</span>)}
-            </div>
+          ) : (
+            <>
+              <div className="graph-provenance-metrics">
+                <div>
+                  <span>{explanation.contributionUnit === "log-odds" ? "Net attribution" : explanation.contributionUnit === "absolute-risk" ? "What-if delta" : "Model contribution"}</span>
+                  <strong>{formatGraphContribution(explanation)}</strong>
+                </div>
+                <div>
+                  <span>{explanation.source === "model" ? "Attribution share" : "Evidence links"}</span>
+                  <strong>{explanation.source === "model" ? formatPercent(explanation.impactShare) : String(explanation.evidenceEdgeCount)}</strong>
+                </div>
+              </div>
+              <p>{explanation.summary}</p>
+              {explanation.featureLabels.length > 0 && (
+                <div className="provenance-features">
+                  {explanation.featureLabels.map((label) => <span key={`${node.id}-${label}`}>{label}</span>)}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
@@ -1864,8 +1903,13 @@ function KnowledgeGraphCanvas({
             const isConnected = connectedNodeIds.has(node.id);
             const isFocused = focusedNodeIds.has(node.id);
             const nodeExplanation = graph.nodeExplanations.find((item) => item.nodeId === node.id);
-            const attributionValue = nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation"
-              ? Math.max(2, Math.round(nodeExplanation.impactShare * 100))
+            const attributionWithheld =
+              (nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation") &&
+              nodeExplanation.contribution === null;
+            const attributionValue = attributionWithheld
+              ? 0
+              : nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation"
+                ? Math.max(2, Math.round(nodeExplanation.impactShare * 100))
               : nodeExplanation?.source === "rule"
                 ? 100
                 : 12;
@@ -2254,6 +2298,7 @@ function formatThresholdDistance(value: number) {
 function getAttributionTag(explanation: AdherenceKnowledgeGraph["nodeExplanations"][number] | undefined) {
   if (!explanation || explanation.source === "context") return "CTX";
   if (explanation.source === "rule") return "RULE";
+  if (explanation.contribution === null) return "N/A";
   if (explanation.source === "simulation") return "SIM";
   return `${Math.round(explanation.impactShare * 100)}%`;
 }

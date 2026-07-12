@@ -29,11 +29,15 @@ test("patient dashboard creates a typed summary for every synthetic patient", ()
 test("patient dashboard surfaces engagement and latest-snapshot risk", () => {
   const rows = buildPatientDashboardRows(patients);
   const maya = rows.find((row) => row.patient.id === "maya-patel");
+  const james = rows.find((row) => row.patient.id === "james-oconnor");
+  const aisha = rows.find((row) => row.patient.id === "aisha-rahman");
 
   assert.equal(maya.missedCheckIns, 1);
   assert.equal(maya.riskLevel, "watch");
   assert.equal(buildLatestCheckIn(maya.patient).medicationTaken, true);
   assert.ok(maya.modelRisk >= 0 && maya.modelRisk <= 1);
+  assert.equal(james.modelRisk, null);
+  assert.equal(aisha.modelRisk, null);
 });
 
 test("clinician queue follows the selected live demo scenario", () => {

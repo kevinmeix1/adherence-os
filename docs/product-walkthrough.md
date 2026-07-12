@@ -54,9 +54,9 @@ The seeded **Normal** and **Escalation** controls exist for a repeatable judged 
 
 ![Model record with abstention and prospective metrics](../public/walkthrough/07-model-evidence.jpg)
 
-The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out AUPRC, recall, threshold, review rate, Brier skill, exact attribution, one-feature sensitivity, bootstrap spread, reliability bins, and support-aware what-if behavior.
+The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out AUPRC, recall, threshold, review rate, Brier skill, reliability bins, and support-aware what-if behavior. Exact attribution, one-feature sensitivity, and bootstrap spread appear only for supported patient inputs.
 
-The screenshot intentionally shows an abstention state. The raw 90% score is displayed for model inspection, but it does not become an operational route outside training support.
+The screenshot intentionally shows an abstention state. Patient score, attribution, bootstrap spread, sensitivity, and route ranking are withheld; only artifact-level evidence, observed inputs, support exceptions, and deterministic safety remain visible.
 
 ## 8. Verify The Narrow Layout
 

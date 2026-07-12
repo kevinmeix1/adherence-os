@@ -16,11 +16,11 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 - Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
 - Clickable decision evidence graph with decision-path, selected-neighbourhood, attribution, and all-signal focus modes.
 - Per-node provenance that distinguishes model attribution, bounded simulation, deterministic rules, and patient context.
-- Support-route comparison that abstains outside synthetic training support and is visibly suppressed when a deterministic safety rule activates.
+- A presentation gate that withholds patient score, attribution, spread, sensitivity, and route ranking outside synthetic training support.
 - Personalised adherence-risk summary with active drivers, protective factors, and an explicitly heuristic failure-point narrative.
 - 7-day Rescue Plan with patient micro-actions and clinician triggers.
 - Unsafe medication-request demo that blocks dose-change advice.
-- Model record with prospective synthetic-cohort training, a 16-member patient-bootstrap ensemble, exact local log-odds decomposition, support-aware abstention, reliability bins, and transparent what-if simulation.
+- Model record with prospective synthetic-cohort training, a 16-member patient-bootstrap ensemble, exact supported local decomposition, complete patient-evidence abstention, reliability bins, and transparent what-if simulation.
 - Judging scorecard mapped to user impact, innovation, feasibility, and demo quality.
 - Safety rules: no diagnosis, no medication changes, red flags escalate.
 - Optional OpenAI structured-output API route with deterministic safety fallback.

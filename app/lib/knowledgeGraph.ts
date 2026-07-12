@@ -420,14 +420,16 @@ function buildNodeExplanations(
 
     if (node.id.startsWith("intervention-")) {
       const intervention = edgeRisk.interventions.find((item) => interventionNodeId(item) === node.id);
+      const reduction = intervention?.rankable === true ? intervention.absoluteReduction : null;
+      const rankable = reduction !== null;
       return {
         nodeId: node.id,
         source: "simulation",
-        contribution: intervention?.absoluteReduction ?? 0,
-        contributionUnit: "absolute-risk",
-        direction: "reduces risk",
-        impactShare: intervention
-          ? clamp01((intervention.absoluteReduction ?? 0) / Math.max(edgeRisk.risk, 0.01))
+        contribution: reduction,
+        contributionUnit: rankable ? "absolute-risk" : "none",
+        direction: rankable ? "reduces risk" : "neutral",
+        impactShare: rankable
+          ? clamp01(reduction / Math.max(edgeRisk.risk, 0.01))
           : 0,
         featureNames: [],
         featureLabels: [],
@@ -442,6 +444,21 @@ function buildNodeExplanations(
     const mappedContributions = featureNames
       .map((name) => edgeRisk.contributions.find((item) => item.name === name))
       .filter((item): item is EdgeRiskResult["contributions"][number] => Boolean(item));
+
+    if (mappedContributions.length > 0 && edgeRisk.support.status !== "supported") {
+      return {
+        nodeId: node.id,
+        source: "model",
+        contribution: null,
+        contributionUnit: "none",
+        direction: "neutral",
+        impactShare: 0,
+        featureNames: [],
+        featureLabels: [],
+        evidenceEdgeCount,
+        summary: "Patient-specific model attribution is withheld because this input is outside synthetic training support."
+      };
+    }
 
     if (mappedContributions.length > 0) {
       const contribution = mappedContributions.reduce((sum, item) => sum + item.contribution, 0);

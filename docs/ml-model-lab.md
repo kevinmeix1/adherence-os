@@ -8,9 +8,9 @@ The Model record is the technical spine of Adherence OS. It shows a complete, sy
 4. Train one monotonic consensus model plus 16 patient-bootstrap members with NumPy and projected-gradient sign constraints.
 5. Select the operating threshold on validation patients for at least 80% recall, then report it unchanged on test patients.
 6. Export the models, 0.5th-99.5th percentile training-support bounds, metrics, and parity fixtures as JSON.
-7. Run edge inference in the browser and expose the bootstrap 10th-90th percentile model spread.
-8. Reconstruct the consensus score exactly from the intercept and signed standardized feature contributions.
-9. Abstain from numeric what-if ranking when the observed or simulated vector is outside synthetic training support.
+7. Run edge inference in the browser and expose the bootstrap 10th-90th percentile model spread only inside training support.
+8. Reconstruct a supported consensus score exactly from the intercept and signed standardized feature contributions.
+9. When the observed vector is outside synthetic training support, withhold the patient score, attribution, spread, sensitivity, and numeric what-if ranking everywhere in the product.
 10. Keep clinical safety decisions outside every model result.
 
 ## Model
@@ -46,4 +46,4 @@ These values demonstrate that the code path has synthetic signal. They are not c
 
 The model predicts adherence risk only. It does not diagnose, prescribe, change medication, or make autonomous clinical triage decisions.
 
-The bootstrap spread is model variation inside one authored synthetic cohort. It is not a confidence interval or clinical uncertainty estimate. The sensitivity range is a separate one-feature-at-a-time stress test. What-if score changes are assumptions, not treatment effects or causal estimates.
+The bootstrap spread is model variation inside one authored synthetic cohort. It is shown only for supported patient inputs and is not a confidence interval or clinical uncertainty estimate. The sensitivity range is a separate one-feature-at-a-time stress test and is also withheld outside support. What-if score changes are assumptions, not treatment effects or causal estimates.

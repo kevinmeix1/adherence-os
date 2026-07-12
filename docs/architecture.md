@@ -22,19 +22,22 @@ flowchart TB
         Features --> Model["Local edge inference"]
         Artifact --> Model
         Model --> Support["Training-support gate"]
-        Support --> Explain["Exact log-odds attribution + bounded rescoring"]
+        Support -->|Inside support| Explain["Exact log-odds attribution + bounded rescoring"]
+        Support -->|Outside support| Abstain["Withhold patient ML evidence"]
 
         Validate --> Safety["Deterministic safety engine"]
         History --> Safety
         Safety --> Plan["Rules-owned care plan"]
 
         Explain --> Graph["Inspectable evidence-map builder"]
+        Abstain --> Graph
         Safety --> Graph
         History --> Graph
         Graph --> Live["Decision map"]
         Plan --> Patient["Home check-in"]
         Plan --> Queue["Clinician review queue"]
         Artifact --> Lab["Model record"]
+        Abstain --> Lab
     end
 
     subgraph Optional["Optional provider boundary"]
@@ -66,7 +69,7 @@ sequenceDiagram
     Patient->>UI: Submit or edit a structured check-in
     UI->>Rules: Evaluate symptoms, adherence, and red flags
     UI->>ML: Build week-t features and score week-t+1 interruption
-    ML-->>UI: Risk, attribution, support status, bounded scenarios
+    ML-->>UI: Support status; patient ML evidence only inside support
     Rules-->>UI: Coaching mode or destination-specific handoff draft
     UI->>Graph: Combine context, model evidence, and safety state
     Graph-->>UI: Nodes, typed edges, provenance, and rescue path
@@ -92,8 +95,8 @@ Edits and scenario changes invalidate any in-flight request before recomputing l
 - Patients, not rows, are isolated into deterministic 70/15/15 training, validation, and test partitions.
 - A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic patient-weeks with projected-gradient sign constraints.
 - The artifact exports coefficients, training-only support bounds, the selected threshold, held-out metrics, bootstrap members, reliability bins, and parity fixtures.
-- Inference runs locally over 14 structured features. Exact signed contributions reconstruct the final log-odds score.
-- Numeric route ranking abstains when the observed or simulated vector falls outside the training-only 0.5th-99.5th percentile support bounds.
+- Inference runs locally over 14 structured features. For supported inputs, exact signed contributions reconstruct the final log-odds score.
+- When the observed vector falls outside the training-only 0.5th-99.5th percentile support bounds, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and route ranking. Routed patient records use the same gate.
 
 Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`data/adherence-model.json`](../data/adherence-model.json) and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
 
@@ -103,7 +106,7 @@ Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model
 - Authored edge weights identify the most connected inspectable driver and a concise decision path.
 - Every node declares provenance: model attribution, bounded simulation, deterministic rule, or patient context.
 - Decision-path, selected-neighborhood, attribution, and all-signal modes change presentation, not the underlying decision.
-- Route comparison is disabled outside synthetic support and suppressed whenever safety owns the next action.
+- Model-derived node attribution and route comparison are withheld outside synthetic support; deterministic rules and observed context remain visible.
 
 This is an explainable decision representation, not a learned knowledge-graph model or causal graph. Read [`app/lib/knowledgeGraph.ts`](../app/lib/knowledgeGraph.ts) after the edge model.
 
