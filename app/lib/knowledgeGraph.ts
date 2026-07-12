@@ -317,7 +317,7 @@ export function buildAdherenceKnowledgeGraph({
   const mlFeatures: GraphMlFeature[] = [
     {
       id: "top_driver_graph_score",
-      label: "Top-driver graph score",
+      label: "Top context-signal score",
       value: topDriver.score,
       displayValue: topDriver.score.toFixed(2),
       interpretation: `${topDriver.label} ranks highest under the authored node and edge weights.`
@@ -333,12 +333,12 @@ export function buildAdherenceKnowledgeGraph({
     },
     {
       id: "scenario_route_ratio",
-      label: "Scenario route ratio",
+      label: "Tested-action strength",
       value: rescuePathStrength,
       displayValue: bestIntervention?.rankable ? formatPercent(rescuePathStrength) : "Not ranked",
       interpretation: bestIntervention?.rankable
         ? `${bestIntervention.label} has the largest supported scenario-score change.`
-        : "The model abstains from route comparison outside synthetic support."
+        : "The model abstains from tested-action comparison outside synthetic support."
     },
     {
       id: "recent_friction_index",
@@ -370,7 +370,7 @@ export function buildAdherenceKnowledgeGraph({
     summary:
       carePlan.escalation.needed
         ? `The evidence map links ${patient.name.split(" ")[0]}'s active signals to a deterministic safety handoff draft.`
-        : `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked inspectable driver under its authored weights.`
+        : `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked context signal under its authored weights.`
   };
 }
 
@@ -549,7 +549,7 @@ function buildRescuePath(
       {
         nodeId: topDriver.nodeId,
         label: topDriver.label,
-        summary: "Active driver is no longer handled as self-coaching."
+        summary: "The active context signal is no longer handled as self-coaching."
       },
       {
         nodeId: "safety-guardrail",
@@ -568,7 +568,7 @@ function buildRescuePath(
     {
       nodeId: topDriver.nodeId,
       label: topDriver.label,
-      summary: "Most connected risk driver in the current journey graph."
+      summary: "Highest-ranked context signal under authored graph weights."
     },
     {
       nodeId: bestIntervention ? interventionNodeId(bestIntervention) : "protective-progress",

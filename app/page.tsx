@@ -1253,8 +1253,8 @@ function KnowledgeGraphView({
           <h1>{patient.name}</h1>
           <strong className="decision-statement">
             {graph.pathMode === "escalation"
-              ? `${firstName} needs a clinician, not another nudge.`
-              : `${firstName}'s adherence risk is still reversible.`}
+              ? `${firstName}'s check-in requires clinical review.`
+              : `${firstName}'s check-in remains on the coaching path.`}
           </strong>
           <p className="decision-summary">{graph.summary}</p>
         </div>
@@ -1390,7 +1390,7 @@ function KnowledgeGraphView({
         <summary>
           <span>
             <strong>Supporting evidence</strong>
-            <small>Care path, synthetic comparison, map diagnostics, and route assumptions</small>
+            <small>Care path, synthetic comparison, map diagnostics, and tested-action assumptions</small>
           </span>
           <ChevronDown size={19} />
         </summary>
@@ -1464,8 +1464,8 @@ function KnowledgeGraphView({
         <article className="panel route-ranking-evidence">
           <div className="panel-heading">
             <div>
-              <p className="section-kicker">Route comparison</p>
-              <h2>{graph.pathMode === "escalation" ? "Simulations suppressed by safety" : "Why this route won"}</h2>
+              <p className="section-kicker">Tested action comparison</p>
+              <h2>{graph.pathMode === "escalation" ? "Tested actions suppressed by safety" : "Why this action ranked first"}</h2>
             </div>
             <TrendingDown size={22} />
           </div>
@@ -1497,7 +1497,7 @@ function KnowledgeGraphView({
             ))}
           </div>
           <p className="route-ranking-note">
-            Supported routes are ordered by scenario-score change. They are planning comparisons, not causal treatment-effect estimates.
+            Supported tested actions are ordered by scenario-score change. They are planning comparisons, not causal treatment-effect estimates.
           </p>
         </article>
         </section>
@@ -1669,7 +1669,7 @@ function getGraphDecisionBrief(graph: AdherenceKnowledgeGraph, node: KnowledgeGr
       : centrality >= 1.5
         ? "High graph score"
         : node.weight >= 0.55
-          ? "Strong driver"
+          ? "Strong context signal"
           : node.status === "protective"
             ? "Protective context"
             : "Context signal";
@@ -1683,8 +1683,8 @@ function getGraphDecisionBrief(graph: AdherenceKnowledgeGraph, node: KnowledgeGr
         rescueStepIndex === graph.rescuePath.length - 1
           ? isEscalation
             ? "Clinician review"
-            : "Track risk drop"
-          : "Follow route",
+            : "Track score change"
+          : "Follow tested action",
       safety: isEscalation
         ? "Deterministic rules suppress coaching and keep diagnosis and medication changes with clinicians."
         : "The support plan can coach behaviour, but cannot change medication or diagnose symptoms."
@@ -1703,7 +1703,7 @@ function getGraphDecisionBrief(graph: AdherenceKnowledgeGraph, node: KnowledgeGr
 
   if (node.type === "intervention") {
     return {
-      headline: "Scenario-tested action candidate",
+      headline: "Bounded tested action",
       reason: "The edge model rescores an explicit hypothetical feature change. This is a planning aid, not a causal treatment-effect estimate.",
       signal,
       nextMove: "Offer for review",
@@ -1827,7 +1827,7 @@ function KnowledgeGraphCanvas({
           ) : (
             <>
               <span className="legend-dot urgent" /> Escalate
-              <span className="legend-dot action" /> Intervention
+              <span className="legend-dot action" /> Tested action
               <span className="legend-dot protective" /> Protective
               <span className="legend-dot watch" /> Watch
             </>
@@ -1902,6 +1902,7 @@ function KnowledgeGraphCanvas({
             const isSelected = selectedNodeId === node.id;
             const isConnected = connectedNodeIds.has(node.id);
             const isFocused = focusedNodeIds.has(node.id);
+            const labelLines = wrapGraphLabel(node.label, graphLabelLength(node));
             const nodeExplanation = graph.nodeExplanations.find((item) => item.nodeId === node.id);
             const attributionWithheld =
               (nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation") &&
@@ -1921,8 +1922,10 @@ function KnowledgeGraphCanvas({
                 data-node-id={node.id}
                 transform={`translate(${position.x} ${position.y})`}
                 role="button"
-                tabIndex={0}
+                tabIndex={isFocused ? 0 : -1}
+                aria-hidden={!isFocused}
                 aria-label={`${node.label}: ${node.evidence}`}
+                onPointerUp={() => onSelectNode(node.id)}
                 onClick={() => onSelectNode(node.id)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
@@ -1932,24 +1935,29 @@ function KnowledgeGraphCanvas({
                 }}
               >
                 <title>{node.evidence}</title>
+                <circle className="graph-node-hit" r={radius + 3.5} />
                 {focusMode === "attribution" && (
                   <>
                     <circle
                       className="graph-attribution-ring"
-                      r={radius + 3.25}
+                      r={radius + 2.5}
                       pathLength="100"
                       strokeDasharray={`${attributionValue} ${100 - attributionValue}`}
                       transform="rotate(-90)"
                     />
-                    <text className="graph-attribution-label" y={-radius - 4.2}>
+                    <text className="graph-attribution-label" y={-radius - 3.5}>
                       {getAttributionTag(nodeExplanation)}
                     </text>
                   </>
                 )}
-                <circle className="graph-node-halo" r={radius + 2.4} />
+                <circle className="graph-node-halo" r={radius + 1.55} />
                 <circle className="graph-node-core" r={radius} />
                 <text className="graph-node-glyph" y="0.8">{getGraphNodeGlyph(node)}</text>
-                <text className="graph-node-label" y={radius + 5.2}>{shortGraphLabel(node.label, graphLabelLength(node))}</text>
+                <text className="graph-node-label" y={radius + 4.3}>
+                  {labelLines.map((line, index) => (
+                    <tspan dy={index === 0 ? 0 : 2.6} key={`${node.id}-${line}`} x="0">{line}</tspan>
+                  ))}
+                </text>
               </g>
             );
           })}
@@ -2409,8 +2417,8 @@ function isGraphPoint(point: { x: number; y: number } | undefined): point is { x
 }
 
 function getGraphNodeRadius(node: KnowledgeGraphNode, centrality: number) {
-  const base = node.type === "patient" ? 5.8 : node.type === "risk" ? 5.7 : node.type === "clinician" ? 5 : 4.55;
-  return Math.min(7.1, base + centrality * 0.16);
+  const base = node.type === "patient" ? 4.7 : node.type === "risk" ? 4.6 : node.type === "clinician" ? 3.9 : 3.65;
+  return Math.min(5.5, base + centrality * 0.12);
 }
 
 function graphLabelLength(node: KnowledgeGraphNode) {
@@ -2437,6 +2445,23 @@ function nodeLabelById(graph: AdherenceKnowledgeGraph, nodeId: string) {
 
 function shortGraphLabel(label: string, maxLength: number) {
   return label.length > maxLength ? `${label.slice(0, maxLength - 1)}...` : label;
+}
+
+function wrapGraphLabel(label: string, maxLineLength: number) {
+  if (label.length <= maxLineLength) return [label];
+
+  const lines: string[] = [];
+  label.split(" ").forEach((word) => {
+    const currentLine = lines.at(-1);
+    if (!currentLine || currentLine.length + word.length + 1 > maxLineLength) {
+      lines.push(word);
+      return;
+    }
+    lines[lines.length - 1] = `${currentLine} ${word}`;
+  });
+
+  if (lines.length <= 2) return lines;
+  return [lines[0], shortGraphLabel(lines.slice(1).join(" "), maxLineLength)];
 }
 
 function TrendChart({

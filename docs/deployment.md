@@ -61,7 +61,7 @@ Copy `.env.example` to `.env.local` only for local provider testing. Local envir
 4. Run `pnpm smoke` immediately before presenting.
 5. Keep the checked-in video and deck available as visual fallback assets.
 
-The UI labels fallback mode. It is not a reduced experience: risk scoring, graph analytics, support-route comparison, safety rules, rescue planning, and clinician handoff all run locally.
+The UI labels fallback mode. It is not a reduced experience: risk scoring, graph analytics, tested-action comparison, safety rules, rescue planning, and clinician handoff all run locally.
 
 ## Hosted Preview
 

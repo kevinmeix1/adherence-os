@@ -1,6 +1,6 @@
 # Architecture And Study Guide
 
-Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. Its central design choice is separation: prediction estimates adherence interruption, deterministic rules own safety, the evidence map explains the route, and a clinician remains responsible for review.
+Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. Its central design choice is separation: prediction estimates adherence interruption, the evidence map distinguishes context from model contribution and tested action, deterministic rules own safety, and a clinician remains responsible for review.
 
 ## Whole-System Diagram
 
@@ -96,17 +96,17 @@ Edits and scenario changes invalidate any in-flight request before recomputing l
 - A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic patient-weeks with projected-gradient sign constraints.
 - The artifact exports coefficients, training-only support bounds, the selected threshold, held-out metrics, bootstrap members, reliability bins, and parity fixtures.
 - Inference runs locally over 14 structured features. For supported inputs, exact signed contributions reconstruct the final log-odds score.
-- When the observed vector falls outside the training-only 0.5th-99.5th percentile support bounds, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and route ranking. Routed patient records use the same gate.
+- When the observed vector falls outside the training-only 0.5th-99.5th percentile support bounds, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and tested-action ranking. Routed patient records use the same gate.
 
 Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`data/adherence-model.json`](../data/adherence-model.json) and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
 
 ### 2. Evidence Map
 
 - Patient, symptom, routine, biomarker, risk, intervention, safety, and clinician nodes are assembled for the current check-in.
-- Authored edge weights identify the most connected inspectable driver and a concise decision path.
+- Authored edge weights identify the highest-ranked inspectable context signal and a concise decision path.
 - Every node declares provenance: model attribution, bounded simulation, deterministic rule, or patient context.
 - Decision-path, selected-neighborhood, attribution, and all-signal modes change presentation, not the underlying decision.
-- Model-derived node attribution and route comparison are withheld outside synthetic support; deterministic rules and observed context remain visible.
+- Model-derived node attribution and tested-action comparison are withheld outside synthetic support; deterministic rules and observed context remain visible.
 
 This is an explainable decision representation, not a learned knowledge-graph model or causal graph. Read [`app/lib/knowledgeGraph.ts`](../app/lib/knowledgeGraph.ts) after the edge model.
 
@@ -136,8 +136,8 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 |---|---|---|---|
 | Synthetic patient history | `data/patients.json` | Build and browser | Runtime validation fails with a precise path |
 | Adherence prediction | `data/adherence-model.json` | Browser | Artifact validation fails; unsupported inputs abstain |
-| Safety mode and route | `app/lib/careEngine.ts` | Browser and route handler | Deterministic handoff overrides coaching |
-| Evidence-map structure | `app/lib/knowledgeGraph.ts` | Browser | No causal claim; routes remain inspectable |
+| Safety mode and destination | `app/lib/careEngine.ts` | Browser and route handler | Deterministic handoff overrides coaching |
+| Evidence-map structure | `app/lib/knowledgeGraph.ts` | Browser | No causal claim; paths and tested actions remain inspectable |
 | Generated provider attempt | `app/lib/carePlanProvider.ts` | Server route | Visible deterministic fallback |
 | View and request state | `app/page.tsx` | Browser | Patient/scenario/edit changes invalidate stale requests |
 | Release readiness | tests, model check, build, bundle, smoke | Local and GitHub Actions | Release gate fails visibly |
@@ -168,6 +168,6 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 
 - All patient records and model metrics are synthetic; they are pipeline evidence, not clinical validation.
 - The graph is an authored explanatory representation, not causal evidence.
-- Intervention simulations mutate explicit feature assumptions and rescore the same model; they do not estimate treatment effects.
+- Tested actions are implemented as intervention simulations that mutate explicit feature assumptions and rescore the same model; they do not estimate treatment effects.
 - Bootstrap spread describes model variation inside one synthetic cohort, not a clinical confidence interval.
 - Production use would require real-world validation, clinical governance, privacy and security review, monitoring, authentication, and integration with eMed workflows.

@@ -26,10 +26,10 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 
 1. Open Decision map on Maya Patel in Coaching mode.
 2. Read one decision headline and four concise operating metrics.
-3. Inspect the active risk driver, graph path, provenance, and model attribution.
-4. Compare bounded support routes and show why one ranks first.
+3. Distinguish the highest-ranked context signal from the largest model contributor and inspect provenance.
+4. Compare bounded tested actions and show why one ranks first.
 5. Switch to Escalation.
-6. Observe that deterministic red flags suppress every simulated intervention, show the urgent destination, and prepare a clinician-review draft.
+6. Observe that deterministic red flags suppress every tested action, show the urgent destination, and prepare a clinician-review draft.
 7. Open the Review queue and review the structured audit trail.
 8. Use Model record only when technical depth is requested.
 
@@ -45,7 +45,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - Structured AI output and request data are validated with Zod.
 - Model explainability is unusually strong for a hackathon: exact log-odds reconstruction, local sensitivity, calibration, and provenance.
 - The training-support gate now withholds every patient-specific ML number across the Decision map, Model record, and routed records before extrapolation.
-- Graph interventions are explicitly described as planning comparisons rather than causal treatment effects.
+- Tested actions are explicitly described as planning comparisons rather than causal treatment effects.
 - Mobile layouts at 390px and 320px have been manually verified without page overflow.
 - Narrow layouts preserve graph-first Coaching but move the urgent destination and handoff action ahead of graph exploration in Escalation.
 - Patient directory routes include realistic loading, error, empty, and not-found states.
@@ -111,7 +111,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - Adversarial phrase coverage now locks direct-denial, uncertain chest-pain, ASCII and typographic self-safety, cross-field, and resolved-history behavior.
 - Provider timeout, invalid-output, exception, and unsafe-generation branches are exercised through controlled test doubles.
 - Synthetic model metrics are strong but must never be presented as clinical validation.
-- Local sensitivity is not a confidence interval; intervention rescoring is not causal evidence.
+- Local sensitivity is not a confidence interval; tested-action rescoring is not causal evidence.
 
 ## 12. Testing Gaps
 
@@ -148,7 +148,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 | Category | Score / 10 | Evidence |
 |---|---:|---|
-| Product clarity | 9.0 | Clear adherence-risk, explanation, intervention, and safety story |
+| Product clarity | 9.2 | Context signal, model contributor, tested action, abstention, and safety override use one judged-path vocabulary |
 | Demo impact | 9.0 | Graph-first opening and visible normal-to-escalation switch |
 | UI polish | 9.0 | Strong desktop/mobile finish and purposeful motion |
 | UX flow | 8.5 | Main path is clear; secondary views and reset depend on rehearsal |

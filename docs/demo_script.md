@@ -2,7 +2,7 @@
 
 ## 1. One-Line Pitch
 
-Adherence OS is an AI decision layer that predicts when at-home GLP-1 adherence may fail, explains the active driver, tests a bounded support action, and lets independent safety rules stop coaching and prepare a clinician-review draft.
+Adherence OS is an AI decision layer that predicts when at-home GLP-1 adherence may fail, surfaces the active context signal, explains the largest model contributor, tests a bounded action, and lets independent safety rules stop coaching and prepare a clinician-review draft.
 
 ## 2. Problem
 
@@ -26,8 +26,8 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 1. Structure a 60-second home check-in.
 2. Score next-week adherence-interruption risk locally with a monotonic model.
 3. Build a patient-specific evidence graph from longitudinal and current signals.
-4. Identify and explain the most connected active risk driver.
-5. Rescore explicit, bounded support assumptions and rank the routes.
+4. Identify the highest-ranked context signal and explain the largest model contributor.
+5. Rescore explicit, bounded support assumptions and rank the tested actions.
 6. Independently evaluate red flags with deterministic safety rules.
 7. Allow coaching only when no configured safety rule matches; otherwise show an urgent action and prepare a clinician-review draft.
 
@@ -72,7 +72,7 @@ Point to the headline and four metrics.
 
 Say:
 
-> Maya remains in coaching mode. The edge model estimates low next-week adherence-interruption risk, and the evidence map surfaces appetite and energy drag as the active context signal. Attribution shows that routine disruption carries the largest structured share, while hydration is the highest-ranked supported route to try.
+> Maya remains in coaching mode. The edge model estimates low next-week adherence-interruption risk. Appetite and energy drag is the highest-ranked context signal, routine disruption is the largest model contributor, and hydration nudge is the top tested action.
 
 Do not open every panel. Keep the audience on the decision.
 
@@ -82,9 +82,9 @@ Click **Attribution**, then click **Routine disruption** and **Hydration nudge**
 
 Say:
 
-> Every node declares its source. Blue is model attribution, amber is a bounded simulation, red is a deterministic rule, and grey-green is patient context. This route is a planning comparison, not a causal treatment claim.
+> Every node declares its source. Blue is model attribution, amber is a bounded simulation, red is a deterministic rule, and grey-green is patient context. This tested action is a planning comparison, not a causal treatment claim.
 
-Scroll only far enough to show **Why this route won** if time permits.
+Scroll only far enough to show **Why this action ranked first** if time permits.
 
 ### 1:30-2:15 — Trigger The Safety Override
 
@@ -92,9 +92,9 @@ Click **Escalation**.
 
 Say:
 
-> Maya now reports vomiting, worsening pain, poor hydration, and lightheadedness. The model abstains outside synthetic support. Safety blocks every coaching route and tells her to call NHS 111 now; if the pain is sudden or so severe that it is hard to think or talk, she should call 999 or go to A&E now. The clinician handoff is a draft, not a sent message.
+> Maya now reports vomiting, worsening pain, poor hydration, and lightheadedness. The model abstains outside synthetic support. Safety blocks every tested action and tells her to call NHS 111 now; if the pain is sudden or so severe that it is hard to think or talk, she should call 999 or go to A&E now. The clinician handoff is a draft, not a sent message.
 
-Point to **Abstained**, **Suppressed**, **Handoff draft**, and the red route.
+Point to **Abstained**, **Suppressed**, **Handoff draft**, and the red safety path.
 
 ### 2:15-2:40 — Show Scalable Oversight
 
@@ -114,7 +114,7 @@ Say:
 
 ## 10. Thirty-Second Backup Pitch
 
-> Adherence OS helps eMed manage the weeks between appointments. A local model estimates next-week adherence interruption, an evidence map exposes the active driver, and supported scenarios compare small actions without claiming treatment effects. Independent red-flag rules can suppress every coaching route and prepare a clinician-review draft. It works with synthetic data and without an API key, so the demo is reliable and the safety boundary is visible.
+> Adherence OS helps eMed manage the weeks between appointments. A local model estimates next-week adherence interruption, an evidence map surfaces the highest-ranked context signal, attribution explains the largest model contributor, and supported scenarios compare tested actions without claiming treatment effects. Independent red-flag rules can suppress every tested action and prepare a clinician-review draft. It works with synthetic data and without an API key, so the demo is reliable and the safety boundary is visible.
 
 ## 11. Fallback Plan If The Live Demo Fails
 
@@ -136,7 +136,7 @@ Use **Maya Patel** for both paths.
 - Nausea 3/10
 - Hydration 7/10
 - Strong recent adherence
-- Appetite and energy drag is the active graph driver; routine disruption has the largest structured attribution share
+- Appetite and energy drag is the highest-ranked context signal; routine disruption is the largest model contributor
 
 Expected result: coaching allowed, Hydration nudge selected, no escalation.
 
@@ -166,11 +166,11 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; simulations 
 
 ## Presenter Rules
 
-- Never call graph routes causal.
+- Never call graph paths or tested actions causal.
 - Never call synthetic metrics clinical validation.
 - Never imply that Adherence OS diagnoses or changes medication.
 - Never describe a rule non-match as proof that symptoms are safe, manageable, or "not a crisis".
-- Keep the graph explanation to one driver, one route, and one safety override.
+- Keep the graph explanation to one context signal, one model contributor, one tested action, and one safety override.
 - Model record is technical proof, not the main story.
 
 ## Keyboard Rehearsal Checklist

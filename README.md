@@ -16,8 +16,8 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 - Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
 - Clickable decision evidence graph with decision-path, selected-neighbourhood, attribution, and all-signal focus modes.
 - Per-node provenance that distinguishes model attribution, bounded simulation, deterministic rules, and patient context.
-- A presentation gate that withholds patient score, attribution, spread, sensitivity, and route ranking outside synthetic training support.
-- Personalised adherence-risk summary with active drivers, protective factors, and an explicitly heuristic failure-point narrative.
+- A presentation gate that withholds patient score, attribution, spread, sensitivity, and tested-action ranking outside synthetic training support.
+- Personalised adherence-risk summary with context signals, model contributors, protective factors, and an explicitly heuristic failure-point narrative.
 - 7-day Rescue Plan with patient micro-actions and clinician triggers.
 - Unsafe medication-request demo that blocks dose-change advice.
 - Model record with prospective synthetic-cohort training, a 16-member patient-bootstrap ensemble, exact supported local decomposition, complete patient-evidence abstention, reliability bins, and transparent what-if simulation.
@@ -61,12 +61,12 @@ After `pnpm build`, `pnpm check:bundle` enforces a 155 kB gzip budget for home f
 
 1. Open `/`. **Decision map** starts on synthetic patient Maya Patel in **Coaching** mode.
 2. Read the decision headline and operating metrics, then click **Attribution**.
-3. Click **Routine disruption**, then **Hydration nudge**, to show the evidence source and bounded support route.
-4. Click **Escalation**. Point out **Suppressed**, **Blocked by safety**, and the red route to **Clinician handoff**.
+3. Click **Routine disruption**, then **Hydration nudge**, to show the largest model contributor and top tested action.
+4. Click **Escalation**. Point out **Suppressed**, **Blocked by safety**, and the red path to **Clinician handoff**.
 5. Click **Review handoff draft** to land in **Review queue** on the selected task, delivery state, and deterministic audit trail.
 6. Open **Model record** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, support-aware abstention, or artifact provenance.
 
-The core story is one driver, one bounded scenario, one visible model abstention, and one safety override. Do not describe graph routes as causal or synthetic metrics as clinical validation.
+The core story is one context signal, one model contributor, one tested action, one visible model abstention, and one safety override. Do not describe graph paths or tested actions as causal, or synthetic metrics as clinical validation.
 
 ## Optional OpenAI Mode
 

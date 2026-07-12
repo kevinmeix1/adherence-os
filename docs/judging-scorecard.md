@@ -14,7 +14,7 @@ The product is not a chatbot. It is an inspectable decision pipeline:
 4. A training-support gate withholds every patient-specific ML number before extrapolation.
 5. Deterministic safety rules choose coaching, review, or urgent handoff independently of ML.
 
-The Adherence Twin reframes monitoring as pre-emptive support: it shows the current risk drivers, the smallest bounded support assumption, and when safety rules require a human instead.
+The Adherence Twin reframes monitoring as pre-emptive support: it distinguishes the highest-ranked context signal, the largest model contributor, the top tested action, and when safety rules require a human instead.
 
 The Model record adds a real ML spine: prospective synthetic cohort generation, patient-isolated evaluation, 16 bootstrap members, exact feature contributions, support-aware abstention, and explicit what-if rescoring.
 

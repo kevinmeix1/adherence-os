@@ -10,19 +10,19 @@ The opening view is a compact synthetic case record followed immediately by the 
 
 The graph is the first substantial surface, while the adjacent decision record keeps the next bounded action and its provenance visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
 
-## 2. Inspect The Active Driver
+## 2. Inspect The Model Contributor
 
 ![Attribution view with Routine disruption selected](../public/walkthrough/02-attribution-driver.jpg)
 
 Select **Attribution**, then **Routine disruption**. The graph reveals source labels and the inspector maps the node back to structured features. The signed log-odds contribution and attribution share come from the local logistic model.
 
-The graph score is an authored inspection aid. It does not prove that the node caused adherence behavior.
+Routine disruption is the largest model contributor for this supported input. Separately, appetite and energy drag is the highest-ranked context signal under authored graph weights. Neither label proves causality.
 
-## 3. Inspect A Bounded Support Route
+## 3. Inspect A Tested Action
 
-![Hydration nudge bounded support route](../public/walkthrough/03-bounded-support-route.jpg)
+![Hydration nudge tested-action comparison](../public/walkthrough/03-bounded-support-route.jpg)
 
-Select **Hydration nudge**. The app changes explicit feature assumptions, rescores the same model, and reports a **2 percentage-point** scenario decrease. The route is only ranked while both the observed and simulated vectors remain inside synthetic training support.
+Select **Hydration nudge**. The app changes explicit feature assumptions, rescores the same model, and reports a **2 percentage-point** scenario decrease. The tested action is only ranked while both the observed and simulated vectors remain inside synthetic training support.
 
 This is a planning comparison, not a treatment-effect estimate or medication recommendation.
 

@@ -3213,18 +3213,17 @@ body {
 }
 
 .graph-evidence-panel .graph-flow-rail path {
-  stroke: #b8bdb9;
-  stroke-dasharray: 1.2 1.5;
+  display: none;
 }
 
 .graph-evidence-panel .graph-flow-rail circle {
-  fill: #fbfbf8;
-  stroke: #8e9590;
+  display: none;
 }
 
 .graph-evidence-panel .graph-lanes rect {
-  fill: #f7f7f3;
-  stroke: #d8dbd7;
+  fill: transparent;
+  stroke: #dfe3df;
+  stroke-width: 0.22;
 }
 
 .graph-evidence-panel .graph-lanes text {
@@ -3236,7 +3235,15 @@ body {
 
 .graph-evidence-panel .graph-edge path {
   stroke: #9ba19d;
-  opacity: 0.72;
+  opacity: 0.62;
+}
+
+.graph-evidence-panel .graph-edge.dimmed-edge path {
+  opacity: 0.045;
+}
+
+.graph-evidence-panel .graph-edge.dimmed-edge text {
+  opacity: 0;
 }
 
 .graph-evidence-panel .graph-edge text {
@@ -3263,7 +3270,7 @@ body {
 
 .graph-evidence-panel .graph-edge.selected-edge path {
   stroke-dasharray: none;
-  animation: none;
+  animation: ledgerEdgeSelect 300ms ease-out;
 }
 
 .graph-evidence-panel .graph-edge.protective path {
@@ -3283,18 +3290,26 @@ body {
 }
 
 .graph-evidence-panel .graph-node {
+  cursor: pointer;
   filter: none;
   transition: opacity 160ms ease;
 }
 
+.graph-evidence-panel .graph-node-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+
 .graph-evidence-panel .graph-node.dimmed-node {
-  opacity: 0.2;
+  opacity: 0.035;
+  pointer-events: none;
 }
 
 .graph-evidence-panel .graph-node-halo {
-  fill: #fbfbf8;
-  stroke: #c5c9c5;
-  stroke-width: 0.32;
+  fill: transparent;
+  stroke: #c9ceca;
+  stroke-width: 0.24;
 }
 
 .graph-evidence-panel .graph-node-core {
@@ -3313,8 +3328,8 @@ body {
 .graph-evidence-panel .graph-node-label {
   fill: #363a38;
   stroke: #fbfbf8;
-  stroke-width: 0.88;
-  font-size: 1.95px;
+  stroke-width: 0.52;
+  font-size: 2.05px;
   font-weight: 650;
 }
 
@@ -3774,6 +3789,11 @@ body {
   0% { transform: scale(0.94); }
   70% { transform: scale(1.04); }
   100% { transform: scale(1); }
+}
+
+@keyframes ledgerEdgeSelect {
+  0% { stroke-dasharray: 0 18; opacity: 0.25; }
+  100% { stroke-dasharray: 18 0; opacity: 1; }
 }
 
 @media (max-width: 1180px) {

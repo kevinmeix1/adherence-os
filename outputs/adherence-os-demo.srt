@@ -16,7 +16,7 @@ Recent adherence is one hundred per cent, so one clear next action stays in view
 
 5
 00:00:28,000 --> 00:00:35,200
-The evidence map connects observed routine and symptom signals to the active driver, the model score, and a bounded hydration route.
+The evidence map separates the highest-ranked context signal, the largest model contributor, and a bounded tested action.
 
 6
 00:00:35,400 --> 00:00:41,200
@@ -40,7 +40,7 @@ The app changes explicit feature assumptions, rescores the same monotonic model,
 
 11
 00:01:04,400 --> 00:01:10,000
-The route is ranked only while observed and simulated vectors stay inside the synthetic training-support envelope.
+The tested action is ranked only while observed and simulated vectors stay inside the synthetic training-support envelope.
 
 12
 00:01:10,400 --> 00:01:17,000
@@ -48,7 +48,7 @@ In Escalation, Maya reports severe abdominal pain, vomiting, poor hydration, and
 
 13
 00:01:17,000 --> 00:01:24,500
-The input moves outside model support. Numeric ranking abstains, and every coaching route is suppressed.
+The input moves outside model support. Numeric ranking abstains, and every tested action is suppressed.
 
 14
 00:01:24,500 --> 00:01:30,200
@@ -116,4 +116,4 @@ Innovation combines local ML, graph evidence, and independent safety.
 
 30
 00:02:53,000 --> 00:02:58,700
-The live story is simple: predict, explain, simulate a bounded route, and hand off before harm.
+The live story is simple: predict, explain, test a bounded action, and hand off safely.
