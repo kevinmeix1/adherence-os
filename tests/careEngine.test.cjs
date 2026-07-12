@@ -86,6 +86,11 @@ test("urgent headlines name the configured destination without downplaying emerg
       destination: /call 999|go to A&E/i
     },
     {
+      input: buildBoundaryCheckIn({ freeText: "I've taken an overdose." }),
+      headline: "Call 999 or go to A&E now",
+      destination: /call 999|go to A&E/i
+    },
+    {
       input: buildBoundaryCheckIn({ freeText: "I have severe abdominal pain and I am vomiting." }),
       headline: "Call NHS 111 now",
       destination: /call NHS 111/i
@@ -342,6 +347,7 @@ test("common red-flag phrases trigger urgent handoff", () => {
     ["fainting or severe dizziness", "I nearly fainted when I stood up."],
     ["severe abdominal pain", "I have severe persistent abdominal pain that radiates to my back."],
     ["unable to keep fluids down", "I cannot keep water down and keep vomiting."],
+    ["possible overdose or poisoning", "I've taken an overdose."],
     ["pregnancy concern", "I had a positive pregnancy test."],
     ["self-harm language", "I am thinking about hurting myself."]
   ];
@@ -360,6 +366,7 @@ test("structured safety flags override neutral text and suppress coaching", () =
     ["faint-or-severe-dizziness", "fainting or severe dizziness", /call NHS 111/i],
     ["severe-abdominal-pain", "severe abdominal pain", /call NHS 111/i],
     ["unable-to-keep-fluids-down", "unable to keep fluids down", /call NHS 111/i],
+    ["overdose-or-poisoning", "possible overdose or poisoning", /call 999|go to A&E/i],
     ["pregnancy-concern", "pregnancy concern", /call NHS 111/i],
     ["self-harm-thoughts", "self-harm language", /NHS 111|mental-health/i],
     ["cannot-stay-safe", "immediate self-harm language", /call 999|go to A&E/i]
@@ -388,6 +395,7 @@ test("secondary phrase matching catches common urgent paraphrases", () => {
   const cases = [
     ["I have crushing chest discomfort.", "chest pain", /call 999/i],
     ["I can't catch my breath.", "breathlessness", /call 999/i],
+    ["I am thinking about suicide.", "self-harm language", /NHS 111|mental-health/i],
     ["I don't want to be alive.", "self-harm language", /NHS 111|mental-health/i]
   ];
 
@@ -451,6 +459,21 @@ test("adversarial active phrases select destination-specific urgent routes", () 
     {
       freeText: "I don’t feel able to keep myself safe.",
       labels: ["immediate self-harm language"],
+      destination: /call 999|go to A&E/i
+    },
+    {
+      freeText: "I have a plan to harm myself.",
+      labels: ["immediate self-harm language"],
+      destination: /call 999|go to A&E/i
+    },
+    {
+      freeText: "I've taken an overdose.",
+      labels: ["possible overdose or poisoning"],
+      destination: /call 999|go to A&E/i
+    },
+    {
+      freeText: "I took too much medication.",
+      labels: ["possible overdose or poisoning"],
       destination: /call 999|go to A&E/i
     },
     {
@@ -574,6 +597,9 @@ test("negated and benign symptom language does not create false urgent handoffs"
     "Mild stomach discomfort settled after lunch.",
     "I am not pregnant and my period arrived normally.",
     "I have no thoughts of self harm.",
+    "I have no thoughts of suicide.",
+    "I have not taken an overdose.",
+    "I did not swallow anything harmful.",
     "I am not experiencing chest pain.",
     "I have never had chest pain.",
     "No current chest pain.",

@@ -19,8 +19,9 @@ The home check-in asks directly whether any configured urgent symptom family is 
 - Severe, persistent, worsening, agonising, or unbearable stomach, upper-abdominal, belly, or tummy pain, including pain that spreads or radiates to the back.
 - Fainting, blackout, severe dizziness, or dehydration concern.
 - Vomiting or throwing up, inability to drink or keep fluids down, or reports that sips come back up.
+- A reported overdose, too much medicine, or possible poisoning.
 - Pregnancy concern.
-- Self-harm language, with direct statements such as "I want to kill myself" treated as possible immediate danger.
+- Self-harm or suicide language, with a stated plan or inability to stay safe treated as possible immediate danger.
 
 ## Deterministic Thresholds
 
@@ -38,12 +39,13 @@ These are deterministic prototype rules for the synthetic demo, not clinically v
 | Active phrase family | Headline | Route displayed by the prototype |
 |---|---|---|
 | Chest pain or breathlessness | Call 999 now | Call 999 now; do not drive yourself to A&E |
+| Possible overdose or poisoning | Call 999 or go to A&E now | Call 999 or go to A&E now; do not drive yourself and bring the medicine or packaging if possible |
 | Severe or persistent abdominal pain with vomiting or inability to keep fluids down | Call NHS 111 now | Call NHS 111 now for urgent assessment; call 999 or go to A&E now if pain is sudden or so severe that it is hard to think or talk |
 | Immediate self-harm language | Call 999 or go to A&E now | Call 999 or go to A&E now; stay with a trusted person while getting help if possible |
 | Other self-harm language | Call NHS 111 now | Call NHS 111 and select the mental-health option; call 999 or go to A&E now if there is immediate danger |
 | Other urgent prototype rules | Call NHS 111 now | Call NHS 111 now; use 999 or A&E for immediate danger or severe symptoms |
 
-These destinations are conservative prototype messages, not validated triage. They are based on current public wording from [NHS chest-pain guidance](https://www.nhs.uk/conditions/chest-pain/), [NHS vomiting guidance](https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/), [NHS urgent mental-health guidance](https://www.nhs.uk/nhs-services/mental-health-services/), and the MHRA warning below. The prototype cannot assess severity, place calls, contact emergency services, or determine which service will accept a patient.
+These destinations are conservative prototype messages, not validated triage. They are based on current public wording from [NHS chest-pain guidance](https://www.nhs.uk/conditions/chest-pain/), [NHS vomiting guidance](https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/), [NHS poisoning guidance](https://www.nhs.uk/conditions/poisoning/), [NHS urgent mental-health guidance](https://www.nhs.uk/nhs-services/mental-health-services/where-to-get-urgent-help-for-mental-health/), and the MHRA warning below. The prototype cannot assess severity, place calls, contact emergency services, or determine which service will accept a patient.
 
 Urgent mode returns one immediate safety action rather than a seven-day coaching sequence. All adherence-twin coaching moves are also suppressed while the urgent rule is active. A clinician handoff draft may be prepared for context, but it remains pending manual review.
 

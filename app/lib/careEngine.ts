@@ -69,12 +69,16 @@ const redFlagPatterns: RedFlagPattern[] = [
   { label: "fainting or severe dizziness", pattern: /\b(?:fainted|fainting|feel(?:ing)? faint|felt faint|nearly fainted|almost fainted|passed out|black(?:ed|ing)? out|blackout|lightheaded|severely dizzy|severe dizziness)\b/i },
   { label: "severe abdominal pain", pattern: /\b(?:(?:(?:severe|persistent|worsening|agonising|agonizing|unbearable|excruciating)\s+){1,2}(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain\s+(?:is\s+)?(?:getting worse|worsening|won't go away|will not go away|unbearable|agonising|agonizing|excruciating)|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain(?:\s+(?:that|which))?\s+(?:spreads?|spread|spreading|radiat(?:es|ed|ing))\s+(?:into|to)\s+(?:(?:my|the)\s+)?back|(?:upper\s+)?(?:stomach|abdomen|belly|tummy)\s+(?:hurt|hurts|is hurting)\s+(?:severely|unbearably|agonisingly|agonizingly|excruciatingly|(?:so\s+)?badly))\b/i },
   { label: "unable to keep fluids down", pattern: /\b(?:(?:(?:have|has|had)\s+not|haven't|hasn't|hadn't)\s+been\s+able\s+to\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+drink(?:\s+(?:anything|(?:any\s+)?(?:fluids?|water)))?(?=\s*(?:[,.!?;]|$|\b(?:and|because|without)\b))|(?:(?:every|each|any)\s+(?:sip|drink)|(?:even\s+(?:a|one|tiny)\s+)?sips?|(?:all\s+)?(?:fluids?|water))\s+(?:comes?|come|came|is coming|are coming)\s+(?:(?:straight|right)\s+)?back\s+up|vomit(?:ing|ed|s)?|throw(?:ing|s|threw|thrown)\s+up|being\s+sick)\b/i, ignoreResolvedHistory: true },
+  {
+    label: "possible overdose or poisoning",
+    pattern: /\b(?:overdos(?:ed|ing)|(?:took|taken|swallowed)\s+(?:an?\s+)?overdose|(?:took|taken|swallowed)\s+too\s+(?:much|many)\s+(?:medicine|medication|tablets?|pills?|doses?)|swallowed\s+(?:something|a\s+substance)\s+(?:harmful|poisonous))\b/i
+  },
   { label: "pregnancy concern", pattern: /\b(?:pregnant|positive pregnancy test|missed (?:my )?period)\b/i },
   {
     label: "immediate self-harm language",
-    pattern: /\b(?:kill myself|end my life|want to die|(?:(?:cannot|can't|unable to)|(?:do not|don't) feel (?:able to|(?:that )?i can)|(?:will not|won't) be able to)\s+keep myself safe)\b/i
+    pattern: /\b(?:kill myself|end my life|want to die|(?:have|has|had)\s+(?:made\s+)?(?:a\s+)?plan\s+to\s+(?:kill|harm|hurt)\s+myself|(?:(?:cannot|can't|unable to)|(?:do not|don't) feel (?:able to|(?:that )?i can)|(?:will not|won't) be able to)\s+keep myself safe)\b/i
   },
-  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal|(?:do not|don't) want to be alive)\b/i }
+  { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal|(?:thinking|thoughts?)\s+(?:about|of)\s+suicide|suicide\s+thoughts?|(?:do not|don't) want to be alive)\b/i }
 ];
 
 const unsafeGeneratedTextPatterns = [
@@ -286,6 +290,15 @@ function chooseRiskLevel(
 }
 
 function buildUrgentRoute(redFlags: string[]): UrgentRoute {
+  if (redFlags.includes("possible overdose or poisoning")) {
+    return {
+      headline: "Call 999 or go to A&E now",
+      reason: "Possible overdose or poisoning needs emergency assessment; this prototype cannot assess what or how much was taken.",
+      channel: "Emergency poisoning route: call 999 or go to A&E now. Do not drive yourself.",
+      patientAction: "Call 999 now or go to A&E now because you may have taken too much medicine or swallowed something harmful. Do not drive yourself. Bring the medicine or packaging if possible."
+    };
+  }
+
   if (redFlags.includes("immediate self-harm language")) {
     return {
       headline: "Call 999 or go to A&E now",

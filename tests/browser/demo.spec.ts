@@ -75,12 +75,12 @@ test("keyboard changes announce safety state from every workspace", async ({ pag
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-workspace")).toBeFocused();
 
-  const chestFlag = page.getByRole("checkbox", { name: "Chest pain or difficulty breathing" });
-  await chestFlag.focus();
+  const overdoseFlag = page.getByRole("checkbox", { name: "Possible overdose or poisoning" });
+  await overdoseFlag.focus();
   await page.keyboard.press("Space");
-  await expect(chestFlag).toBeChecked();
+  await expect(overdoseFlag).toBeChecked();
   await expect(page.getByLabel("Custom check-in")).toBeVisible();
-  await expect(status).toContainText("Call 999 now");
+  await expect(status).toContainText("Call 999 or go to A&E now");
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -163,7 +163,7 @@ test("narrow coaching and escalation preserve safe reading order", async ({ page
     await expectNoHorizontalOverflow(page);
 
     await page.getByRole("button", { name: "Check-in", exact: true }).click();
-    await expect(page.getByRole("group", { name: "Symptoms needing urgent help now" }).getByRole("checkbox")).toHaveCount(7);
+    await expect(page.getByRole("group", { name: "Symptoms needing urgent help now" }).getByRole("checkbox")).toHaveCount(8);
     await expectNoHorizontalOverflow(page);
   }
 

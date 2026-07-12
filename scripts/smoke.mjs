@@ -109,7 +109,7 @@ const immediateSelfSafetyCheckIn = {
 const structuredSafetyCheckIn = {
   ...normalCheckIn,
   scenario: "custom",
-  safetyFlags: ["chest-or-breathing"],
+  safetyFlags: ["overdose-or-poisoning"],
   sideEffects: "",
   biomarkerNote: "",
   freeText: ""
@@ -227,11 +227,11 @@ await checkCarePlan("immediate self-safety", immediateSelfSafetyCheckIn, async (
 });
 
 await checkCarePlan("structured safety override", structuredSafetyCheckIn, async ({ plan }) => {
-  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: chest pain or breathing difficulty")) {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: possible overdose or poisoning")) {
     throw new Error("structured safety flag did not activate the deterministic emergency route");
   }
-  if (plan.headline !== "Call 999 now") {
-    throw new Error("structured safety flag did not put the 999 destination in the headline");
+  if (plan.headline !== "Call 999 or go to A&E now") {
+    throw new Error("structured safety flag did not put the emergency destination in the headline");
   }
 });
 

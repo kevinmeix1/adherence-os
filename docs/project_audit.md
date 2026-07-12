@@ -212,6 +212,7 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 
 - **Now repaired:** the prospective model contract, patient-isolated evaluation, recall-oriented threshold selection, bootstrap spread, marginal-bound abstention, Python/browser parity, adversarial symptom coverage, and fully deterministic post-provider plan merge.
 - **Latest safety repair:** an eight-word negation window could suppress uncertainty such as “not sure why I have chest pain,” while a common self-safety contraction was not matched. Negation is now symptom-scoped, punctuation is normalised, and both failures are regression-tested.
+- **Latest independent safety finding:** common language such as “thinking about suicide”, a stated self-harm plan, or “taken an overdose” could miss every configured phrase and continue coaching. A typed overdose/poisoning flag, destination-specific emergency route, direct phrase coverage, and denial regressions now close that bypass.
 
 ### 2026-07-12 Independent Critique
 
@@ -272,7 +273,7 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 ### Current Checkpoint
 
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
-- The current local checkpoint passes typecheck, 63 tests, model reproduction, production build, bundle budget, live smoke, and structured-safety interaction checks at 1440 px, 390 px, and 320 px.
+- The current local checkpoint passes typecheck, 64 tests, model reproduction, production build, bundle budget, live smoke, and six browser/accessibility contracts at desktop, 390 px, and 320 px. Decorative graph edges no longer intercept node clicks.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
 - GitHub Actions run `29187107480` passes the remote production gate for commit `8e27671`, including Chromium installation, all four browser/accessibility contracts, and production smoke.
 - Coaching passes every configured marginal feature bound. Escalation exceeds at least one bound, withholds all patient-specific ML evidence, and still routes through deterministic safety.

@@ -3238,6 +3238,12 @@ body {
   opacity: 0.62;
 }
 
+.graph-evidence-panel .graph-edge,
+.graph-evidence-panel .graph-edge *,
+.graph-evidence-panel .graph-rescue-route {
+  pointer-events: none;
+}
+
 .graph-evidence-panel .graph-edge.dimmed-edge path {
   opacity: 0.045;
 }
