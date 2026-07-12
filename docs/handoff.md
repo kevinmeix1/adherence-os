@@ -8,7 +8,7 @@ Updated: 2026-07-12
 - Pull request: https://github.com/kevinmeix1/adherence-os/pull/2
 - Public repository: https://github.com/kevinmeix1/adherence-os
 - Local demo URL: http://localhost:3001
-- Product status: verified terminology and evidence-map refinement checkpoint on draft PR #2
+- Product status: release-complete visual, documentation, and fallback-asset checkpoint on draft PR #2
 
 ## What Changed
 
@@ -16,7 +16,7 @@ Updated: 2026-07-12
 - Put the Decision map first and reorganised its hierarchy around the patient, observed evidence, context signal, model contributor, tested action, and safety owner.
 - Removed visible glow, glass, gradient, and decorative depth treatments from the judged path.
 - Reworked Check-in, Review queue, Model record, patient routes, navigation, controls, metrics, and error recovery into the same flat record system.
-- Simplified the graph's default path, wrapped labels at word boundaries, and limited node and edge feedback to short one-shot selection animation.
+- Simplified the graph's default path, wrapped labels at word boundaries, and limited node and edge feedback to short one-shot selection animations.
 - Preserved the deterministic Coaching and Escalation paths, model abstention, tested-action suppression, and draft-only clinician handoff.
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
 - Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
@@ -25,8 +25,8 @@ Updated: 2026-07-12
 - Applied the support gate to every presentation surface: unsupported inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, tested-action ranking, and routed-record risk.
 - Preserved graph-first Coaching on narrow screens while moving the urgent destination and handoff action ahead of graph exploration in Escalation.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
-- The README image, eight walkthrough screenshots, deck, and video currently show the preceding UI checkpoint; the final asset refresh is the only queued release phase.
-- Updated UI labels, smoke contracts, route-state tests, demo scripts, architecture notes, design rationale, audit, and backlog.
+- The README image, nine walkthrough screenshots, ten-slide deck, and 2:59 captioned video all show the verified production interface.
+- Updated UI labels, smoke contracts, scenario-state tests, demo scripts, architecture notes, design rationale, audit, and backlog.
 
 ## Main Study Files
 
@@ -38,12 +38,12 @@ Updated: 2026-07-12
 - `app/lib/knowledgeGraph.ts`: typed evidence graph and tested-action composition.
 - `docs/architecture.md`: whole-system Mermaid diagram, sequence, ownership table, and suggested study order.
 - `docs/design-references.md`: visual references, adaptations, and originality boundary.
-- `docs/product-walkthrough.md`: eight-step screenshot walkthrough.
+- `docs/product-walkthrough.md`: nine-step screenshot walkthrough.
 
 ## Demo Assets
 
 - `public/adherence-os-live-twin.jpg`: current 1280x720 README and social image.
-- `public/walkthrough/01-live-twin-coaching.jpg` through `08-mobile-live-twin.jpg`: current walkthrough states.
+- `public/walkthrough/01-live-twin-coaching.jpg` through `09-mobile-safety-escalation.jpg`: nine current walkthrough states.
 - `outputs/adherence-os-demo.mp4`: 2:59 narrated H.264/AAC walkthrough with embedded English captions.
 - `outputs/adherence-os-demo.srt`: sidecar English captions matching the embedded track.
 - `outputs/adherence-os-demo.pptx`: current ten-slide care-ledger pitch deck.
@@ -62,18 +62,17 @@ Updated: 2026-07-12
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
 - Interaction rehearsal: pointer selection opens Routine disruption, keyboard selection opens Hydration nudge, Escalation blocks four tested actions, Review queue shows `Draft only / not sent`, Reset restores Coaching, and no browser console errors were recorded.
-- Deck QA: all ten slides reviewed at full size; overflow check passes.
-- Video QA: 2:59, 1280x720, 5 fps static demonstration frames, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, clean full-file decode, and -2.7 dB peak audio.
+- Deck QA: all ten slides reviewed at full size; screenshot decoding and overflow checks pass.
+- Video QA: 2:59, 1280x720, 895 frames at 5 fps, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, exact 30-block sidecar parity, clean full-file decode, and -2.6 dB peak audio.
 
 ## Known Limits
 
 - No hosted preview is configured. The public repository, local build, video, deck, and screenshot walkthrough are the sharing paths.
 - Public deployment should remain keyless. Configuring `OPENAI_API_KEY` exposes an unauthenticated cost-bearing demo endpoint.
 - All records and model metrics are synthetic. They demonstrate an executable pipeline, not clinical validation.
-- The evidence graph is authored and explanatory; bounded rescoring is not causal evidence.
+- The evidence map is authored and explanatory; bounded rescoring is not causal evidence.
 - `app/page.tsx` remains roughly 2,400 lines, and the two stylesheets exceed 7,600 lines. Decomposition is intentionally deferred until after judging to avoid destabilising the demo.
 - Browser interaction and visual regression are manually rehearsed rather than automated in CI.
-- The fallback assets are queued for regeneration from this verified interface.
 
 ## Event-Day Commands
 
@@ -91,4 +90,4 @@ APP_URL=http://localhost:3001 pnpm smoke
 
 ## Recommended Next Step
 
-Refresh the final screenshots, deck, and captioned video, then run the clean-checkout rehearsal.
+Run the clean-checkout rehearsal, confirm the remote production gate, and keep the local keyless demo ready on port 3001.

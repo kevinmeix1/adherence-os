@@ -33,7 +33,7 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 
 ## 6. Main Wow Moment
 
-Switch from **Coaching** to **Escalation** on the Decision map. The symptom vector moves outside synthetic model support, numeric ML ranking abstains, every route becomes **Blocked by safety**, and the graph reroutes through **Safety guardrail** to **Clinician handoff**. The system demonstrates that safety remains active even when the model declines to score the decision.
+Switch from **Coaching** to **Escalation** on the Decision map. The symptom vector moves outside synthetic model support, numeric ML ranking abstains, every tested action becomes **Blocked by safety**, and the graph switches to the **Safety guardrail** and **Clinician handoff** path. The system demonstrates that safety remains active even when the model declines to score the decision.
 
 ## 7. Why It Is Technically Credible
 
@@ -43,7 +43,7 @@ Switch from **Coaching** to **Escalation** on the Decision map. The symptom vect
 - Directional constraints prevent synthetic correlated features from learning counterintuitive signs.
 - A supported score is reconstructed exactly from intercept and signed log-odds contributions.
 - Supported one-feature-at-a-time sensitivity shows local score stability without pretending to be a confidence interval.
-- Outside support, patient score, attribution, spread, sensitivity, and route ranking are all withheld.
+- Outside support, patient score, attribution, spread, sensitivity, and tested-action ranking are all withheld.
 - Graph nodes identify whether evidence comes from the model, a bounded simulation, a deterministic rule, or patient context.
 - Optional OpenAI output is schema-validated, then the complete deterministic plan is recomputed; generated wording does not survive the current MVP merge.
 - The full product works without a provider key.
@@ -148,7 +148,7 @@ Expected result: coaching allowed, Hydration nudge selected, no escalation.
 - Vomiting and inability to keep fluids down
 - Worsening abdominal pain and lightheadedness
 
-Expected result: NHS 111 now, with the 999/A&E contingency visible; simulations suppressed; safety guardrail and clinician handoff draft active.
+Expected result: NHS 111 now, with the 999/A&E contingency visible; tested actions suppressed; safety guardrail and clinician handoff draft active.
 
 ## 13. Screens And Pages That Must Work Perfectly
 

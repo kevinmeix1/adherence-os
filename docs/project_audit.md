@@ -4,7 +4,7 @@ Audit date: 2026-07-12
 
 ## 1. Product Summary
 
-Adherence OS is a hackathon MVP for at-home GLP-1 adherence support. It combines a short patient check-in, deterministic clinical guardrails, a browser-side adherence-risk model, explainable graph analytics, bounded what-if support routes, and a pending clinician-review draft. The intended users are patients managing a long programme and care teams prioritising review between appointments. The immediate audience is the eMed hackathon judging panel.
+Adherence OS is a hackathon MVP for at-home GLP-1 adherence support. It combines a short patient check-in, deterministic clinical guardrails, a browser-side adherence-risk model, explainable graph analytics, bounded tested actions, and a pending clinician-review draft. The intended users are patients managing a long programme and care teams prioritising review between appointments. The immediate audience is the eMed hackathon judging panel.
 
 The product's strongest proposition is the dual-track decision: ML estimates adherence failure risk while an independent safety layer decides whether coaching must stop. The stricter path wins.
 
@@ -87,11 +87,11 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 9. Performance Risks
 
-- The home route's first load is approximately 143 kB, which is acceptable for the demo.
+- The home route's reported first load is approximately 151 kB, which remains inside the enforced 155 kB gzip budget.
 - Every primary workspace view ships in one client module even when only the graph is initially visible.
 - More than 7,600 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
 - Graph calculations are small for 13 nodes and three synthetic patients; they do not currently justify worker or server infrastructure.
-- Demo video and deck assets add about 10 MB to the repository but are not loaded by the application.
+- Demo video, deck, and screenshot assets add about 7 MB to the repository but are not loaded by the application.
 
 ## 10. Security And Privacy Risks
 
@@ -125,7 +125,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - README setup is portable and the app builds without secrets.
 - The local demo requires the presenter to start the server before running smoke checks.
 - The optional AI path should not be relied on during judging; deterministic fallback is the safer live-demo mode.
-- The checked-in 2:59 captioned video, subtitle track, screenshot walkthrough, and 10-slide deck show the previous copy checkpoint; a final refresh is queued after the remaining bounded UI repairs.
+- The checked-in 2:59 captioned video, subtitle track, nine-step screenshot walkthrough, and ten-slide deck show the verified production checkpoint.
 - The presenter should keep a production build running locally and avoid dependency installation on event Wi-Fi.
 
 ## 14. Highest-Impact Improvement Areas
@@ -217,31 +217,31 @@ Five read-only reviews covered judging impact, clinical safety and ML, healthcar
 |---:|---|---|---|---|---|
 | 1 | Repaired | Emergency routes retained a generic same-day headline, and non-urgent copy overstated negative triage. Destination-aware headlines, literal non-match wording, exact support-plan triggers, and a Unicode follow-on regression now pass focused tests, smoke, and desktop browser review. | Safety trust and claim calibration | Low | Preserve in regression suite |
 | 2 | Repaired | Development now writes `.next-dev`; production continues to use `.next`. A live development server stayed healthy through a clean build and concurrent production smoke. | Event-day reliability | Low | Preserve config test and runbook preflight |
-| 3 | Repaired | The support gate now withholds patient score, model attribution, bootstrap spread, sensitivity, and numeric route ranking in the Decision map, Model record, and routed records. | ML credibility | Medium | Preserve core, graph, route, smoke, and browser checks |
+| 3 | Repaired | The support gate now withholds patient score, model attribution, bootstrap spread, sensitivity, and numeric tested-action ranking in the Decision map, Model record, and routed records. | ML credibility | Medium | Preserve core, graph, tested-action, smoke, and browser checks |
 | 4 | Repaired | Coaching remains graph-first, while narrow Escalation orders the inspector first; the NHS 111 action and handoff button precede graph exploration at 390px and 320px with no overflow. | Patient safety hierarchy | Low | Preserve responsive browser rehearsal |
-| 5 | Open | Demo copy conflates authored context ranking, model contribution, and the highest-ranked tested action | Three-minute clarity | Low | One authoritative run-of-show and label audit |
+| 5 | Repaired | Visible copy and the run-of-show now distinguish the context signal, model contributor, and tested action throughout the judged path. | Three-minute clarity | Low | Preserve the label audit and timed rehearsal |
 | 6 | External | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
 
 No new feature is justified ahead of these repairs. CSS decomposition, extra graph modes, and multi-condition expansion remain deferred.
 - **Still weak:** automated browser accessibility checks, hosted access, real user or clinician evidence, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 151.5 kB gzip, leaving only 3.5 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 152.0 kB gzip, leaving only 3.0 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
 
 | Category | Score / 10 | Current evidence |
 |---|---:|---|
-| Product clarity | 8.5 | Adherence risk, graph score, safety mode, provider provenance, and handoff delivery state now use distinct language |
+| Product clarity | 9.2 | Context signal, model contributor, tested action, abstention, safety mode, and handoff delivery state use distinct language |
 | Demo impact | 9.1 | Decision map is the first working surface; mobile remains graph-first; current fallback media follows the same judged path |
 | UI polish | 9.0 | Original care-ledger hierarchy, flat records, sparse status colour, stable graph geometry, and restrained one-shot motion |
 | UX flow | 8.5 | Edits recompute immediately, stale work is invalidated, active-patient clicks preserve state, and handoff lands on the selected task |
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.4 | 60 tests plus build isolation, presentation gating, prospective parity, support abstention, copy calibration, cross-field negation, route semantics, and cadence contracts |
+| Testing | 9.4 | 60 tests plus build isolation, presentation gating, prospective parity, support abstention, copy calibration, cross-field negation, tested-action semantics, and cadence contracts |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 151.5 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.0 | 152.0 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.4 | Interactive graph semantics, visible focus, semantic clinician table, keyboard nodes, captioned video, and no 320px overflow; automated audit remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
@@ -257,4 +257,4 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
 - The release checkpoint passes typecheck, 60 tests, model reproduction, production build, bundle budget, and live smoke. Development also stayed healthy through a concurrent clean production build.
 - Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
-- The README image, screenshot walkthrough, video, subtitle track, and deck remain valid fallback assets for the previous checkpoint and are queued for one final refresh after the remaining bounded UI repairs.
+- The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.

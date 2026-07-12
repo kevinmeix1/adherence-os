@@ -131,7 +131,7 @@ pnpm check:model
 
 ### The UI says OpenAI is not configured
 
-That is the recommended keyless demo mode, not an error. The complete deterministic plan, graph, rescue routes, and safety handoff remain available. After changing `.env.local`, restart the app so Next.js reloads the environment.
+That is the recommended keyless demo mode, not an error. The complete deterministic plan, evidence map, tested actions, and safety handoff remain available. After changing `.env.local`, restart the app so Next.js reloads the environment.
 
 ## Product and Technical Notes
 

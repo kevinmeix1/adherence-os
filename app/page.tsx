@@ -933,11 +933,11 @@ function ModelLabView({
           <span>Hydration {checkIn.hydrationScore}/10</span>
         </div>
         <div className="prediction-box">
-          <strong>Top supported scenario</strong>
+          <strong>Tested action status</strong>
           <span>
             {bestIntervention.rankable && bestIntervention.absoluteReduction !== null
               ? `${bestIntervention.label}: ${formatPercentagePoints(bestIntervention.absoluteReduction)} scenario-score decrease.`
-              : "Numeric route ranking is disabled outside synthetic training support."}
+              : "Numeric tested-action ranking is disabled outside synthetic training support."}
           </span>
         </div>
         {modelSupported ? (
@@ -1540,7 +1540,13 @@ function GraphNodeInspector({
   onNavigate: (view: View) => void;
 }) {
   const centrality = graph.centrality.find((item) => item.nodeId === node.id)?.score ?? 0;
-  const connectedEdges = graph.edges.filter((edge) => edge.source === node.id || edge.target === node.id).slice(0, 3);
+  const connectedEdges = graph.edges
+    .filter(
+      (edge) =>
+        (edge.source === node.id || edge.target === node.id) &&
+        (graph.pathMode !== "escalation" || edge.status !== "action")
+    )
+    .slice(0, 3);
   const decisionBrief = getGraphDecisionBrief(graph, node, centrality);
   const explanation = graph.nodeExplanations.find((item) => item.nodeId === node.id);
   const modelAttributionWithheld = explanation?.source === "model" && explanation.contribution === null;
@@ -1762,9 +1768,12 @@ function KnowledgeGraphCanvas({
       .filter((edge) => activePathIds.has(edge.source) && activePathIds.has(edge.target))
       .map((edge) => edge.id)
   );
-  const connectedEdgeIds = new Set(
-    graph.edges.filter((edge) => edge.source === selectedNodeId || edge.target === selectedNodeId).map((edge) => edge.id)
+  const connectedEdges = graph.edges.filter(
+    (edge) =>
+      (edge.source === selectedNodeId || edge.target === selectedNodeId) &&
+      (graph.pathMode !== "escalation" || edge.status !== "action")
   );
+  const connectedEdgeIds = new Set(connectedEdges.map((edge) => edge.id));
   const highlightedEdgeIds = new Set(
     focusMode === "all" || focusMode === "attribution"
       ? graph.edges.map((edge) => edge.id)
@@ -1772,17 +1781,13 @@ function KnowledgeGraphCanvas({
         ? [...connectedEdgeIds]
         : [...connectedEdgeIds, ...activePathEdgeIds]
   );
-  const connectedNodeIds = new Set(
-    graph.edges
-      .filter((edge) => edge.source === selectedNodeId || edge.target === selectedNodeId)
-      .flatMap((edge) => [edge.source, edge.target])
-  );
+  const connectedNodeIds = new Set(connectedEdges.flatMap((edge) => [edge.source, edge.target]));
   const focusedNodeIds = new Set(
     focusMode === "all" || focusMode === "attribution"
       ? graph.nodes.map((node) => node.id)
       : focusMode === "neighborhood"
         ? [...connectedNodeIds, selectedNodeId]
-        : [...activePathIds, ...connectedNodeIds, selectedNodeId]
+        : [...activePathIds, ...connectedNodeIds, selectedNodeId, "patient"]
   );
 
   graph.nodes.forEach((node) => {

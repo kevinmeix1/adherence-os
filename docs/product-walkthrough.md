@@ -6,7 +6,7 @@ This walkthrough follows the exact production build used for release verificatio
 
 ![Decision map coaching overview](../public/walkthrough/01-live-twin-coaching.jpg)
 
-The opening view is a compact synthetic case record followed immediately by the evidence chain. It answers four questions: What is the next-week adherence-interruption risk? Which signal is active? Which bounded support assumption changes the score? Did a configured safety rule stop coaching?
+The opening view is a compact synthetic case record followed immediately by the evidence chain. It answers five questions: What is the next-week adherence-interruption risk? Which context signal ranks highest? Which model contributor explains the score? Which tested action changes it under bounded assumptions? Did a configured safety rule stop coaching?
 
 The graph is the first substantial surface, while the adjacent decision record keeps the next bounded action and its provenance visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
 
@@ -30,7 +30,7 @@ This is a planning comparison, not a treatment-effect estimate or medication rec
 
 ![Escalation scenario with model abstention and safety handoff](../public/walkthrough/04-safety-escalation.jpg)
 
-Select **Escalation**. The synthetic symptom vector moves outside model support, so numeric ML ranking **abstains**. Deterministic rules remain active, suppress support scenarios, and route the decision through the safety guardrail to an urgent clinician-review draft.
+Select **Escalation**. The synthetic symptom vector moves outside model support, so numeric ML ranking **abstains**. Deterministic rules remain active, suppress tested actions, and switch the decision to the safety guardrail and an urgent clinician-review draft.
 
 This is the key product boundary: model uncertainty cannot disable safety, and a high adherence-risk score is not required for red-flag escalation.
 
@@ -56,13 +56,19 @@ The seeded **Normal** and **Escalation** controls exist for a repeatable judged 
 
 The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out AUPRC, recall, threshold, review rate, Brier skill, reliability bins, and support-aware what-if behavior. Exact attribution, one-feature sensitivity, and bootstrap spread appear only for supported patient inputs.
 
-The screenshot intentionally shows an abstention state. Patient score, attribution, bootstrap spread, sensitivity, and route ranking are withheld; only artifact-level evidence, observed inputs, support exceptions, and deterministic safety remain visible.
+The screenshot intentionally shows an abstention state. Patient score, attribution, bootstrap spread, sensitivity, and tested-action ranking are withheld; only artifact-level evidence, observed inputs, support exceptions, and deterministic safety remain visible.
 
 ## 8. Verify The Narrow Layout
 
 ![320 pixel mobile Decision map](../public/walkthrough/08-mobile-live-twin.jpg)
 
-At 320 px wide the app has zero horizontal page overflow. Navigation becomes a compact two-row product bar and patient/scenario controls stay tappable. Coaching remains graph-first; Escalation moves the NHS 111 decision, immediate action, and handoff button ahead of graph exploration.
+At 320 px wide the app has zero horizontal page overflow. Navigation becomes a compact two-row product bar and patient/scenario controls stay tappable. Coaching remains graph-first and the complete context sentence remains visible without truncation.
+
+## 9. Verify Urgent Mobile Ordering
+
+![320 pixel mobile safety decision](../public/walkthrough/09-mobile-safety-escalation.jpg)
+
+Escalation moves the NHS 111 destination, immediate action, and **Review handoff draft** button ahead of graph exploration. Coaching actions and action relationships are suppressed from the default safety map; blocked alternatives remain available only in the explicit tested-action comparison.
 
 ## Reproduce The Walkthrough
 
@@ -72,4 +78,4 @@ pnpm build
 pnpm start
 ```
 
-Open `http://localhost:3000`, select **Reset demo**, and follow steps 1-7. In another terminal, run `pnpm smoke` to verify the home page, health route, patient routes, normal API path, and escalation API path.
+Open `http://localhost:3000`, select **Reset demo**, and follow steps 1-9. In another terminal, run `pnpm smoke` to verify the home page, health route, patient routes, normal API path, and escalation API path.

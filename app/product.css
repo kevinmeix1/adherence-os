@@ -3440,6 +3440,10 @@ body {
   fill: #fbfbf8;
 }
 
+.graph-evidence-panel .graph-node.attribution-mode:not(.selected):not(.patient):not(.risk) .graph-node-label {
+  opacity: 0;
+}
+
 .graph-evidence-panel .graph-path-strip {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
@@ -3918,11 +3922,10 @@ body {
 
   .decision-summary,
   .decision-copy > p.decision-summary {
-    display: -webkit-box;
-    overflow: hidden;
+    display: block;
+    overflow: visible;
     font-size: 0.74rem;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: unset;
   }
 
   .decision-controls {

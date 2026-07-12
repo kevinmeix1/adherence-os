@@ -94,4 +94,4 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 
 ## Selected Next Task
 
-**Run the final production rehearsal, refresh all affected assets, and freeze the judged-demo branch.** Use P3-05 only if a keyless hosted-preview account is already available.
+**Run the clean-checkout rehearsal and freeze the judged-demo branch after the remote production gate passes.** Use P3-05 only if a keyless hosted-preview account is already available.
