@@ -39,6 +39,8 @@ pnpm dev
 
 Open `http://localhost:3000`.
 
+Development output is isolated in `.next-dev`; production build and start use `.next`. This prevents `pnpm build` from corrupting an active development session. Stop an existing production server before rebuilding because production build and start share `.next` by design.
+
 Confirm the running demo and model artifact are ready:
 
 ```bash

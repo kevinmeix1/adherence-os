@@ -15,6 +15,8 @@ Adherence OS is a synthetic-data hackathon prototype. The safest judged-demo con
 
 Use Node.js 22+ and the pnpm version declared in `package.json`.
 
+Development and production output are isolated in this repository: `pnpm dev` writes to `.next-dev`, while `pnpm build` and `pnpm start` use `.next`. A production build therefore cannot overwrite files used by the development server. Stop any existing production server before rebuilding because production build and start intentionally share `.next`.
+
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
@@ -23,6 +25,8 @@ pnpm test
 pnpm build
 pnpm check:bundle
 ```
+
+Before the event-day build, confirm that no production server is still running on the intended port. A development server may remain available on another port without sharing build output, although stopping it reduces CPU and memory pressure during judging.
 
 Start the production build in one terminal:
 
@@ -104,6 +108,8 @@ Regardless of provider mode:
 |---|---|
 | Generate remains pending | Refresh, remove the provider key, and use deterministic mode. |
 | Port 3000 is occupied | Stop the old process or run `pnpm exec next start -p 3001` and `APP_URL=http://localhost:3001 pnpm smoke`. |
+| Development server is running during a build | Supported: development uses `.next-dev` and production uses `.next`. Stop development anyway if the laptop needs the extra CPU or memory. |
+| Production server is running during a rebuild | Stop it first, run `pnpm build`, then restart `pnpm start`; both intentionally use `.next`. |
 | Health check fails | Read the server terminal, restart the production process, and rerun smoke. |
 | Hosted preview fails | Switch to the locally validated production build. |
 | Live browser fails | Play `outputs/adherence-os-demo.mp4` and narrate from `docs/demo_script.md`. |
