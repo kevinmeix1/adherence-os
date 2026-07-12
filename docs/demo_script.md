@@ -162,6 +162,7 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; simulations 
 8. `/patients/maya-patel` routed patient record.
 9. `/api/health` readiness response.
 10. **Reset demo** after a changed patient, scenario, graph focus, and scroll position.
+11. At 390 px and 320 px, Coaching remains graph-first while Escalation shows the urgent destination and handoff action before the graph.
 
 ## Presenter Rules
 

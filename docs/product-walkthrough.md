@@ -62,7 +62,7 @@ The screenshot intentionally shows an abstention state. Patient score, attributi
 
 ![320 pixel mobile Decision map](../public/walkthrough/08-mobile-live-twin.jpg)
 
-At 320 px wide the app has zero horizontal page overflow. Navigation becomes a compact two-row product bar, patient and scenario controls stay tappable, and the evidence map remains the first substantial section. The inspector and lower-density evidence follow beneath it.
+At 320 px wide the app has zero horizontal page overflow. Navigation becomes a compact two-row product bar and patient/scenario controls stay tappable. Coaching remains graph-first; Escalation moves the NHS 111 decision, immediate action, and handoff button ahead of graph exploration.
 
 ## Reproduce The Walkthrough
 

@@ -47,6 +47,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - The training-support gate now withholds every patient-specific ML number across the Decision map, Model record, and routed records before extrapolation.
 - Graph interventions are explicitly described as planning comparisons rather than causal treatment effects.
 - Mobile layouts at 390px and 320px have been manually verified without page overflow.
+- Narrow layouts preserve graph-first Coaching but move the urgent destination and handoff action ahead of graph exploration in Escalation.
 - Patient directory routes include realistic loading, error, empty, and not-found states.
 - Public documentation includes architecture, safety boundaries, model details, demo assets, and design references.
 - Patient and model artifacts fail early through typed runtime validation, and the synthetic model has a non-destructive reproduction check.
@@ -129,10 +130,10 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Put the urgent destination before graph exploration on narrow escalation layouts.
-2. Unify context, model-attribution, and tested-action terminology in the judged path.
-3. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
-4. Add a keyless hosted preview only if an existing account makes it low risk.
+1. Unify context, model-attribution, and tested-action terminology in the judged path.
+2. Freeze feature work and rehearse the event-day production start, normal path, escalation path, reset, and fallback assets.
+3. Add a keyless hosted preview only if an existing account makes it low risk.
+4. Defer component and stylesheet decomposition until after judging.
 
 ## Baseline Validation
 
@@ -217,7 +218,7 @@ Five read-only reviews covered judging impact, clinical safety and ML, healthcar
 | 1 | Repaired | Emergency routes retained a generic same-day headline, and non-urgent copy overstated negative triage. Destination-aware headlines, literal non-match wording, exact support-plan triggers, and a Unicode follow-on regression now pass focused tests, smoke, and desktop browser review. | Safety trust and claim calibration | Low | Preserve in regression suite |
 | 2 | Repaired | Development now writes `.next-dev`; production continues to use `.next`. A live development server stayed healthy through a clean build and concurrent production smoke. | Event-day reliability | Low | Preserve config test and runbook preflight |
 | 3 | Repaired | The support gate now withholds patient score, model attribution, bootstrap spread, sensitivity, and numeric route ranking in the Decision map, Model record, and routed records. | ML credibility | Medium | Preserve core, graph, route, smoke, and browser checks |
-| 4 | Open | On narrow escalation layouts, the urgent action follows the graph rather than preceding it | Patient safety hierarchy | Low | 390px and 320px escalation screenshots |
+| 4 | Repaired | Coaching remains graph-first, while narrow Escalation orders the inspector first; the NHS 111 action and handoff button precede graph exploration at 390px and 320px with no overflow. | Patient safety hierarchy | Low | Preserve responsive browser rehearsal |
 | 5 | Open | Demo copy conflates authored context ranking, model contribution, and the highest-ranked tested action | Three-minute clarity | Low | One authoritative run-of-show and label audit |
 | 6 | External | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
 

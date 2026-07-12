@@ -23,6 +23,7 @@ Updated: 2026-07-12
 - Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
 - Applied the support gate to every presentation surface: unsupported inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, route ranking, and routed-record risk.
+- Preserved graph-first Coaching on narrow screens while moving the urgent destination and handoff action ahead of graph exploration in Escalation.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
 - The README image, eight walkthrough screenshots, deck, and video currently show the preceding UI checkpoint; one final refresh is queued after the remaining bounded UI repairs.
 - Updated UI labels, smoke contracts, route-state tests, demo scripts, architecture notes, design rationale, audit, and backlog.
@@ -57,9 +58,9 @@ Updated: 2026-07-12
 - `pnpm check:bundle`: pass, `151.8 kB gzip / 155.0 kB`, leaving 3.2 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against a temporary production server, including normal, escalation, uncertain chest-pain, and immediate self-safety API paths.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
-- Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail. Narrow Escalation confirms the separately tracked inspector-order issue.
+- Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
-- Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; 320 px document and graph surfaces have no horizontal overflow.
+- Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
 - Deck QA: all ten slides reviewed at full size; overflow check passes.
 - Video QA: 2:59, 1280x720, 5 fps static demonstration frames, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, clean full-file decode, and -2.7 dB peak audio.
 
@@ -71,7 +72,7 @@ Updated: 2026-07-12
 - The evidence graph is authored and explanatory; bounded rescoring is not causal evidence.
 - `app/page.tsx` remains roughly 2,400 lines, and the two stylesheets exceed 7,600 lines. Decomposition is intentionally deferred until after judging to avoid destabilising the demo.
 - Browser interaction and visual regression are manually rehearsed rather than automated in CI.
-- The fallback assets are queued for regeneration after the remaining narrow-layout and terminology repairs.
+- The fallback assets are queued for regeneration after the remaining terminology repair.
 
 ## Event-Day Commands
 
@@ -89,4 +90,4 @@ APP_URL=http://localhost:3001 pnpm smoke
 
 ## Recommended Next Step
 
-Finish narrow-screen urgent-action order and judged-path terminology before the final asset refresh and clean-checkout rehearsal.
+Finish judged-path terminology before the final asset refresh and clean-checkout rehearsal.

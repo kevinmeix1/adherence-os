@@ -3837,6 +3837,17 @@ body {
     min-height: auto;
     max-height: none;
   }
+
+  .decision-page.escalation .graph-evidence-panel {
+    order: 1;
+    border-top: 1px solid var(--product-line-strong);
+    border-bottom: 0;
+  }
+
+  .decision-page.escalation .decision-panel.graph-inspector {
+    order: 0;
+    border-bottom: 1px solid var(--product-line-strong);
+  }
 }
 
 @media (max-width: 760px) {
