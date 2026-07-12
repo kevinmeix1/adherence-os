@@ -914,20 +914,23 @@ function ModelLabView({
   const parityRows = getModelSampleRows();
   const sampleRows = [...parityRows.slice(0, 3), ...parityRows.slice(-3)];
   const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
+  const confusion = artifact.metrics.confusionMatrix;
+  const testEventRate = (confusion.tp + confusion.fn) /
+    Math.max(confusion.tp + confusion.fp + confusion.fn + confusion.tn, 1);
 
   return (
     <div className="model-grid">
       <section className="panel wide-panel model-hero">
         <div>
           <p className="section-kicker">Model record</p>
-          <h2>Edge ML predicts next-week adherence interruption risk</h2>
+          <h2>Edge ML estimates next-week adherence interruption risk</h2>
           <p>
-            A leakage-safe monotonic model scores structured home-care features in the browser. Sixteen patient-bootstrap members expose model spread while deterministic rules own safety.
+            A monotonic model trained on an authored synthetic cohort scores structured home-care features in the browser. Sixteen patient-bootstrap members expose model spread while deterministic rules own safety.
           </p>
         </div>
         <div className="risk-dial">
           <span>{modelSupported ? formatPercent(edgeRisk.risk) : "Abstained"}</span>
-          <strong>{modelSupported ? riskBand(edgeRisk.risk, artifact.metrics.threshold) : "Outside support"}</strong>
+          <strong>{modelSupported ? riskBand(edgeRisk.risk, artifact.metrics.threshold) : "Marginal bounds exceeded"}</strong>
         </div>
       </section>
 
@@ -940,10 +943,10 @@ function ModelLabView({
           <BarChart3 size={24} />
         </div>
         <div className="metric-row compact-metrics">
-          <Metric icon={<UserRound size={18} />} label="Patients" value={String(artifact.cohort.patients)} />
-          <Metric icon={<ClipboardCheck size={18} />} label="Samples" value={artifact.metrics.samples.toLocaleString()} />
           <Metric icon={<TrendingDown size={18} />} label="Synthetic AUPRC" value={artifact.metrics.testAuprc.toFixed(3)} />
           <Metric icon={<Gauge size={18} />} label="Test recall" value={formatPercent(artifact.metrics.recallAtThreshold)} />
+          <Metric icon={<ClipboardCheck size={18} />} label="Test precision" value={formatPercent(artifact.metrics.precisionAtThreshold)} />
+          <Metric icon={<UserRound size={18} />} label="Rows flagged" value={formatPercent(artifact.metrics.reviewRateAtThreshold)} />
         </div>
         <p className="model-note">{artifact.cohort.description}</p>
         <div className="model-method-strip">
@@ -976,12 +979,12 @@ function ModelLabView({
             <strong>{formatPercent(artifact.metrics.threshold)}</strong>
           </div>
           <div>
-            <span>Precision</span>
-            <strong>{formatPercent(artifact.metrics.precisionAtThreshold)}</strong>
+            <span>Test patients</span>
+            <strong>{artifact.metrics.testPatients}</strong>
           </div>
           <div>
-            <span>Review rate</span>
-            <strong>{formatPercent(artifact.metrics.reviewRateAtThreshold)}</strong>
+            <span>Test event rate</span>
+            <strong>{formatPercent(testEventRate)}</strong>
           </div>
           <div>
             <span>Brier skill</span>
@@ -997,7 +1000,7 @@ function ModelLabView({
             <h2>{patient.name}</h2>
           </div>
           <span className={`model-support-status ${modelSupported ? "supported" : "abstained"}`}>
-            {modelSupported ? "Within training support" : "Model abstained"}
+            {modelSupported ? "Marginal bounds passed" : "Marginal bounds exceeded"}
           </span>
         </div>
         <div className="inference-list">
@@ -1006,19 +1009,22 @@ function ModelLabView({
           <span>Nausea {checkIn.nauseaScore}/10</span>
           <span>Hydration {checkIn.hydrationScore}/10</span>
         </div>
+        <p className="model-note">
+          The gate checks each feature independently against training-only marginal ranges: 0.5th-99.5th percentiles for continuous features and valid values for binary features. Joint-distribution and semantic drift are not detected.
+        </p>
         <div className="prediction-box">
           <strong>Tested action status</strong>
           <span>
             {bestIntervention.rankable && bestIntervention.absoluteReduction !== null
               ? `${bestIntervention.label}: ${formatPercentagePoints(bestIntervention.absoluteReduction)} scenario-score decrease.`
-              : "Numeric tested-action ranking is disabled outside synthetic training support."}
+              : "Numeric tested-action ranking is disabled outside the configured marginal feature bounds."}
           </span>
         </div>
         {modelSupported ? (
           <div className="inference-list" aria-label="Bootstrap model spread">
             <span>{artifact.ensemble.members.length} bootstrap members</span>
             <span>Spread {formatPercent(edgeRisk.modelSpread.p10)}-{formatPercent(edgeRisk.modelSpread.p90)}</span>
-            <span>No support exceptions</span>
+            <span>No marginal-bound exceptions</span>
           </div>
         ) : (
           <div className="inference-list" aria-label="Abstention reason">
@@ -1166,7 +1172,7 @@ function ModelLabView({
           <div className="model-abstention-record">
             <AlertTriangle size={22} />
             <div>
-              <strong>Outside synthetic training support</strong>
+              <strong>Outside marginal feature bounds</strong>
               <p>
                 This record does not show a patient score, feature decomposition, bootstrap spread, or local sensitivity. Unsupported features: {edgeRisk.support.violations.map((violation) => violation.label).join(", ")}.
               </p>
@@ -1195,7 +1201,7 @@ function ModelLabView({
               <p>{intervention.note}</p>
               <div className="sim-risk-row">
                 <small>New risk</small>
-                <strong>{intervention.risk === null ? "Outside support" : formatPercent(intervention.risk)}</strong>
+                <strong>{intervention.risk === null ? "Outside bounds" : formatPercent(intervention.risk)}</strong>
               </div>
             </article>
           ))}
@@ -1205,8 +1211,8 @@ function ModelLabView({
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Held-out reliability</p>
-            <h2>Predicted vs observed bins</h2>
+            <p className="section-kicker">Held-out synthetic calibration</p>
+            <h2>Predicted vs observed test bins</h2>
           </div>
           <Gauge size={24} />
         </div>
@@ -1411,7 +1417,7 @@ function KnowledgeGraphView({
               ? carePlan.escalation.needed
                 ? "Safety rule overrides model"
                 : riskBand(edgeRisk.risk, edgeRisk.artifact.metrics.threshold)
-              : "Outside synthetic support"
+              : "Marginal bounds exceeded"
           }
           tone={edgeRisk.support.status === "supported" ? "action" : "watch"}
         />
@@ -1430,7 +1436,7 @@ function KnowledgeGraphView({
               ? "Safety override"
               : bestIntervention.rankable
                 ? bestIntervention.label
-                : "Outside synthetic support"
+                : "Marginal bounds exceeded"
           }
           tone={graph.pathMode === "escalation" ? "urgent" : "action"}
         />
@@ -1556,7 +1562,7 @@ function KnowledgeGraphView({
                 </div>
                 <div className="route-result">
                   <strong>{route.absoluteReduction === null ? "Not ranked" : `-${formatPercentagePoints(route.absoluteReduction)}`}</strong>
-                  <small>{route.newRisk === null ? "Outside support" : `to ${formatPercent(route.newRisk)}`}</small>
+                  <small>{route.newRisk === null ? "Outside bounds" : `to ${formatPercent(route.newRisk)}`}</small>
                 </div>
                 <span className="route-status">
                   {route.status === "blocked-by-safety"
@@ -1636,7 +1642,7 @@ function GraphNodeInspector({
         </div>
         <div className={`decision-risk-score ${edgeRisk.support.status === "supported" ? "" : "abstained"}`}>
           <strong>{edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}</strong>
-          <span>{edgeRisk.support.status === "supported" ? "Adherence risk" : "Outside support"}</span>
+          <span>{edgeRisk.support.status === "supported" ? "Adherence risk" : "Outside marginal bounds"}</span>
         </div>
       </header>
 

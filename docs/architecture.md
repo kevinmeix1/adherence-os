@@ -22,9 +22,9 @@ flowchart TB
         Validate --> Features
         Features --> Model["Local edge inference"]
         Artifact --> Model
-        Model --> Support["Training-support gate"]
-        Support -->|Inside support| Explain["Exact log-odds attribution + bounded rescoring"]
-        Support -->|Outside support| Abstain["Withhold patient ML evidence"]
+        Model --> Support["Marginal feature-bounds gate"]
+        Support -->|Every bound passes| Explain["Exact log-odds attribution + bounded rescoring"]
+        Support -->|Any bound exceeded| Abstain["Withhold patient ML evidence"]
 
         Validate --> Safety["Deterministic safety engine"]
         History --> Safety
@@ -98,7 +98,7 @@ Edits and scenario changes invalidate any in-flight request before recomputing l
 - A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic patient-weeks with projected-gradient sign constraints.
 - The artifact exports coefficients, training-only support bounds, the selected threshold, held-out metrics, bootstrap members, reliability bins, and parity fixtures.
 - Inference runs locally over 14 structured features. For supported inputs, exact signed contributions reconstruct the final log-odds score.
-- When the observed vector falls outside the training-only 0.5th-99.5th percentile support bounds, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and tested-action ranking. Routed patient records use the same gate.
+- The bounds gate checks each feature independently against training-only 0.5th-99.5th percentile ranges, or the valid set for binary features. If any bound is exceeded, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and tested-action ranking. It does not detect joint-distribution or semantic drift. Routed patient records use the same gate.
 
 Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`data/adherence-model.json`](../data/adherence-model.json) and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
 
@@ -108,7 +108,7 @@ Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model
 - Authored edge weights identify the highest-ranked inspectable context signal and a concise decision path.
 - Every node declares provenance: model attribution, bounded simulation, deterministic rule, or patient context.
 - Decision-path, selected-neighborhood, attribution, and all-signal modes change presentation, not the underlying decision.
-- Model-derived node attribution and tested-action comparison are withheld outside synthetic support; deterministic rules and observed context remain visible.
+- Model-derived node attribution and tested-action comparison are withheld when a marginal feature bound is exceeded; deterministic rules and observed context remain visible.
 
 This is an explainable decision representation, not a learned knowledge-graph model or causal graph. Read [`app/lib/knowledgeGraph.ts`](../app/lib/knowledgeGraph.ts) after the edge model.
 

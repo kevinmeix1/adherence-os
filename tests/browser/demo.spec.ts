@@ -109,6 +109,25 @@ test("patient switches preserve independent scenario and queue state", async ({ 
   expect(runtimeErrors).toEqual([]);
 });
 
+test("model record exposes synthetic operating trade-offs and marginal bounds", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Model record", exact: true }).click();
+
+  await expect(page.locator(".metric").filter({ hasText: "Test recall" })).toContainText("80%");
+  await expect(page.locator(".metric").filter({ hasText: "Test precision" })).toContainText("32%");
+  await expect(page.locator(".metric").filter({ hasText: "Rows flagged" })).toContainText("42%");
+  await expect(page.locator(".model-support-status")).toHaveText("Marginal bounds passed");
+  await expect(page.getByText(/Joint-distribution and semantic drift are not detected/i)).toBeVisible();
+  await expect(page.getByText("Held-out synthetic calibration", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Decision map", exact: true }).click();
+  await page.getByRole("button", { name: "Escalation", exact: true }).click();
+  await page.getByRole("button", { name: "Model record", exact: true }).click();
+  await expect(page.locator(".model-support-status")).toHaveText("Marginal bounds exceeded");
+  await expect(page.getByRole("heading", { name: "Attribution and sensitivity withheld" })).toBeVisible();
+  await expect(page.getByText("Outside marginal feature bounds", { exact: true })).toBeVisible();
+});
+
 test("narrow coaching and escalation preserve safe reading order", async ({ page }) => {
   const runtimeErrors = monitorRuntimeErrors(page);
 

@@ -16,7 +16,7 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 - Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
 - Clickable decision evidence graph with decision-path, selected-neighbourhood, attribution, and all-signal focus modes.
 - Per-node provenance that distinguishes model attribution, bounded simulation, deterministic rules, and patient context.
-- A presentation gate that withholds patient score, attribution, spread, sensitivity, and tested-action ranking outside synthetic training support.
+- A marginal feature-bounds gate that withholds patient score, attribution, spread, sensitivity, and tested-action ranking when any feature exceeds its configured training-only range.
 - Personalised adherence-risk summary with context signals, model contributors, protective factors, and an explicitly heuristic failure-point narrative.
 - 7-day Rescue Plan with patient micro-actions and clinician triggers.
 - Unsafe medication-request demo that blocks dose-change advice.
@@ -74,7 +74,7 @@ The suite starts the built app on port 3100 when `APP_URL` is unset. It covers t
 3. Click **Routine disruption**, then **Hydration nudge**, to show the largest model contributor and top tested action.
 4. Click **Escalation**. Point out **Suppressed**, **Blocked by safety**, and the red path to **Clinician handoff**.
 5. Click **Review handoff draft** to land in **Review queue** on the selected task, delivery state, and deterministic audit trail.
-6. Open **Model record** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, support-aware abstention, or artifact provenance.
+6. Open **Model record** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, marginal-bound abstention, or artifact provenance.
 
 The core story is one context signal, one model contributor, one tested action, one visible model abstention, and one safety override. Do not describe graph paths or tested actions as causal, or synthetic metrics as clinical validation.
 

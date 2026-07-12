@@ -8,7 +8,7 @@ Updated: 2026-07-12
 - Pull request: https://github.com/kevinmeix1/adherence-os/pull/2
 - Public repository: https://github.com/kevinmeix1/adherence-os
 - Local demo URL: http://localhost:3001
-- Product status: release-complete visual, documentation, and fallback-asset checkpoint on draft PR #2
+- Product status: validated hackathon release candidate on draft PR #2
 
 ## What Changed
 
@@ -21,13 +21,14 @@ Updated: 2026-07-12
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
 - Added a seven-item typed current-symptom checklist that overrides coaching without depending on free-text interpretation; phrase matching remains a secondary backstop.
 - Flattened the Check-in grid so dose, safety, mood, and note fields no longer leave empty placeholder-like cells.
-- Added five Chromium contracts for the judged flow, per-patient state round trips, keyboard/focus, 390/320px order and overflow, console health, and serious/critical axe findings across four core states.
+- Added six Chromium contracts for the judged flow, per-patient state round trips, model-claim calibration, keyboard/focus, 390/320px order and overflow, console health, and serious/critical axe findings across four core states.
 - Made safety announcements persistent across views, focused the named workspace after client navigation, exposed graph selection semantics, removed duplicate pointer activation, and made the scrollable review table keyboard-accessible.
 - Replaced the single selected-patient plan with independent in-memory sessions; Maya's pending review survives a James round trip and Reset clears all three synthetic records.
 - Put 999 and NHS 111 destinations in urgent headlines, removed unsupported negative-triage reassurance, and aligned every seven-day trigger note with the implemented rule boundary.
 - Made every clinician message explicitly draft-only, pending manual review, with no clinician or service contacted.
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
 - Applied the support gate to every presentation surface: unsupported inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, tested-action ranking, and routed-record risk.
+- Renamed that gate to marginal feature bounds, exposed held-out synthetic precision and review burden beside recall, and stated that independent ranges do not detect joint-distribution or semantic drift.
 - Preserved graph-first Coaching on narrow screens while moving the urgent destination and handoff action ahead of graph exploration in Escalation.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
 - The README image, nine walkthrough screenshots, ten-slide deck, and 2:59 captioned video all show the verified production interface.
@@ -60,13 +61,13 @@ Updated: 2026-07-12
 - `pnpm test`: pass, 63/63.
 - Focused safety/API/dashboard suite: pass, 29/29, including all seven structured safety flags, destination-aware headlines, negative-triage copy, uncertain chest pain, three new paraphrase regressions, and schema rejection of unknown flags.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
-- `pnpm build`: pass; `/` is 46.3 kB with 152 kB reported first-load JavaScript.
-- `pnpm check:bundle`: pass, `152.8 kB gzip / 155.0 kB`, leaving 2.2 kB headroom.
+- `pnpm build`: pass; `/` is 46.7 kB with 152 kB reported first-load JavaScript.
+- `pnpm check:bundle`: pass, `153.0 kB gzip / 155.0 kB`, leaving 2.0 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against the production server, including normal, escalation, uncertain chest-pain, immediate self-safety, and structured-safety API paths.
-- `pnpm test:browser`: pass, 5/5 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
+- `pnpm test:browser`: pass, 6/6 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
-- Remote production gate: GitHub Actions run `29187107480` passed in 1m32s on commit `8e27671`, including the four Chromium/axe contracts and production smoke.
+- Last pushed remote production gate: GitHub Actions run `29187439388` passed in 1m41s on commit `fc29b47`, including five Chromium/axe contracts and production smoke. The sixth model-claim contract is locally verified in this checkpoint.
 - Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.

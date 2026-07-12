@@ -26,7 +26,7 @@ test("patient record with unsupported features withholds the ML risk number", as
   const element = await PatientDetailPage({ params: Promise.resolve({ patientId: "james-oconnor" }) });
   const html = renderToStaticMarkup(element);
 
-  assert.match(html, /ML abstained outside synthetic support/);
+  assert.match(html, /ML abstained outside marginal feature bounds/);
   assert.doesNotMatch(html, /\d+% ML adherence risk/);
 });
 

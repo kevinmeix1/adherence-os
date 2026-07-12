@@ -160,7 +160,7 @@ export function buildAdherenceKnowledgeGraph({
     evidence:
       edgeRisk.support.status === "supported"
         ? `${formatPercent(edgeRisk.risk)} edge-model risk; ${carePlan.headline.toLowerCase()}.`
-        : `Model abstained outside synthetic training support; ${carePlan.headline.toLowerCase()}.`
+        : `Model abstained outside marginal synthetic feature bounds; ${carePlan.headline.toLowerCase()}.`
   });
   addNode(nodes, {
     id: "nausea",
@@ -221,7 +221,7 @@ export function buildAdherenceKnowledgeGraph({
       weight: clamp01(reduction / Math.max(edgeRisk.risk, 0.01)),
       evidence: intervention.rankable
         ? `${formatPercentagePoints(reduction)} scenario-score decrease under explicit assumptions.`
-        : "Not ranked because the current input is outside synthetic training support."
+        : "Not ranked because the current input is outside configured marginal feature bounds."
     });
   });
 
@@ -308,7 +308,7 @@ export function buildAdherenceKnowledgeGraph({
       rationale: carePlan.escalation.needed
         ? "Deterministic red flags suppress automated coaching even when the adherence simulation improves."
         : !intervention.rankable
-          ? "No numeric comparison is shown outside the synthetic training support."
+          ? "No numeric comparison is shown outside configured marginal feature bounds."
         : index === 0
           ? "Largest supported scenario-score decrease under the current explicit assumptions."
           : "Lower-ranked modelled option retained for clinician or patient review."
@@ -338,7 +338,7 @@ export function buildAdherenceKnowledgeGraph({
       displayValue: bestIntervention?.rankable ? formatPercent(rescuePathStrength) : "Not ranked",
       interpretation: bestIntervention?.rankable
         ? `${bestIntervention.label} has the largest supported scenario-score change.`
-        : "The model abstains from tested-action comparison outside synthetic support."
+        : "The model abstains from tested-action comparison outside marginal feature bounds."
     },
     {
       id: "recent_friction_index",
@@ -436,7 +436,7 @@ function buildNodeExplanations(
         evidenceEdgeCount,
         summary: intervention?.rankable
           ? "An explicit feature perturbation rescores the same model. The delta is a what-if estimate, not causal evidence."
-          : "The route is not numerically ranked because the observed or simulated input is outside synthetic training support."
+          : "The route is not numerically ranked because the observed or simulated input is outside configured marginal feature bounds."
       };
     }
 
@@ -456,7 +456,7 @@ function buildNodeExplanations(
         featureNames: [],
         featureLabels: [],
         evidenceEdgeCount,
-        summary: "Patient-specific model attribution is withheld because this input is outside synthetic training support."
+        summary: "Patient-specific model attribution is withheld because this input is outside marginal feature bounds."
       };
     }
 

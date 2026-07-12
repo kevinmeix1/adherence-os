@@ -91,7 +91,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 9. Performance Risks
 
-- The home route measures 152.8 kB gzip, which leaves only 2.2 kB inside the enforced 155 kB budget.
+- The home route measures 153.0 kB gzip, which leaves only 2.0 kB inside the enforced 155 kB budget.
 - Every primary workspace view ships in one client module even when only the graph is initially visible.
 - More than 7,600 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
 - Graph calculations are small for 13 nodes and three synthetic patients; they do not currently justify worker or server infrastructure.
@@ -134,7 +134,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 14. Highest-Impact Improvement Areas
 
-1. Tighten synthetic-model labels around precision, review burden, and marginal support bounds.
+1. Rename and reframe the clinician workspace so it does not imply a transported or autonomously prioritised inbox.
 2. Gather real patient/clinician comprehension evidence.
 3. Add a keyless hosted preview only when an existing account makes external access low risk.
 4. Defer component and stylesheet decomposition until after judging.
@@ -210,7 +210,7 @@ Eight additional P1 tasks are complete. The app remains focused on the same thre
 
 The earlier self-score was too generous. Independent hostile, clinical-safety, ML, UX, and engineering reviews were commissioned on 2026-07-11. They found a leaked model target, 8.2% operating-point recall, free-text safety bypasses, unsupported confidence language, a below-the-fold primary action, and demo tooling mixed into product roles.
 
-- **Now repaired:** the prospective model contract, patient-isolated evaluation, recall-oriented threshold selection, bootstrap spread, support-aware abstention, Python/browser parity, adversarial symptom coverage, and fully deterministic post-provider plan merge.
+- **Now repaired:** the prospective model contract, patient-isolated evaluation, recall-oriented threshold selection, bootstrap spread, marginal-bound abstention, Python/browser parity, adversarial symptom coverage, and fully deterministic post-provider plan merge.
 - **Latest safety repair:** an eight-word negation window could suppress uncertainty such as “not sure why I have chest pain,” while a common self-safety contraction was not matched. Negation is now symptom-scoped, punctuation is normalised, and both failures are regression-tested.
 
 ### 2026-07-12 Independent Critique
@@ -235,13 +235,13 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 | Rank | Status | Finding | Smallest credible response |
 |---:|---|---|---|
 | 1 | Repaired | Open-ended text could miss clinically equivalent urgent wording and continue coaching. | Added seven typed current-symptom flags that independently stop coaching, plus adversarial phrase regressions for chest discomfort, inability to catch breath, and not wanting to be alive. |
-| 2 | Repaired | CI could pass without hydrating or clicking the product, and no automated accessibility scan protected the judged path. | Four Chromium contracts now cover the judged flow, keyboard/focus, narrow layouts, console health, and serious/critical axe findings. |
+| 2 | Repaired | CI could pass without hydrating or clicking the product, and no automated accessibility scan protected the judged path. | Six Chromium contracts now cover the judged flow, patient-state round trips, model-claim calibration, keyboard/focus, narrow layouts, console health, and serious/critical axe findings. |
 | 3 | Repaired | Switching the selected patient reconstructed non-selected rows from normal seed data rather than preserving per-patient session state. | Each patient now owns an independent local session; a unit test and fifth production-browser contract preserve Maya's review through a James round trip and verify global Reset. |
-| 4 | Open | Synthetic model performance can still be mistaken for clinical evidence, and the support gate checks marginal feature bounds rather than joint-distribution drift. | Tighten visible model labels and show the precision/review-burden trade-off without changing the judged path. |
+| 4 | Repaired | Synthetic model performance could be mistaken for clinical evidence, and independent feature bounds were labelled as general training support. | The Model record now puts 79.6% recall beside 31.6% precision and 41.8% rows flagged, calls the gate marginal feature bounds, and states that joint-distribution and semantic drift are not detected. |
 | 5 | External | No patient or clinician has validated comprehension, usefulness, or workflow savings. | Run a small task-based study and publish anonymised evidence without inventing outcomes. |
 
 - **Still weak:** hosted access, real user or clinician evidence, manual assistive-technology evidence, pixel-level visual regression, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 152.8 kB gzip, leaving only 2.2 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 153.0 kB gzip, leaving only 2.0 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
@@ -255,10 +255,10 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.7 | 63 deterministic tests plus five Chromium contracts for judged behavior, patient-state round trips, keyboard/focus, responsive layout, console health, and bounded axe scans |
+| Testing | 9.7 | 63 deterministic tests plus six Chromium contracts for judged behavior, patient-state round trips, model-claim calibration, keyboard/focus, responsive layout, console health, and bounded axe scans |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 152.8 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.0 | 153.0 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.9 | Persistent announcements, focus-managed views, selected graph semantics, focusable scroll regions, visible focus, captioned video, and bounded axe scans; manual assistive-tech testing remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
@@ -275,5 +275,5 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 - The current local checkpoint passes typecheck, 63 tests, model reproduction, production build, bundle budget, live smoke, and structured-safety interaction checks at 1440 px, 390 px, and 320 px.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
 - GitHub Actions run `29187107480` passes the remote production gate for commit `8e27671`, including Chromium installation, all four browser/accessibility contracts, and production smoke.
-- Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
+- Coaching passes every configured marginal feature bound. Escalation exceeds at least one bound, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.

@@ -408,7 +408,7 @@ function simulateInterventions(
         rankable,
         note: rankable
           ? intervention.note
-          : `${intervention.note} Not ranked outside the synthetic training support.`
+          : `${intervention.note} Not ranked outside the configured marginal feature bounds.`
       };
     })
     .sort((a, b) => (b.absoluteReduction ?? -1) - (a.absoluteReduction ?? -1));

@@ -43,7 +43,7 @@ Switch from **Coaching** to **Escalation** on the Decision map. The symptom vect
 - Directional constraints prevent synthetic correlated features from learning counterintuitive signs.
 - A supported score is reconstructed exactly from intercept and signed log-odds contributions.
 - Supported one-feature-at-a-time sensitivity shows local score stability without pretending to be a confidence interval.
-- Outside support, patient score, attribution, spread, sensitivity, and tested-action ranking are all withheld.
+- When a feature exceeds its configured marginal bound, patient score, attribution, spread, sensitivity, and tested-action ranking are all withheld.
 - Graph nodes identify whether evidence comes from the model, a bounded simulation, a deterministic rule, or patient context.
 - Optional OpenAI output is schema-validated, then the complete deterministic plan is recomputed; generated wording does not survive the current MVP merge.
 - The full product works without a provider key.
@@ -92,7 +92,7 @@ Click **Escalation**.
 
 Say:
 
-> Maya now reports vomiting, worsening pain, poor hydration, and lightheadedness. The model abstains outside synthetic support. Safety blocks every tested action and tells her to call NHS 111 now; if the pain is sudden or so severe that it is hard to think or talk, she should call 999 or go to A&E now. The clinician handoff is a draft, not a sent message.
+> Maya now reports vomiting, worsening pain, poor hydration, and lightheadedness. One or more features exceed the model's marginal bounds, so patient-specific ML evidence is withheld. Safety still blocks every tested action and tells her to call NHS 111 now; if the pain is sudden or so severe that it is hard to think or talk, she should call 999 or go to A&E now. The clinician handoff is a draft, not a sent message.
 
 Point to **Abstained**, **Suppressed**, **Handoff draft**, and the red safety path.
 

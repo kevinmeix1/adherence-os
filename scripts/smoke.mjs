@@ -149,7 +149,7 @@ await check("/patients/maya-patel", async (response) => {
 
 await check("/patients/james-oconnor", async (response) => {
   const html = await response.text();
-  if (!html.includes("ML abstained outside synthetic support") || /\d+% ML adherence risk/.test(html)) {
+  if (!html.includes("ML abstained outside marginal feature bounds") || /\d+% ML adherence risk/.test(html)) {
     throw new Error("unsupported patient record exposed a patient-specific ML risk number");
   }
 });

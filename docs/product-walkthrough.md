@@ -22,7 +22,7 @@ Routine disruption is the largest model contributor for this supported input. Se
 
 ![Hydration nudge tested-action comparison](../public/walkthrough/03-bounded-support-route.jpg)
 
-Select **Hydration nudge**. The app changes explicit feature assumptions, rescores the same model, and reports a **2 percentage-point** scenario decrease. The tested action is only ranked while both the observed and simulated vectors remain inside synthetic training support.
+Select **Hydration nudge**. The app changes explicit feature assumptions, rescores the same model, and reports a **2 percentage-point** scenario decrease. The tested action is only ranked while every observed and simulated feature remains inside its configured marginal bounds.
 
 This is a planning comparison, not a treatment-effect estimate or medication recommendation.
 
@@ -56,7 +56,7 @@ The seeded **Normal** and **Escalation** controls exist for a repeatable judged 
 
 ![Model record with abstention and prospective metrics](../public/walkthrough/07-model-evidence.jpg)
 
-The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out AUPRC, recall, threshold, review rate, Brier skill, reliability bins, and support-aware what-if behavior. Exact attribution, one-feature sensitivity, and bootstrap spread appear only for supported patient inputs.
+The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out synthetic AUPRC, recall, precision, rows flagged for review, threshold, Brier skill, calibration bins, and bounds-aware what-if behavior. Exact attribution, one-feature sensitivity, and bootstrap spread appear only when all marginal bounds pass.
 
 The screenshot intentionally shows an abstention state. Patient score, attribution, bootstrap spread, sensitivity, and tested-action ranking are withheld; only artifact-level evidence, observed inputs, support exceptions, and deterministic safety remain visible.
 

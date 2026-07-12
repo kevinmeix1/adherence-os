@@ -38,7 +38,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
           <PatientSummaryMetric
             label="Risk level"
             value={row.riskLevel}
-            note={row.modelRisk === null ? "ML abstained outside synthetic support" : `${Math.round(row.modelRisk * 100)}% ML adherence risk`}
+            note={row.modelRisk === null ? "ML abstained outside marginal feature bounds" : `${Math.round(row.modelRisk * 100)}% ML adherence risk`}
             tone={row.riskLevel}
           />
           <PatientSummaryMetric label="Weight change" value={`${row.weightChangeKg.toFixed(1)} kg`} note={`Last check-in ${formatDate(row.lastCheckInDate)}`} tone="action" />
