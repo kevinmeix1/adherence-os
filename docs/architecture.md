@@ -156,6 +156,7 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 | `app/lib/schemas.ts` | Runtime API and provider-output validation |
 | `app/lib/patientData.ts` | Runtime validation for checked-in synthetic records |
 | `scripts/smoke.mjs` | Exercises production routes plus normal and escalation POST paths |
+| `scripts/capture-walkthrough.mjs` | Reproduces the README image and nine judged desktop/mobile states from a running production app |
 | `.github/workflows/ci.yml` | Repeats the full release gate without secrets |
 
 ## Suggested Study Order

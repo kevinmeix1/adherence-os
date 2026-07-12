@@ -2519,6 +2519,27 @@ blockquote {
   text-transform: uppercase;
 }
 
+.queue-empty {
+  display: grid;
+  gap: 4px;
+  min-height: 82px;
+  align-content: center;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  background: #f8f8f5;
+  color: var(--muted);
+}
+
+.queue-empty strong {
+  color: var(--ink);
+  font-size: 0.84rem;
+}
+
+.queue-empty span {
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
 .trace-step.escalated .trace-step-head span {
   color: var(--red);
   background: var(--red-soft);
@@ -3036,6 +3057,15 @@ body {
   gap: 0;
 }
 
+.demo-case-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .scenario-actions .icon-button + .icon-button,
 .scenario-actions .scenario-custom-state {
   border-left: 0;
@@ -3168,6 +3198,204 @@ body {
   background: var(--ink);
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+.checkin-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: clamp(520px, calc(100svh - 188px), 720px);
+  overflow: hidden;
+  padding: 0;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.checkin-heading {
+  align-items: center;
+  margin: 0;
+  padding: 17px 19px 14px;
+}
+
+.checkin-heading > div:first-child > p {
+  margin: 0 0 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.checkin-heading h2 {
+  font-size: 1.24rem;
+}
+
+.checkin-demo-cases {
+  display: grid;
+  gap: 5px;
+  justify-items: end;
+}
+
+.checkin-demo-cases .scenario-actions {
+  flex-wrap: nowrap;
+}
+
+.checkin-demo-cases .icon-button,
+.checkin-demo-cases .scenario-custom-state {
+  min-height: 38px;
+  padding: 7px 10px;
+}
+
+.checkin-body {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.checkin-panel .form-grid {
+  gap: 10px;
+  padding: 15px 18px 20px;
+  border: 0;
+  background: #ffffff;
+}
+
+.checkin-panel .toggle-row,
+.checkin-panel .field,
+.checkin-panel .slider-field {
+  border: 1px solid #d9ddda;
+  border-radius: 5px;
+  background: #fbfcfb;
+}
+
+.checkin-panel .toggle-row,
+.checkin-panel .slider-field {
+  min-height: 68px;
+}
+
+.checkin-panel .safety-checklist {
+  padding: 14px;
+  border: 1px solid #ccd3cf;
+  border-radius: 5px;
+  background: #f7faf8;
+}
+
+.checkin-panel .safety-checklist legend {
+  font-size: 0.86rem;
+}
+
+.checkin-panel .safety-checklist-options {
+  gap: 8px;
+  border: 0;
+  background: transparent;
+}
+
+.checkin-panel .safety-check-option {
+  min-height: 44px;
+  border: 1px solid #d9ddda;
+  border-radius: 4px;
+  background: #ffffff;
+  font-size: 0.78rem;
+}
+
+.checkin-panel .mood-field {
+  min-height: 62px;
+}
+
+.checkin-notes {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border: 1px solid #d9ddda;
+  border-radius: 5px;
+  background: #ffffff;
+}
+
+.checkin-notes summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 10px 12px;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.checkin-notes summary::-webkit-details-marker {
+  display: none;
+}
+
+.checkin-notes summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.checkin-notes summary small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkin-notes summary > svg {
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+
+.checkin-notes[open] summary > svg {
+  transform: rotate(180deg);
+}
+
+.checkin-notes-grid {
+  display: grid;
+  gap: 1px;
+  padding: 1px 0 0;
+  border-top: 1px solid var(--line);
+  background: var(--line);
+}
+
+.checkin-notes-grid .field {
+  border: 0;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.checkin-submit-bar {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+  align-items: center;
+  gap: 10px;
+  min-height: 70px;
+  padding: 11px 15px;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 -8px 18px rgba(23, 25, 24, 0.05);
+}
+
+.checkin-safety-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--teal);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.checkin-submit-bar .primary-action {
+  grid-column: 2;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  border-radius: 4px;
+}
+
+.checkin-submit-bar .generation-notice {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .care-moment {
@@ -3637,6 +3865,53 @@ body {
 @media (max-width: 840px) {
   .panel {
     padding: 14px;
+  }
+
+  .patient-grid {
+    padding-bottom: 82px;
+  }
+
+  .checkin-panel {
+    display: block;
+    height: auto;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .checkin-heading {
+    align-items: stretch;
+    padding: 15px;
+  }
+
+  .checkin-demo-cases {
+    justify-items: start;
+  }
+
+  .checkin-demo-cases .scenario-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .checkin-demo-cases .scenario-custom-state {
+    grid-column: 1 / -1;
+    justify-content: center;
+    border-left: 1px solid var(--line);
+  }
+
+  .checkin-body {
+    overflow: visible;
+  }
+
+  .checkin-submit-bar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 240px);
+    min-height: 70px;
+    padding: 10px max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    box-shadow: 0 -8px 24px rgba(23, 25, 24, 0.14);
   }
 
   .metric-row {

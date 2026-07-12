@@ -23,6 +23,8 @@ References:
 - [NHS summary list](https://service-manual.nhs.uk/design-system/components/summary-list/)
 - [NHS task list](https://service-manual.nhs.uk/design-system/components/task-list)
 - [NHS tabs](https://service-manual.nhs.uk/design-system/components/tabs)
+- [NHS question pages](https://service-manual.nhs.uk/design-system/patterns/question-pages)
+- [NHS buttons](https://service-manual.nhs.uk/design-system/components/buttons)
 
 Patterns adapted:
 
@@ -30,8 +32,9 @@ Patterns adapted:
 - separate keys and values with stable rules so records scan quickly;
 - make the pending task and its ownership visible;
 - use tabs only for related information that repeat users switch between often.
+- keep the main transactional action visible, singular, and left-to-right obvious.
 
-Adherence OS translation: the local review set borrows task-list scanning without implying a connected inbox, the handoff is a summary record, and graph focus modes behave like compact inspection tabs.
+Adherence OS translation: the local review set borrows task-list scanning without implying a connected inbox, the handoff is a summary record, and graph focus modes behave like compact inspection tabs. The patient check-in uses sentence-case questions, one persistent Review care plan action, and an optional-notes expander instead of inheriting the denser clinician ledger grammar.
 
 ## Carbon Design System
 
@@ -40,6 +43,7 @@ References:
 - [Carbon data table guidance](https://carbondesignsystem.com/components/data-table/usage/)
 - [Carbon colour and layer guidance](https://carbondesignsystem.com/elements/color/usage/)
 - [Carbon content switcher guidance](https://carbondesignsystem.com/components/content-switcher/usage/)
+- [Carbon dashboard guidance](https://carbondesignsystem.com/data-visualization/dashboards/)
 
 Patterns adapted:
 
@@ -48,8 +52,26 @@ Patterns adapted:
 - use contrast shifts for major workflow boundaries, not on every component;
 - identify AI involvement at the relevant evidence layer instead of branding the whole interface as AI.
 - use one compact, high-contrast switcher for alternate views of the same evidence map.
+- strip nonessential controls from the primary interpretation path and let the first viewport guide attention.
 
 Adherence OS translation: the model record, synthetic-cohort view, provenance rows, and metric register share one restrained data grammar. Model, simulation, rule, and context sources are labelled where they matter.
+
+## Oura Trends
+
+Reference:
+
+- [Oura Trends guidance](https://support.ouraring.com/hc/en-us/articles/360055983614-Using-Trends)
+
+Pattern adapted: surface one relevant, curated signal before asking the user to inspect the full longitudinal record. Adherence OS translates that idea into one selected risk-raising graph signal and one bounded next action. It does not copy Oura's screens, visual assets, health claims, or scoring model.
+
+## Role Separation
+
+The patient, clinician, model-reviewer, and presenter do not receive the same template:
+
+- the patient check-in uses larger sentence-case language, soft grouping, optional detail, and a persistent action;
+- the clinician review workspace remains dense, status-led, and explicitly empty when no draft exists;
+- the Model record preserves technical tables and provenance;
+- presenter fixtures are visibly labelled **Demo cases**, while the resulting care decision remains read-only.
 
 ## OpenMRS O3
 

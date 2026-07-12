@@ -28,8 +28,8 @@ The ML model runs as browser-side JSON inference over structured features, so a 
 
 Use two live paths:
 
-1. Normal check-in: mild nausea, medication taken, one supportive next action.
-2. Escalation check-in: missed medication, vomiting, low hydration, urgent handoff.
+1. Coaching check-in: supported 46% interruption risk, medication recorded, one 19-point bounded planning comparison, and no handoff.
+2. Safety check-in: missed medication, vomiting, low hydration, model abstention, and urgent local handoff draft.
 
 The visible decision trace shows how the workflow changes mode; it is not presented as autonomous agency.
 

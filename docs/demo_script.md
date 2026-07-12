@@ -33,7 +33,7 @@ Chronic-care programmes are won or lost between appointments. A patient may be t
 
 ## 6. Main Wow Moment
 
-Switch from **Coaching** to **Escalation** on the Decision map. The symptom vector exceeds configured marginal feature bounds, numeric ML ranking abstains, every tested action becomes **Blocked by safety**, and the graph switches to the **Safety guardrail** and **Clinician handoff** path. The system demonstrates that safety remains active even when the model declines to score the decision.
+Switch from **Load coaching case** to **Load safety case** on the Decision map. The symptom vector exceeds configured marginal feature bounds, numeric ML ranking abstains, every tested action becomes **Blocked by safety**, and the graph switches to the **Safety guardrail** and local review-draft path. The system demonstrates that safety remains active even when the model declines to score the decision.
 
 ## 7. Why It Is Technically Credible
 
@@ -53,32 +53,32 @@ Switch from **Coaching** to **Escalation** on the Decision map. The symptom vect
 - **User impact:** one bounded next action instead of generic chronic-care content.
 - **Innovation:** an explainable decision workflow rather than a chatbot wrapper.
 - **Feasibility:** local ML, synthetic structured data, pending review drafts, and no new clinical infrastructure in the prototype.
-- **Demo quality:** a visible normal-to-escalation transition that can be understood in seconds.
+- **Demo quality:** a visible coachable-risk-to-safety transition that can be understood in seconds.
 - **eMed fit:** extends high-adherence at-home programmes with proactive support and scalable oversight between appointments.
 
 ## 9. Three-Minute Demo Script
 
-### 0:00-0:20 — Frame The Problem
+Before the timer, open **Resources**, choose **Reset demo session**, and confirm Maya Patel, **Load coaching case**, and **Decision path** are selected.
 
-Click **Reset demo** in the product bar. Confirm **Decision map**, Maya Patel, **Coaching**, and **Decision path** are selected.
+### 0:00-0:25 — Frame The Problem
 
 Say:
 
 > Chronic-care dropout rarely happens in one dramatic moment. It builds between appointments. Adherence OS predicts that weak signal early, explains it, and knows when AI coaching must stop.
 
-### 0:20-0:55 — Read The Decision
+### 0:25-1:00 — Show The Coachable Window
 
-Point to the headline and four metrics.
+Point to **46%**, **Watch**, and **Meal-timing prompt** in the first viewport.
 
 Say:
 
-> Maya remains in coaching mode. The edge model estimates low next-week adherence-interruption risk. Appetite and energy drag is the highest-ranked context signal, routine disruption is the largest model contributor, and hydration nudge is the top tested action.
+> Maya has elevated but supported next-week interruption risk. No configured safety rule matched, so coaching remains available. Appetite and energy is the highest-ranked risk-raising graph signal, and a bounded meal-timing assumption lowers this synthetic scenario score from 46% to 27%.
 
 Do not open every panel. Keep the audience on the decision.
 
-### 0:55-1:30 — Explain The Intelligence
+### 1:00-1:35 — Explain One Driver And Action
 
-Click **Attribution**, then click **Routine disruption** and **Hydration nudge**.
+Click **Attribution**, then **Nausea burden** and **Meal-timing prompt**.
 
 Say:
 
@@ -86,9 +86,9 @@ Say:
 
 Scroll only far enough to show **Why this action ranked first** if time permits.
 
-### 1:30-2:15 — Trigger The Safety Override
+### 1:35-2:15 — Trigger The Safety Override
 
-Click **Escalation**.
+Click **Load safety case**.
 
 Say:
 
@@ -96,7 +96,7 @@ Say:
 
 Point to **Abstained**, **Suppressed**, **Handoff draft**, and the red safety path.
 
-### 2:15-2:40 — Show Scalable Oversight
+### 2:15-2:45 — Show Human Ownership
 
 Click **Review handoff draft**.
 
@@ -104,7 +104,7 @@ Say:
 
 > The review task opens with longitudinal context, current red flags, ownership and delivery state, a rules-owned draft response, and the audit trail. Nothing has been sent.
 
-### 2:40-3:00 — Establish Credibility And Close
+### 2:45-3:00 — Establish Credibility And Close
 
 Optionally click **Model record** only if the audience wants technical depth.
 
@@ -118,7 +118,7 @@ Say:
 
 ## 11. Fallback Plan If The Live Demo Fails
 
-1. Click **Reset demo**, then refresh `http://localhost:3000` or the configured local port if needed.
+1. Open **Resources**, choose **Reset demo session**, then refresh `http://localhost:3000` or the configured local port if needed.
 2. If the app is unavailable, run `pnpm start` against the prebuilt project.
 3. Verify `GET /api/health` or run `pnpm smoke`.
 4. Keep OpenAI unconfigured; the deterministic path is the intended reliable fallback.
@@ -133,12 +133,14 @@ Use **Maya Patel** for both paths.
 ### Coaching Seed
 
 - Planned weekly dose recorded
-- Nausea 3/10
-- Hydration 7/10
+- Nausea 6/10
+- Hydration 4/10
+- Appetite 2/10 and energy 4/10
+- Anxious mood with a hectic-work routine signal
 - Strong recent adherence
-- Appetite and energy drag is the highest-ranked context signal; routine disruption is the largest model contributor
+- Appetite and energy is the highest-ranked risk-raising graph signal; nausea burden is the largest risk-raising model group
 
-Expected result: coaching allowed, Hydration nudge selected, no escalation.
+Expected result: supported 46% Watch state, Meal-timing prompt with a 19-point bounded decrease, coaching allowed, no handoff.
 
 ### Escalation Seed
 
@@ -152,17 +154,17 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; tested actio
 
 ## 13. Screens And Pages That Must Work Perfectly
 
-1. `/` Decision map in Coaching mode.
+1. `/` Decision map with Load coaching case selected.
 2. `/` Decision map Attribution focus.
-3. `/` Decision map after Escalation.
+3. `/` Decision map after **Load safety case**.
 4. `/` Review drafts with Maya selected.
 5. `/` Check-in Review care plan loading and fallback notice.
 6. `/` Model record sensitivity and exact decomposition.
 7. `/patients` synthetic patient overview.
 8. `/patients/maya-patel` routed patient record.
 9. `/api/health` readiness response.
-10. **Reset demo** after a changed patient, scenario, graph focus, and scroll position.
-11. At 390 px and 320 px, Coaching remains graph-first while Escalation shows the urgent destination and handoff action before the graph.
+10. **Reset demo session** in Resources after a changed patient, scenario, graph focus, and scroll position.
+11. At 390 px and 320 px, the coaching case remains graph-first while the safety case shows the urgent destination and handoff action before the graph.
 
 ## Presenter Rules
 
@@ -177,7 +179,7 @@ Expected result: NHS 111 now, with the 999/A&E contingency visible; tested actio
 
 1. Reload and press `Tab` once. **Skip to main content** must appear; `Enter` must focus the workspace.
 2. Tab through **Decision map**, **Check-in**, and **Review drafts**; focus must remain visible and `Enter` must switch views. Open **Model record** from the decision summary.
-3. In **Check-in**, activate Normal/Escalation, toggle one named urgent-symptom checkbox, change one slider with arrow keys, and confirm **Custom** appears after either edit.
+3. In **Check-in**, activate **Load coaching** or **Load safety**, toggle one named urgent-symptom checkbox, change one slider with arrow keys, and confirm **Custom** appears after either edit.
 4. Open prototype resources with `Enter`, press `Escape`, and confirm focus returns to the resources summary.
 5. In **Decision map**, activate graph focus modes with `Enter`, then reach graph nodes and use both `Enter` and `Space` to update the inspector.
-6. Tab to **Reset demo**, activate it, and confirm Maya, Coaching, Decision path, and top scroll are restored.
+6. Open **Resources**, activate **Reset demo session**, and confirm Maya, Load coaching case, Decision path, and top scroll are restored.

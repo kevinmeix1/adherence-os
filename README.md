@@ -10,7 +10,7 @@ AI-supported at-home GLP-1 metabolic care prototype for the Reimagine Health wit
 
 - GLP-1 obesity and metabolic-care focus.
 - Synthetic 8-week JSON data for 3 patients.
-- Patient check-in flow with normal and escalation scenarios plus a typed current-symptom safety checklist.
+- Patient check-in flow with explicitly labelled coaching and safety demo cases plus an eight-item current-symptom safety checklist.
 - Review workspace with async summaries, explicit draft ownership, and independent in-memory state for each synthetic patient.
 - Routed synthetic patient directory with summary metrics, clickable records, and loading/error/empty states.
 - Deterministic decision-pipeline trace for intake, trends, adherence risk, guardrails, and clinician handoff.
@@ -58,7 +58,7 @@ pnpm build
 pnpm test:browser
 ```
 
-The suite starts the built app on port 3100 when `APP_URL` is unset. It covers the judged Coaching/Escalation/handoff path, keyboard announcements and focus, 390/320px ordering and overflow, console errors, and serious or critical axe findings across the four core views. Automated accessibility checks catch only a subset of accessibility problems; manual assistive-technology and user testing are still required.
+The suite starts the built app on port 3100 when `APP_URL` is unset. It covers the judged coaching/safety/handoff path, keyboard announcements and focus, presenter-control semantics, visible mobile actions, 390/320px ordering and overflow, console errors, and serious or critical axe findings across the four core views. Automated accessibility checks catch only a subset of accessibility problems; manual assistive-technology and user testing are still required.
 
 ## Demo Assets
 
@@ -67,16 +67,22 @@ The suite starts the built app on port 3100 when `APP_URL` is unset. It covers t
 - [10-slide presentation deck](outputs/adherence-os-demo.pptx)
 - [Screenshot-led product walkthrough](docs/product-walkthrough.md)
 
+Refresh the walkthrough images from a running production build:
+
+```bash
+APP_URL=http://127.0.0.1:3000 pnpm capture:walkthrough
+```
+
 ## Two-Minute Judge Path
 
-1. Open `/`. **Decision map** starts on synthetic patient Maya Patel in **Coaching** mode.
-2. Read the decision headline and operating metrics, then click **Attribution**.
-3. Click **Routine disruption**, then **Hydration nudge**, to show the largest model contributor and top tested action.
-4. Click **Escalation**. Point out **Suppressed**, **Blocked by safety**, and the red path to **Clinician handoff**.
+1. Open `/`. **Decision map** starts on synthetic patient Maya Patel with **Load coaching case** selected.
+2. Read the supported **46%** interruption risk and **Meal-timing prompt**, a bounded comparison that lowers the scenario score by **19 percentage points**.
+3. Click **Attribution**, then **Nausea burden** and **Meal-timing prompt**, to connect the largest risk-raising model group to the top tested action.
+4. Click **Load safety case**. Point out **Abstained**, **Suppressed**, and the red path to the safety guardrail and local handoff draft.
 5. Click **Review handoff draft** to land in **Review drafts** on the selected local record, unsent state, and deterministic audit trail.
 6. Open **Model record** only if technical judges ask for temporal leakage controls, bootstrap model spread, exact score decomposition, marginal-bound abstention, or artifact provenance.
 
-The core story is one context signal, one model contributor, one tested action, one visible model abstention, and one safety override. Do not describe graph paths or tested actions as causal, or synthetic metrics as clinical validation.
+The core story is four moments: coachable risk, one explained driver/action pair, deterministic safety override, and a human-owned local review draft. Do not describe graph paths or tested actions as causal, or synthetic metrics as clinical validation.
 
 ## Optional OpenAI Mode
 

@@ -142,6 +142,11 @@ export function buildAdherenceKnowledgeGraph({
         ? Math.max(0, patient.latestBiomarkers.restingHeartRate - patient.baseline.restingHeartRate) / 25
         : 0)
   );
+  const nauseaSignal = describeModelFeatureGroup(edgeRisk, ["nausea_score", "side_effect_spike"]);
+  const hydrationSignal = describeModelFeatureGroup(edgeRisk, ["hydration_risk"]);
+  const appetiteEnergySignal = describeModelFeatureGroup(edgeRisk, ["appetite_suppression", "energy_risk"]);
+  const routineSignal = describeModelFeatureGroup(edgeRisk, ["routine_disruption", "adherence_last_2wk", "missed_doses_2wk"]);
+  const biomarkerSignal = describeModelFeatureGroup(edgeRisk, ["weight_loss_pct", "hba1c_delta", "systolic_bp"]);
 
   addNode(nodes, {
     id: "patient",
@@ -166,31 +171,31 @@ export function buildAdherenceKnowledgeGraph({
     id: "nausea",
     label: "Nausea burden",
     type: "symptom",
-    status: riskFromWeight(nauseaRisk),
+    status: nauseaSignal.status,
     weight: nauseaRisk,
     evidence: `Today ${checkIn.nauseaScore}/10; trend ${insights.nauseaTrend >= 0 ? "+" : ""}${insights.nauseaTrend}.`
   });
   addNode(nodes, {
     id: "hydration",
-    label: "Hydration risk",
+    label: "Hydration level",
     type: "symptom",
-    status: riskFromWeight(hydrationRisk),
+    status: hydrationSignal.status,
     weight: hydrationRisk,
     evidence: `Hydration ${checkIn.hydrationScore}/10 from home check-in.`
   });
   addNode(nodes, {
     id: "appetite-energy",
-    label: "Appetite and energy drag",
+    label: "Appetite and energy",
     type: "symptom",
-    status: riskFromWeight(Math.max(appetiteRisk, energyRisk)),
+    status: appetiteEnergySignal.status,
     weight: Math.max(appetiteRisk, energyRisk),
     evidence: `Appetite ${checkIn.appetiteScore}/10 and energy ${checkIn.energyScore}/10.`
   });
   addNode(nodes, {
     id: "routine",
-    label: "Routine disruption",
+    label: "Routine and dose continuity",
     type: "routine",
-    status: riskFromWeight(routineRisk),
+    status: routineSignal.status,
     weight: routineRisk,
     evidence: `${Math.round(insights.lastTwoAdherence)}% recent adherence; planned weekly dose ${checkIn.medicationTaken ? "recorded" : "missed"} in this check-in.`
   });
@@ -198,7 +203,7 @@ export function buildAdherenceKnowledgeGraph({
     id: "biomarkers",
     label: "Biomarker trend",
     type: "biomarker",
-    status: biomarkerRisk > 0.45 ? "watch" : "protective",
+    status: biomarkerSignal.status,
     weight: biomarkerRisk,
     evidence: `${insights.weightDelta.toFixed(1)} kg since baseline; HbA1c ${formatSigned(insights.hba1cDelta)} pts where available.`
   });
@@ -242,18 +247,18 @@ export function buildAdherenceKnowledgeGraph({
     evidence: carePlan.escalation.channel
   });
 
-  addEdge(edges, "patient", "nausea", "reports", nauseaRisk, riskFromWeight(nauseaRisk));
-  addEdge(edges, "patient", "hydration", "reports", hydrationRisk, riskFromWeight(hydrationRisk));
-  addEdge(edges, "patient", "appetite-energy", "reports", Math.max(appetiteRisk, energyRisk), riskFromWeight(Math.max(appetiteRisk, energyRisk)));
-  addEdge(edges, "patient", "routine", "lives inside", routineRisk, riskFromWeight(routineRisk));
-  addEdge(edges, "patient", "biomarkers", "streams", biomarkerRisk, biomarkerRisk > 0.45 ? "watch" : "protective");
+  addEdge(edges, "patient", "nausea", "reports", nauseaRisk, nauseaSignal.status);
+  addEdge(edges, "patient", "hydration", "reports", hydrationRisk, hydrationSignal.status);
+  addEdge(edges, "patient", "appetite-energy", "reports", Math.max(appetiteRisk, energyRisk), appetiteEnergySignal.status);
+  addEdge(edges, "patient", "routine", "lives inside", routineRisk, routineSignal.status);
+  addEdge(edges, "patient", "biomarkers", "streams", biomarkerRisk, biomarkerSignal.status);
   addEdge(edges, "protective-progress", "risk", "buffers", 0.46, "protective");
 
-  addEdge(edges, "nausea", "risk", "raises interruption risk", nauseaRisk, riskFromWeight(nauseaRisk));
-  addEdge(edges, "hydration", "risk", "raises safety risk", hydrationRisk, riskFromWeight(hydrationRisk));
-  addEdge(edges, "appetite-energy", "risk", "adds friction", Math.max(appetiteRisk, energyRisk), riskFromWeight(Math.max(appetiteRisk, energyRisk)));
-  addEdge(edges, "routine", "risk", "adds missed-dose friction", routineRisk, riskFromWeight(routineRisk));
-  addEdge(edges, "biomarkers", "risk", biomarkerRisk > 0.45 ? "needs context" : "shows progress", biomarkerRisk, biomarkerRisk > 0.45 ? "watch" : "protective");
+  addEdge(edges, "nausea", "risk", nauseaSignal.relationship, nauseaRisk, nauseaSignal.status);
+  addEdge(edges, "hydration", "risk", hydrationSignal.relationship, hydrationRisk, hydrationSignal.status);
+  addEdge(edges, "appetite-energy", "risk", appetiteEnergySignal.relationship, Math.max(appetiteRisk, energyRisk), appetiteEnergySignal.status);
+  addEdge(edges, "routine", "risk", routineSignal.relationship, routineRisk, routineSignal.status);
+  addEdge(edges, "biomarkers", "risk", biomarkerSignal.relationship, biomarkerRisk, biomarkerSignal.status);
 
   edgeRisk.interventions.slice(0, 3).forEach((intervention) => {
     addEdge(
@@ -276,7 +281,13 @@ export function buildAdherenceKnowledgeGraph({
 
   const centrality = calculateCentrality(nodes, edges);
   const nodeExplanations = buildNodeExplanations(nodes, edges, edgeRisk, carePlan);
+  const riskRaisingNodeIds = new Set(
+    nodeExplanations
+      .filter((explanation) => explanation.direction === "raises risk")
+      .map((explanation) => explanation.nodeId)
+  );
   const topDriver =
+    centrality.find((item) => ["symptom", "routine", "biomarker"].includes(item.type) && riskRaisingNodeIds.has(item.nodeId)) ??
     centrality.find((item) => ["symptom", "routine", "biomarker"].includes(item.type)) ??
     centrality.find((item) => item.nodeId === "risk") ??
     centrality[0];
@@ -317,10 +328,12 @@ export function buildAdherenceKnowledgeGraph({
   const mlFeatures: GraphMlFeature[] = [
     {
       id: "top_driver_graph_score",
-      label: "Top context-signal score",
+      label: riskRaisingNodeIds.has(topDriver.nodeId) ? "Top risk-raising signal score" : "Top context-signal score",
       value: topDriver.score,
       displayValue: topDriver.score.toFixed(2),
-      interpretation: `${topDriver.label} ranks highest under the authored node and edge weights.`
+      interpretation: riskRaisingNodeIds.has(topDriver.nodeId)
+        ? `${topDriver.label} ranks highest among locally risk-raising model groups under the authored graph weights.`
+        : `${topDriver.label} ranks highest under the authored node and edge weights.`
     },
     {
       id: "safety_route_state",
@@ -370,7 +383,9 @@ export function buildAdherenceKnowledgeGraph({
     summary:
       carePlan.escalation.needed
         ? `The evidence map links ${patient.name.split(" ")[0]}'s active signals to a deterministic safety handoff draft.`
-        : `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked context signal under its authored weights.`
+        : riskRaisingNodeIds.has(topDriver.nodeId)
+          ? `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked locally risk-raising signal under its authored graph weights.`
+          : `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked context signal under its authored weights.`
   };
 }
 
@@ -503,6 +518,28 @@ function buildNodeExplanations(
 
 function addNode(nodes: KnowledgeGraphNode[], node: KnowledgeGraphNode) {
   if (!nodes.some((existing) => existing.id === node.id)) nodes.push(node);
+}
+
+function describeModelFeatureGroup(edgeRisk: EdgeRiskResult, featureNames: string[]) {
+  if (edgeRisk.support.status !== "supported") {
+    return {
+      relationship: "model attribution withheld",
+      status: "neutral" as const
+    };
+  }
+
+  const contribution = featureNames.reduce(
+    (sum, name) => sum + (edgeRisk.contributions.find((item) => item.name === name)?.contribution ?? 0),
+    0
+  );
+
+  if (contribution > 0.005) {
+    return { relationship: "raises model risk", status: "watch" as const };
+  }
+  if (contribution < -0.005) {
+    return { relationship: "lowers model risk", status: "protective" as const };
+  }
+  return { relationship: "neutral model contribution", status: "neutral" as const };
 }
 
 function addEdge(

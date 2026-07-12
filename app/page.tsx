@@ -387,9 +387,6 @@ function ProductHeader({
           Synthetic / local
         </span>
         <span className="current-patient">{patient.name}</span>
-        <button className="demo-reset" aria-label="Reset demo" title="Reset demo" onClick={resetFromHeader}>
-          <RotateCcw size={17} />
-        </button>
         <details
           className="product-more"
           ref={menuRef}
@@ -419,6 +416,9 @@ function ProductHeader({
             </button>
             <button onClick={() => navigateFromMenu("scorecard")}>
               <ClipboardCheck size={16} /> Evaluation brief
+            </button>
+            <button className="menu-reset" onClick={resetFromHeader}>
+              <RotateCcw size={16} /> Reset demo session
             </button>
           </div>
         </details>
@@ -461,142 +461,159 @@ function PatientView({
   return (
     <div className="patient-grid">
       <section className="panel checkin-panel">
-        <div className="panel-heading">
+        <div className="panel-heading checkin-heading">
           <div>
-            <p className="section-kicker">60 second home check-in</p>
-            <h2>Today</h2>
+            <p>60 second home check-in</p>
+            <h2>How are you today?</h2>
           </div>
-          <div className="scenario-actions">
-            <button
-              aria-pressed={checkIn.scenario === "normal"}
-              className={`icon-button text-button ${checkIn.scenario === "normal" ? "active" : ""}`}
-              onClick={() => onScenario("normal")}
-              title="Load normal demo"
-            >
-              <CheckCircle2 size={17} />
-              Normal
-            </button>
-            <button
-              aria-pressed={checkIn.scenario === "escalation"}
-              className={`icon-button text-button danger ${checkIn.scenario === "escalation" ? "active" : ""}`}
-              onClick={() => onScenario("escalation")}
-              title="Load escalation demo"
-            >
-              <AlertTriangle size={17} />
-              Escalation
-            </button>
-            {checkIn.scenario === "custom" && (
-              <span className="scenario-custom-state" aria-label="Custom check-in">
-                <PenLine size={15} /> Custom
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="form-grid">
-          <label className="toggle-row wide">
-            <span>
-              <Pill size={18} />
-              Planned weekly dose recorded
-            </span>
-            <input
-              type="checkbox"
-              checked={checkIn.medicationTaken}
-              onChange={(event) => onChange({ ...checkIn, medicationTaken: event.target.checked, scenario: "custom" })}
-            />
-          </label>
-
-          <fieldset className="safety-checklist">
-            <legend>Symptoms needing urgent help now</legend>
-            <p>Select any that are happening now.</p>
-            <div className="safety-checklist-options">
-              {SAFETY_FLAG_OPTIONS.map((option) => (
-                <label className="safety-check-option" key={option.id}>
-                  <input
-                    type="checkbox"
-                    checked={checkIn.safetyFlags.includes(option.id)}
-                    onChange={(event) => updateSafetyFlag(option.id, event.target.checked)}
-                  />
-                  <span>{option.label}</span>
-                </label>
-              ))}
+          <div className="checkin-demo-cases">
+            <span className="demo-case-label"><ClipboardList size={15} /> Demo cases</span>
+            <div className="scenario-actions" role="group" aria-label="Presenter demo cases">
+              <button
+                aria-pressed={checkIn.scenario === "normal"}
+                className={`icon-button text-button ${checkIn.scenario === "normal" ? "active" : ""}`}
+                onClick={() => onScenario("normal")}
+                title="Load coaching demo case"
+              >
+                <CheckCircle2 size={17} />
+                Load coaching
+              </button>
+              <button
+                aria-pressed={checkIn.scenario === "escalation"}
+                className={`icon-button text-button danger ${checkIn.scenario === "escalation" ? "active" : ""}`}
+                onClick={() => onScenario("escalation")}
+                title="Load safety demo case"
+              >
+                <AlertTriangle size={17} />
+                Load safety
+              </button>
+              {checkIn.scenario === "custom" && (
+                <span className="scenario-custom-state" aria-label="Custom check-in">
+                  <PenLine size={15} /> Custom
+                </span>
+              )}
             </div>
-          </fieldset>
-
-          <Slider
-            label="Nausea"
-            value={checkIn.nauseaScore}
-            icon={<Gauge size={18} />}
-            onChange={(value) => onChange({ ...checkIn, nauseaScore: value, scenario: "custom" })}
-          />
-          <Slider
-            label="Appetite"
-            value={checkIn.appetiteScore}
-            icon={<Activity size={18} />}
-            onChange={(value) => onChange({ ...checkIn, appetiteScore: value, scenario: "custom" })}
-          />
-          <Slider
-            label="Energy"
-            value={checkIn.energyScore}
-            icon={<Sparkles size={18} />}
-            onChange={(value) => onChange({ ...checkIn, energyScore: value, scenario: "custom" })}
-          />
-          <Slider
-            label="Hydration"
-            value={checkIn.hydrationScore}
-            icon={<HeartPulse size={18} />}
-            onChange={(value) => onChange({ ...checkIn, hydrationScore: value, scenario: "custom" })}
-          />
-
-          <label className="field wide">
-            <span>Mood</span>
-            <select value={checkIn.mood} onChange={(event) => onChange({ ...checkIn, mood: event.target.value, scenario: "custom" })}>
-              <option value="steady">steady</option>
-              <option value="hopeful">hopeful</option>
-              <option value="anxious">anxious</option>
-              <option value="tired">tired</option>
-              <option value="discouraged">discouraged</option>
-            </select>
-          </label>
-
-          <label className="field wide">
-            <span>Side effects</span>
-            <textarea
-              value={checkIn.sideEffects}
-              onChange={(event) => onChange({ ...checkIn, sideEffects: event.target.value, scenario: "custom" })}
-            />
-          </label>
-
-          <label className="field wide">
-            <span>Biomarker note</span>
-            <textarea
-              value={checkIn.biomarkerNote}
-              onChange={(event) => onChange({ ...checkIn, biomarkerNote: event.target.value, scenario: "custom" })}
-            />
-          </label>
-
-          <label className="field wide">
-            <span>
-              <Mic size={16} />
-              Voice note transcript
-            </span>
-            <textarea
-              value={checkIn.freeText}
-              onChange={(event) => onChange({ ...checkIn, freeText: event.target.value, scenario: "custom" })}
-            />
-          </label>
+          </div>
         </div>
 
-        <button className="primary-action" onClick={onSubmit} disabled={isLoading}>
-          <Send size={18} />
-          {isLoading ? "Reviewing..." : "Review care plan"}
-        </button>
-        {generationNotice && (
-          <div className="generation-notice">
-            <ShieldCheck size={17} />
-            <span>{generationNotice}</span>
+        <div className="checkin-body">
+          <div className="form-grid">
+            <label className="toggle-row wide">
+              <span>
+                <Pill size={18} />
+                Planned weekly dose recorded
+              </span>
+              <input
+                type="checkbox"
+                checked={checkIn.medicationTaken}
+                onChange={(event) => onChange({ ...checkIn, medicationTaken: event.target.checked, scenario: "custom" })}
+              />
+            </label>
+
+            <fieldset className="safety-checklist">
+              <legend>Symptoms needing urgent help now</legend>
+              <p>Select any that are happening now.</p>
+              <div className="safety-checklist-options">
+                {SAFETY_FLAG_OPTIONS.map((option) => (
+                  <label className="safety-check-option" key={option.id}>
+                    <input
+                      type="checkbox"
+                      checked={checkIn.safetyFlags.includes(option.id)}
+                      onChange={(event) => updateSafetyFlag(option.id, event.target.checked)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <Slider
+              label="Nausea"
+              value={checkIn.nauseaScore}
+              icon={<Gauge size={18} />}
+              onChange={(value) => onChange({ ...checkIn, nauseaScore: value, scenario: "custom" })}
+            />
+            <Slider
+              label="Appetite"
+              value={checkIn.appetiteScore}
+              icon={<Activity size={18} />}
+              onChange={(value) => onChange({ ...checkIn, appetiteScore: value, scenario: "custom" })}
+            />
+            <Slider
+              label="Energy"
+              value={checkIn.energyScore}
+              icon={<Sparkles size={18} />}
+              onChange={(value) => onChange({ ...checkIn, energyScore: value, scenario: "custom" })}
+            />
+            <Slider
+              label="Hydration"
+              value={checkIn.hydrationScore}
+              icon={<HeartPulse size={18} />}
+              onChange={(value) => onChange({ ...checkIn, hydrationScore: value, scenario: "custom" })}
+            />
+
+            <label className="field wide mood-field">
+              <span>Mood</span>
+              <select value={checkIn.mood} onChange={(event) => onChange({ ...checkIn, mood: event.target.value, scenario: "custom" })}>
+                <option value="steady">steady</option>
+                <option value="hopeful">hopeful</option>
+                <option value="anxious">anxious</option>
+                <option value="tired">tired</option>
+                <option value="discouraged">discouraged</option>
+              </select>
+            </label>
+
+            <details className="checkin-notes">
+              <summary>
+                <span><MessageSquareText size={17} /> Context notes</span>
+                <small>Side effects, biomarker and voice</small>
+                <ChevronDown size={17} />
+              </summary>
+              <div className="checkin-notes-grid">
+                <label className="field wide">
+                  <span>Side effects</span>
+                  <textarea
+                    value={checkIn.sideEffects}
+                    onChange={(event) => onChange({ ...checkIn, sideEffects: event.target.value, scenario: "custom" })}
+                  />
+                </label>
+
+                <label className="field wide">
+                  <span>Biomarker note</span>
+                  <textarea
+                    value={checkIn.biomarkerNote}
+                    onChange={(event) => onChange({ ...checkIn, biomarkerNote: event.target.value, scenario: "custom" })}
+                  />
+                </label>
+
+                <label className="field wide">
+                  <span>
+                    <Mic size={16} />
+                    Voice note transcript
+                  </span>
+                  <textarea
+                    value={checkIn.freeText}
+                    onChange={(event) => onChange({ ...checkIn, freeText: event.target.value, scenario: "custom" })}
+                  />
+                </label>
+              </div>
+            </details>
           </div>
-        )}
+        </div>
+
+        <div className="checkin-submit-bar">
+          <span className="checkin-safety-state"><ShieldCheck size={17} /> Safety rules active</span>
+          <button className="primary-action" onClick={onSubmit} disabled={isLoading}>
+            <Send size={18} />
+            {isLoading ? "Reviewing..." : "Review care plan"}
+          </button>
+          {generationNotice && (
+            <div className="generation-notice">
+              <ShieldCheck size={17} />
+              <span>{generationNotice}</span>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="panel result-panel">
@@ -748,8 +765,13 @@ function ClinicianView({
   selectedPatientId: string;
   onSelect: (patientId: string) => void;
 }) {
-  const reviewDraftCount = rows.filter((row) => row.plan.riskLevel === "urgent" || row.plan.riskLevel === "review").length;
-  const selectedRow = rows.find((row) => row.patient.id === selectedPatientId) ?? rows[0];
+  const reviewRows = rows.filter((row) => row.plan.riskLevel === "urgent" || row.plan.riskLevel === "review");
+  const reviewDraftCount = reviewRows.length;
+  const selectedRow =
+    reviewRows.find((row) => row.patient.id === selectedPatientId) ??
+    reviewRows[0] ??
+    rows.find((row) => row.patient.id === selectedPatientId) ??
+    rows[0];
   const selectedNeedsReview = selectedRow.plan.riskLevel === "urgent" || selectedRow.plan.riskLevel === "review";
 
   return (
@@ -785,13 +807,20 @@ function ClinicianView({
           </div>
         </div>
 
-        <div className="clinician-review-brief">
-          <div>
-            <span>Deterministic summary</span>
-            <p>{selectedRow.plan.clinicianSummary}</p>
+        {selectedNeedsReview ? (
+          <div className="clinician-review-brief">
+            <div>
+              <span>Deterministic summary</span>
+              <p>{selectedRow.plan.clinicianSummary}</p>
+            </div>
+            <blockquote>{selectedRow.plan.clinicianDraft}</blockquote>
           </div>
-          <blockquote>{selectedRow.plan.clinicianDraft}</blockquote>
-        </div>
+        ) : (
+          <div className="queue-empty" role="status">
+            <strong>No local review draft</strong>
+            <span>{selectedRow.patient.name}&apos;s current check-in remains on the coaching path.</span>
+          </div>
+        )}
       </section>
 
       <section className="panel queue-panel">
@@ -804,20 +833,27 @@ function ClinicianView({
         </div>
 
         <div className="queue-list">
-          {rows.map(({ patient, plan, insights }) => (
-            <button
-              key={patient.id}
-              className={`queue-item ${patient.id === selectedPatientId ? "active" : ""}`}
-              onClick={() => onSelect(patient.id)}
-            >
-              <div>
-                <strong>{patient.name}</strong>
-                <span>{patient.conditionFocus}</span>
-              </div>
-              <RiskPill level={plan.riskLevel} />
-              <small>{Math.round(insights.lastTwoAdherence)}% recent adherence</small>
-            </button>
-          ))}
+          {reviewRows.length > 0 ? (
+            reviewRows.map(({ patient, plan, insights }) => (
+              <button
+                key={patient.id}
+                className={`queue-item ${patient.id === selectedRow.patient.id ? "active" : ""}`}
+                onClick={() => onSelect(patient.id)}
+              >
+                <div>
+                  <strong>{patient.name}</strong>
+                  <span>{patient.conditionFocus}</span>
+                </div>
+                <RiskPill level={plan.riskLevel} />
+                <small>{Math.round(insights.lastTwoAdherence)}% recent adherence</small>
+              </button>
+            ))
+          ) : (
+            <div className="queue-empty">
+              <strong>No drafts waiting</strong>
+              <span>Only same-day and urgent local drafts appear here.</span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -879,16 +915,23 @@ function ClinicianView({
           </div>
         </div>
         <div className="handoff-grid">
-          {rows.map(({ patient, plan }) => (
-            <article key={patient.id} className="handoff-card">
-              <div className="handoff-card-head">
-                <strong>{patient.name}</strong>
-                <RiskPill level={plan.riskLevel} />
-              </div>
-              <p>{plan.clinicianSummary}</p>
-              <blockquote>{plan.clinicianDraft}</blockquote>
-            </article>
-          ))}
+          {reviewRows.length > 0 ? (
+            reviewRows.map(({ patient, plan }) => (
+              <article key={patient.id} className="handoff-card">
+                <div className="handoff-card-head">
+                  <strong>{patient.name}</strong>
+                  <RiskPill level={plan.riskLevel} />
+                </div>
+                <p>{plan.clinicianSummary}</p>
+                <blockquote>{plan.clinicianDraft}</blockquote>
+              </article>
+            ))
+          ) : (
+            <div className="queue-empty">
+              <strong>No message drafts</strong>
+              <span>Nothing has been prepared or sent.</span>
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -1356,21 +1399,24 @@ function KnowledgeGraphView({
               </button>
             ))}
           </div>
-          <div className="scenario-switch" aria-label="Demo scenario">
-            <button
-              aria-pressed={graph.pathMode === "coaching"}
-              className={graph.pathMode === "coaching" ? "active" : ""}
-              onClick={() => onScenario("normal")}
-            >
-              <CheckCircle2 size={16} /> Coaching
-            </button>
-            <button
-              aria-pressed={graph.pathMode === "escalation"}
-              className={graph.pathMode === "escalation" ? "active danger" : ""}
-              onClick={() => onScenario("escalation")}
-            >
-              <AlertTriangle size={16} /> Escalation
-            </button>
+          <div className="presenter-cases">
+            <span className="demo-case-label"><ClipboardList size={14} /> Demo cases</span>
+            <div className="scenario-switch" aria-label="Presenter demo cases">
+              <button
+                aria-pressed={graph.pathMode === "coaching"}
+                className={graph.pathMode === "coaching" ? "active" : ""}
+                onClick={() => onScenario("normal")}
+              >
+                <CheckCircle2 size={16} /> Load coaching case
+              </button>
+              <button
+                aria-pressed={graph.pathMode === "escalation"}
+                className={graph.pathMode === "escalation" ? "active danger" : ""}
+                onClick={() => onScenario("escalation")}
+              >
+                <AlertTriangle size={16} /> Load safety case
+              </button>
+            </div>
           </div>
         </div>
       </section>

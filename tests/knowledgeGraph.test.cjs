@@ -71,6 +71,16 @@ test("evidence map exposes sorted graph scores and transparent diagnostics", () 
 
   assert.deepEqual(centralityScores, sortedScores);
   assert.ok(["symptom", "routine", "biomarker"].includes(graph.topDriver.type));
+  assert.equal(
+    graph.nodeExplanations.find((item) => item.nodeId === graph.topDriver.nodeId)?.direction,
+    "raises risk"
+  );
+  for (const nodeId of ["nausea", "hydration", "appetite-energy", "routine", "biomarkers"]) {
+    const explanation = graph.nodeExplanations.find((item) => item.nodeId === nodeId);
+    const edge = graph.edges.find((item) => item.source === nodeId && item.target === "risk");
+    if (explanation?.direction === "raises risk") assert.match(edge?.label ?? "", /raises model risk/);
+    if (explanation?.direction === "lowers risk") assert.match(edge?.label ?? "", /lowers model risk/);
+  }
   assert.deepEqual(featureIds, [
     "top_driver_graph_score",
     "safety_route_state",

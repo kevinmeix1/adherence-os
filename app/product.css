@@ -172,7 +172,6 @@ body {
   position: relative;
 }
 
-.demo-reset,
 .product-more summary {
   display: grid;
   place-items: center;
@@ -184,6 +183,12 @@ body {
   color: var(--product-muted);
   cursor: pointer;
   list-style: none;
+}
+
+.product-more .menu-reset {
+  margin-top: 4px;
+  border-top: 1px solid var(--product-line);
+  color: var(--product-coral);
 }
 
 .demo-reset {
@@ -2977,6 +2982,13 @@ body {
   gap: 7px;
 }
 
+.presenter-cases {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .decision-controls .graph-patient-strip {
   justify-content: flex-end;
   gap: 0;
@@ -3020,7 +3032,7 @@ body {
 }
 
 .scenario-switch button {
-  min-height: 32px;
+  min-height: 36px;
   padding: 6px 12px;
   border-radius: 0;
   font-size: 0.7rem;
@@ -3136,12 +3148,12 @@ body {
 }
 
 .graph-focus-control button {
-  min-height: 28px;
+  min-height: 34px;
   padding: 4px 7px;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   color: var(--product-muted);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 700;
 }
 
@@ -3335,7 +3347,7 @@ body {
   fill: #363a38;
   stroke: #fbfbf8;
   stroke-width: 0.52;
-  font-size: 2.05px;
+  font-size: 2.25px;
   font-weight: 650;
 }
 
@@ -3405,6 +3417,7 @@ body {
 .graph-evidence-panel .graph-node.active-path .graph-node-label,
 .graph-evidence-panel .graph-node.selected .graph-node-label {
   fill: var(--product-ink);
+  font-size: 2.35px;
   font-weight: 800;
 }
 
@@ -3948,12 +3961,29 @@ body {
   }
 
   .decision-controls .graph-patient-strip button {
-    min-height: 30px;
+    min-height: 44px;
     padding: 3px 5px;
   }
 
   .scenario-switch {
     width: 100%;
+  }
+
+  .presenter-cases {
+    display: grid;
+    gap: 5px;
+    justify-content: stretch;
+  }
+
+  .presenter-cases .scenario-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .presenter-cases .scenario-switch button {
+    min-height: 44px;
+    padding: 7px 8px;
+    white-space: normal;
   }
 
   .graph-evidence-panel {
@@ -3992,7 +4022,7 @@ body {
   }
 
   .graph-evidence-panel .graph-node-label {
-    font-size: 1.72px;
+    font-size: 2.05px;
   }
 
   .graph-evidence-panel .graph-path-strip {

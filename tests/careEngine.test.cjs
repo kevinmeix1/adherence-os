@@ -39,18 +39,17 @@ function patientWithRecentAdherence(adherencePct) {
   return copy;
 }
 
-test("normal check-in stays in coaching mode with no escalation", () => {
+test("coaching check-in stays in watch mode with no escalation", () => {
   const plan = evaluateCheckIn(patient, buildCheckIn("normal"));
 
-  assert.equal(plan.riskLevel, "steady");
+  assert.equal(plan.riskLevel, "watch");
   assert.equal(plan.escalation.needed, false);
   assert.equal(plan.escalation.urgency, "none");
   assert.equal(plan.agentTrace.length, 5);
   assert.equal(plan.rescuePlan.length, 7);
   assert.equal(plan.unsafeRequestDemo.blocked, true);
-  assert.match(plan.patientAction, /routine/i);
-  assert.match(plan.patientAction, /fluid/i);
-  assert.match(plan.patientAction, /log/i);
+  assert.match(plan.patientAction, /meal cue/i);
+  assert.match(plan.patientAction, /log nausea/i);
 });
 
 test("escalation check-in routes red flags to urgent clinical review", () => {
@@ -118,8 +117,8 @@ test("urgent headlines name the configured destination without downplaying emerg
 
 test("non-urgent copy reports configured rule state without clinical reassurance", () => {
   const plans = [
+    evaluateCheckIn(patient, buildBoundaryCheckIn()),
     evaluateCheckIn(patient, buildCheckIn("normal")),
-    evaluateCheckIn(patient, buildBoundaryCheckIn({ nauseaScore: 5 })),
     evaluateCheckIn(patient, buildBoundaryCheckIn({ hydrationScore: 2 }))
   ];
   const copy = plans.map((plan) => `${plan.headline} ${plan.explanation} ${plan.clinicianDraft}`).join("\n");

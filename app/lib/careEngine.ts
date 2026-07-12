@@ -19,16 +19,16 @@ export const DEMO_CHECK_INS: Record<"normal" | "escalation", Omit<CheckInInput, 
   normal: {
     scenario: "normal",
     medicationTaken: true,
-    nauseaScore: 3,
-    appetiteScore: 5,
-    energyScore: 6,
-    hydrationScore: 7,
-    mood: "steady",
+    nauseaScore: 6,
+    appetiteScore: 2,
+    energyScore: 4,
+    hydrationScore: 4,
+    mood: "anxious",
     safetyFlags: [],
-    sideEffects: "Mild nausea after lunch, manageable with smaller meals.",
+    sideEffects: "Nausea is stronger after meals and my appetite is low, but I can keep fluids down.",
     biomarkerNote: "Weight is down 0.4 kg this week. No unusual blood pressure reading.",
     freeText:
-      "I nearly skipped my dose because work was hectic, but I took it after setting a reminder. I feel okay today."
+      "Work has been hectic and I nearly missed the planned dose, but I recorded it. I am worried the routine will slip next week."
   },
   escalation: {
     scenario: "escalation",

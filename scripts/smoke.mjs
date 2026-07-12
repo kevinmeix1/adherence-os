@@ -73,11 +73,13 @@ const normalCheckIn = {
   ...sharedCheckIn,
   scenario: "normal",
   medicationTaken: true,
-  nauseaScore: 3,
-  energyScore: 6,
-  hydrationScore: 7,
-  sideEffects: "Mild nausea after lunch.",
-  freeText: "Routine is steady and the reminder worked."
+  nauseaScore: 6,
+  appetiteScore: 2,
+  energyScore: 4,
+  hydrationScore: 4,
+  mood: "anxious",
+  sideEffects: "Nausea is stronger after meals and my appetite is low, but I can keep fluids down.",
+  freeText: "Work has been hectic and I nearly missed the planned dose, but I recorded it. I am worried the routine will slip next week."
 };
 
 const escalationCheckIn = {
@@ -170,7 +172,11 @@ await checkCarePlan("normal", normalCheckIn, async ({ plan }) => {
     throw new Error("normal care-plan smoke check unexpectedly entered urgent mode");
   }
 
-  if (plan.headline !== "Coaching can continue" || !/does not mean symptoms were assessed or found safe/i.test(plan.explanation)) {
+  if (plan.riskLevel !== "watch" || plan.headline !== "Monitor this adherence pattern" || plan.escalation?.needed) {
+    throw new Error("normal care-plan smoke check did not preserve the supported coaching window");
+  }
+
+  if (!/configured watch rule matched/i.test(plan.explanation)) {
     throw new Error("normal care-plan smoke check is missing the bounded non-triage copy contract");
   }
 

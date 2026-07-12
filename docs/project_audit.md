@@ -24,11 +24,11 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 
 ## 3. Core User Journey
 
-1. Open Decision map on Maya Patel in Coaching mode.
+1. Open Decision map on Maya Patel with Load coaching case selected.
 2. Read one decision headline and four concise operating metrics.
 3. Distinguish the highest-ranked context signal from the largest model contributor and inspect provenance.
 4. Compare bounded tested actions and show why one ranks first.
-5. Switch to Escalation.
+5. Select Load safety case.
 6. Observe that deterministic red flags suppress every tested action, show the urgent destination, and prepare a clinician-review draft.
 7. Open Review drafts and inspect the local record and structured audit trail.
 8. Use Model record only when technical depth is requested.
@@ -37,7 +37,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 
 - The opening screen immediately demonstrates the differentiated graph experience.
 - The flat care-ledger visual system uses record, task-list, and evidence-table patterns instead of generic AI-dashboard decoration; public references and adaptation decisions are documented.
-- Normal and escalation paths are seeded, deterministic, and visually distinct.
+- Coaching and safety fixtures are seeded, deterministic, visibly labelled as presenter controls, and visually distinct.
 - Safety is independent from both the LLM and the adherence model.
 - Red-flag matching distinguishes symptom-scoped denial from uncertainty and normalises typographic contractions before deterministic routing.
 - Destination-aware urgent headlines place 999 or NHS 111 before workflow detail, while non-urgent copy reports rule state without claiming negative triage.
@@ -52,7 +52,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - Public documentation includes architecture, safety boundaries, model details, demo assets, and design references.
 - Patient and model artifacts fail early through typed runtime validation, and the synthetic model has a non-destructive reproduction check.
 - A single Reset command restores the rehearsed opening state after any demo path.
-- Coaching and Escalation now drive local review state consistently: zero drafts becomes one only when the safety path is active.
+- Coaching and safety fixtures drive local review state consistently: literal empty states become one local draft only when the safety path is active.
 - Check-ins, care plans, provider state, and notices are stored independently by synthetic patient identifier; selecting another record no longer erases a pending review.
 - One persistent live region announces safety changes in every workspace; client-view navigation focuses the named destination workspace.
 - Graph nodes expose selected state and inspector ownership without duplicate pointer activation; the scrollable review table is keyboard-focusable.
@@ -91,7 +91,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 9. Performance Risks
 
-- The home route measures 153.0 kB gzip, which leaves only 2.0 kB inside the enforced 155 kB budget.
+- The home route measures 153.8 kB gzip, which leaves only 1.2 kB inside the enforced 155 kB budget.
 - Every primary workspace view ships in one client module even when only the graph is initially visible.
 - More than 7,600 lines of CSS increase parse and maintenance cost, though no user-visible performance issue was observed.
 - Graph calculations are small for 13 nodes and three synthetic patients; they do not currently justify worker or server infrastructure.
@@ -235,31 +235,38 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 
 | Rank | Status | Finding | Smallest credible response |
 |---:|---|---|---|
-| 1 | Repaired | Open-ended text could miss clinically equivalent urgent wording and continue coaching. | Added seven typed current-symptom flags that independently stop coaching, plus adversarial phrase regressions for chest discomfort, inability to catch breath, and not wanting to be alive. |
+| 1 | Repaired | Open-ended text could miss clinically equivalent urgent wording and continue coaching. | Added eight typed current-symptom flags that independently stop coaching, including overdose or poisoning, plus adversarial phrase regressions for chest discomfort, suicide plans, overdose language, inability to catch breath, and not wanting to be alive. |
 | 2 | Repaired | CI could pass without hydrating or clicking the product, and no automated accessibility scan protected the judged path. | Six Chromium contracts now cover the judged flow, patient-state round trips, model-claim calibration, keyboard/focus, narrow layouts, console health, and serious/critical axe findings. |
 | 3 | Repaired | Switching the selected patient reconstructed non-selected rows from normal seed data rather than preserving per-patient session state. | Each patient now owns an independent local session; a unit test and fifth production-browser contract preserve Maya's review through a James round trip and verify global Reset. |
 | 4 | Repaired | Synthetic model performance could be mistaken for clinical evidence, and independent feature bounds were labelled as general training support. | The Model record now puts 79.6% recall beside 31.6% precision and 41.8% rows flagged, calls the gate marginal feature bounds, and states that joint-distribution and semantic drift are not detected. |
 | 5 | External | No patient or clinician has validated comprehension, usefulness, or workflow savings. | Run a small task-based study and publish anonymised evidence without inventing outcomes. |
 
+The final commercial-quality pass also repaired four presentation gaps raised by the specialist reviews:
+
+- the opening fixture moved from a trivial 5% score to a supported 46% Watch state with a 19-point bounded comparison and no handoff;
+- graph risk-edge wording now derives from signed grouped attribution, so protective evidence cannot be labelled as friction;
+- Demo cases and Load coaching/safety wording separate presenter fixtures from the read-only care decision;
+- the patient check-in has a visible desktop/mobile review action, optional context notes, and a role-specific task grammar; the zero-draft clinician view is now genuinely empty.
+
 - **Still weak:** hosted access, real user or clinician evidence, manual assistive-technology evidence, pixel-level visual regression, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 153.0 kB gzip, leaving only 2.0 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 153.8 kB gzip, leaving only 1.2 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
 
 | Category | Score / 10 | Current evidence |
 |---|---:|---|
-| Product clarity | 9.2 | Context signal, model contributor, tested action, abstention, safety mode, and handoff delivery state use distinct language |
-| Demo impact | 9.1 | Decision map is the first working surface; mobile remains graph-first; current fallback media follows the same judged path |
-| UI polish | 9.0 | Original care-ledger hierarchy, flat records, sparse status colour, stable graph geometry, and restrained one-shot motion |
-| UX flow | 8.5 | Edits recompute immediately, stale work is invalidated, active-patient clicks preserve state, and handoff lands on the selected task |
+| Product clarity | 9.3 | Coachable risk, signed model contributor, tested action, abstention, safety mode, and handoff delivery state use distinct language |
+| Demo impact | 9.3 | The opening case shows a meaningful supported intervention window before the model abstention and deterministic safety override |
+| UI polish | 9.1 | Original care-ledger evidence surface, role-specific patient task UI, sparse status colour, stable graph geometry, and restrained one-shot motion |
+| UX flow | 8.9 | Presenter fixtures are explicit, the patient action stays visible, empty review states are truthful, and handoff lands on the selected task |
 | Technical architecture | 8.4 | Prospective ML, support gate, deterministic safety, and typed artifacts; large client orchestrator remains |
 | Code quality | 7.5 | Typed and tested, but page and stylesheet ownership are concentrated |
 | Reliability | 9.1 | Keyless fallback, provider deadline, atomic scenario state, deterministic routes, production smoke, and model reproduction |
-| Testing | 9.7 | 63 deterministic tests plus six Chromium contracts for judged behavior, patient-state round trips, model-claim calibration, keyboard/focus, responsive layout, console health, and bounded axe scans |
+| Testing | 9.7 | 64 deterministic tests plus six Chromium contracts for judged behavior, patient-state round trips, action visibility, model-claim calibration, keyboard/focus, responsive layout, console health, and bounded axe scans |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 153.0 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.0 | 153.8 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.9 | Persistent announcements, focus-managed views, selected graph semantics, focusable scroll regions, visible focus, captioned video, and bounded axe scans; manual assistive-tech testing remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
@@ -268,13 +275,13 @@ Three additional read-only reviews ranked the remaining gaps by judging harm and
 | Hackathon competitiveness | 8.7 | Strong technical differentiation and commercial demo flow; impact evidence and hosted access remain gaps |
 | Portfolio value | 9.1 | Public code, CI, reproducible ML, commercial UI, study guide, screenshot walkthrough, captioned video, and deck |
 
-**Current strict-judge score: 8.6 / 10.**
+**Current strict-judge score: 8.8 / 10.**
 
 ### Current Checkpoint
 
-- Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
+- Ready-for-review PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
 - The current local checkpoint passes typecheck, 64 tests, model reproduction, production build, bundle budget, live smoke, and six browser/accessibility contracts at desktop, 390 px, and 320 px. Decorative graph edges no longer intercept node clicks.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
 - GitHub Actions run `29187107480` passes the remote production gate for commit `8e27671`, including Chromium installation, all four browser/accessibility contracts, and production smoke.
-- Coaching passes every configured marginal feature bound. Escalation exceeds at least one bound, withholds all patient-specific ML evidence, and still routes through deterministic safety.
+- The coaching fixture passes every configured marginal feature bound at 46%, remains in Watch mode with no handoff, and exposes a 19-point Meal-timing prompt comparison. The safety fixture exceeds at least one bound, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.

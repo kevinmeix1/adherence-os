@@ -17,9 +17,9 @@ Updated: 2026-07-12
 - Removed visible glow, glass, gradient, and decorative depth treatments from the judged path.
 - Reworked Check-in, Review drafts, Model record, patient routes, navigation, controls, metrics, and error recovery into the same flat record system.
 - Simplified the graph's default path, wrapped labels at word boundaries, and limited node and edge feedback to short one-shot selection animations.
-- Preserved the deterministic Coaching and Escalation paths, model abstention, tested-action suppression, and draft-only clinician handoff.
+- Preserved the deterministic coaching and safety paths, model abstention, tested-action suppression, and draft-only clinician handoff.
 - Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
-- Added a seven-item typed current-symptom checklist that overrides coaching without depending on free-text interpretation; phrase matching remains a secondary backstop.
+- Added an eight-item typed current-symptom checklist, including overdose or poisoning, that overrides coaching without depending on free-text interpretation; phrase matching remains a secondary backstop.
 - Flattened the Check-in grid so dose, safety, mood, and note fields no longer leave empty placeholder-like cells.
 - Added six Chromium contracts for the judged flow, per-patient state round trips, model-claim calibration, keyboard/focus, 390/320px order and overflow, console health, and serious/critical axe findings across four core states.
 - Made safety announcements persistent across views, focused the named workspace after client navigation, exposed graph selection semantics, removed duplicate pointer activation, and made the scrollable review table keyboard-accessible.
@@ -29,9 +29,13 @@ Updated: 2026-07-12
 - Isolated development output in `.next-dev` from production output in `.next`, with a config contract test and an event-day production-server preflight.
 - Applied the marginal feature-bounds gate to every presentation surface: out-of-bounds inputs now withhold patient score, model attribution, bootstrap spread, sensitivity, tested-action ranking, and routed-record risk.
 - Renamed that gate to marginal feature bounds, exposed held-out synthetic precision and review burden beside recall, and stated that independent ranges do not detect joint-distribution or semantic drift.
-- Preserved graph-first Coaching on narrow screens while moving the urgent destination and handoff action ahead of graph exploration in Escalation.
+- Preserved graph-first coaching on narrow screens while moving the urgent destination and handoff action ahead of graph exploration in the safety case.
+- Separated presenter-only Demo cases from clinical decisions, replaced the trivial opening fixture with a supported 46% Watch state, and exposed a 19-point bounded planning comparison without claiming an intervention effect.
+- Rebuilt the patient check-in as a focused question task with a persistent review action, an eight-item urgent-symptom checklist, and optional context notes that do not dominate the first viewport.
+- Derived evidence-map risk direction from signed grouped model attribution and made a zero-draft review workspace genuinely empty.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
 - The README image, nine walkthrough screenshots, ten-slide deck, and 2:59 captioned video all show the verified production interface.
+- Added `pnpm capture:walkthrough` so the README image and all nine desktop/mobile walkthrough states can be regenerated from the production app.
 - Updated UI labels, smoke contracts, scenario-state tests, demo scripts, architecture notes, design rationale, audit, and backlog.
 
 ## Main Study Files
@@ -58,23 +62,24 @@ Updated: 2026-07-12
 ## Validation
 
 - `pnpm typecheck`: pass.
-- `pnpm test`: pass, 63/63.
-- Focused safety/API/dashboard suite: pass, 29/29, including all seven structured safety flags, destination-aware headlines, negative-triage copy, uncertain chest pain, three new paraphrase regressions, and schema rejection of unknown flags.
+- `pnpm test`: pass, 64/64.
+- Focused safety/API/dashboard suite: pass, including all eight structured safety flags, overdose and suicide-plan regressions, destination-aware headlines, negative-triage copy, uncertain chest pain, and schema rejection of unknown flags.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
-- `pnpm build`: pass; `/` is 46.7 kB with 152 kB reported first-load JavaScript.
-- `pnpm check:bundle`: pass, `153.0 kB gzip / 155.0 kB`, leaving 2.0 kB headroom.
+- `pnpm build`: pass; `/` is 47.5 kB with 153 kB reported first-load JavaScript.
+- `pnpm check:bundle`: pass, `153.8 kB gzip / 155.0 kB`, leaving 1.2 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against the production server, including normal, escalation, uncertain chest-pain, immediate self-safety, and structured-safety API paths.
 - `pnpm test:browser`: pass, 6/6 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
 - Release-candidate production gate: GitHub Actions run `29189760588` passed in 1m38s on commit `daeb561`, including all six Chromium/axe contracts, bundle enforcement, and production smoke.
-- Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
-- ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
-- Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
-- Structured-safety browser rehearsal: pass at 1440 px, 390 px, and 320 px; every viewport renders seven named checkboxes, Normal clears them, Escalation selects three, the direct chest/breathing flag changes the headline to `Call 999 now`, and no console errors or horizontal overflow appear.
-- Interaction rehearsal: pointer selection opens Routine disruption, keyboard selection opens Hydration nudge, Escalation blocks four tested actions, Review drafts shows `In-memory only` and `Not sent`, Reset restores Coaching, and no browser console errors were recorded.
+- Production browser rehearsal: desktop Load coaching case and Load safety case pass with literal rule-state copy and the urgent destination above workflow detail.
+- ML presentation browser rehearsal: the safety case withholds graph attribution, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
+- Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; coaching keeps graph order `0/1`, the safety case switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
+- Structured-safety browser rehearsal: pass at desktop, 390 px, and 320 px; every viewport renders eight named checkboxes, Load coaching clears them, Load safety selects three, and the overdose flag changes the headline to `Call 999 or go to A&E now`.
+- Interaction rehearsal: pointer selection opens Nausea burden, keyboard selection opens Meal-timing prompt, the safety case blocks four tested actions, Review drafts shows `In-memory only` and `Not sent`, Resources > Reset demo session restores the coaching fixture, and no browser console errors were recorded.
+- Patient-task rehearsal: Review care plan remains in the viewport at 390 px and 320 px, provider fallback completes, and optional notes remain available without dominating the first viewport.
 - Deck QA: all ten exported slides reviewed at full size; template fidelity, screenshot decoding, and overflow checks pass.
-- Video QA: 2:59, 1280x720, 895 frames at 5 fps across the full 179-second video stream, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, exact 30-block sidecar parity, clean full-file decode, ten-state transition sampling, and -1.3 dB peak audio.
+- Video QA: 2:59, 1280x720, 895 frames at 5 fps across the full 179-second video stream, H.264, 48 kHz stereo AAC, embedded `mov_text` captions, exact 30-block sidecar parity, clean full-file decode, ten-state transition sampling, and -1.4 dB peak audio.
 
 ## Known Limits
 
