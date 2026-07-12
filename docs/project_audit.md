@@ -246,7 +246,7 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.8 | Leakage-safe explainable ensemble, supported-only spread and attribution, complete presentation abstention, and independent deterministic safety |
 | Documentation | 9.4 | Screenshot walkthrough, architecture study guide, design-reference rationale, technical boundaries, demo labels, and fallback media align |
-| Deployment readiness | 6.8 | Local production gate passes; no hosted preview or current remote run for this checkpoint |
+| Deployment readiness | 7.5 | Local, clean-checkout, and remote production gates pass; no hosted preview is configured |
 | Hackathon competitiveness | 8.7 | Strong technical differentiation and commercial demo flow; impact evidence and hosted access remain gaps |
 | Portfolio value | 9.1 | Public code, CI, reproducible ML, commercial UI, study guide, screenshot walkthrough, captioned video, and deck |
 
@@ -257,5 +257,6 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
 - The release checkpoint passes typecheck, 60 tests, model reproduction, production build, bundle budget, and live smoke. Development also stayed healthy through a concurrent clean production build.
 - Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
+- GitHub Actions run `29185657156` passes the remote production gate for release-verification commit `8cbbbb2`.
 - Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.
