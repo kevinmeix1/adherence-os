@@ -58,6 +58,7 @@ Updated: 2026-07-12
 - `pnpm check:bundle`: pass, `152.0 kB gzip / 155.0 kB`, leaving 3.0 kB headroom.
 - `APP_URL=http://localhost:3001 pnpm smoke`: pass against a temporary production server, including normal, escalation, uncertain chest-pain, and immediate self-safety API paths.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
+- Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
 - Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.

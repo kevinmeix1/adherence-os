@@ -256,5 +256,6 @@ No new feature is justified ahead of these repairs. CSS decomposition, extra gra
 
 - Draft PR #2 publishes the care-ledger redesign from `codex/clinical-ledger-ui`; the public repository and branch assets are available while review is open.
 - The release checkpoint passes typecheck, 60 tests, model reproduction, production build, bundle budget, and live smoke. Development also stayed healthy through a concurrent clean production build.
+- Detached commit `91d3632` also passes a frozen clean-checkout install, the full local gate, and live smoke from a separate worktree.
 - Coaching is inside synthetic model support. Escalation is outside support, withholds all patient-specific ML evidence, and still routes through deterministic safety.
 - The README image, nine-step screenshot walkthrough, video, subtitle track, and deck are verified fallback assets for the current production checkpoint.
