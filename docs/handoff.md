@@ -8,7 +8,7 @@ Updated: 2026-07-12
 - Pull request: https://github.com/kevinmeix1/adherence-os/pull/2
 - Public repository: https://github.com/kevinmeix1/adherence-os
 - Local demo URL: http://localhost:3001
-- Product status: validated hackathon release candidate on draft PR #2
+- Product status: validated public hackathon release candidate on ready-for-review PR #2
 
 ## What Changed
 
@@ -67,7 +67,7 @@ Updated: 2026-07-12
 - `pnpm test:browser`: pass, 6/6 in Chromium; the command started and stopped the built production app on port 3100 without a pre-existing server.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
-- Last pushed remote production gate: GitHub Actions run `29187439388` passed in 1m41s on commit `fc29b47`, including five Chromium/axe contracts and production smoke. The sixth model-claim contract is locally verified in this checkpoint.
+- Release-candidate production gate: GitHub Actions run `29189760588` passed in 1m38s on commit `daeb561`, including all six Chromium/axe contracts, bundle enforcement, and production smoke.
 - Production browser rehearsal: desktop Coaching and Escalation pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: Escalation graph attribution is withheld, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; Coaching keeps graph order `0/1`, Escalation switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
@@ -102,4 +102,4 @@ APP_URL=http://localhost:3001 pnpm smoke
 
 ## Recommended Next Step
 
-Run the clean-checkout rehearsal, confirm the remote production gate, and keep the local keyless demo ready on port 3001.
+Keep the local keyless demo ready on port 3001. The next evidence gap is a small task-based patient or care-team comprehension study; do not invent results for the hackathon.

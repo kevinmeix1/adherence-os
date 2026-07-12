@@ -54,6 +54,7 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 | P1-25 | Done | Preserve per-patient local decision state | Correctness | High | Medium | Low | Selecting another synthetic record must not rebuild the rest of the review workspace from the Normal seed. | Maya's pending review survives a switch to James, selecting Maya restores Escalation, and Reset clears every session. | Focused dashboard test and fifth production-browser contract | page, patient dashboard, tests |
 | P1-26 | Done | Calibrate synthetic model claims | ML safety | High | Low | Low | Do not describe independent percentile checks as general training support or present recall without its operating cost. | Model record puts test recall, precision, and rows flagged together; bounds copy states that joint-distribution and semantic drift are not detected. | Focused model tests and sixth production-browser contract | Model record, graph copy, routed records, ML docs |
 | P1-27 | Done | Reframe the local review workspace | Product claims | High | Low | Low | Do not imply that the in-memory drafts are transported, assigned, or autonomously prioritised. | Visible labels say local, in-memory, source-order, and not sent; browser tests lock the contract. | Focused browser contract, label search, and screenshot review | Review view, browser tests, README, architecture, demo docs |
+| P1-28 | Done | Publish the verified release candidate | Portfolio | High | Low | Low | Keep the public branch, PR evidence, fallback media, and remote checks aligned. | SSH push succeeds, repository is public, PR is ready for review, and the complete production workflow passes. | GitHub Actions run `29189760588` plus repository/PR metadata checks | Git history, public repository, PR, handoff |
 
 ## P2 — Polish
 
@@ -99,4 +100,4 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 
 ## Selected Next Task
 
-**Run the final release gate and publish.** Re-run every local check, push the reviewed commit over SSH, wait for GitHub Actions, and update the draft pull-request evidence.
+**Gather task-based comprehension evidence.** Ask a small number of patients or care-team users to complete the Coaching and Escalation paths, then publish anonymised observations without claiming clinical outcomes.
