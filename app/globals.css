@@ -1038,6 +1038,109 @@ blockquote {
   line-height: 1.3;
 }
 
+.model-benchmark {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.model-benchmark-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.model-benchmark-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.model-benchmark-head span,
+.model-benchmark-head small,
+.model-benchmark thead th {
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.model-benchmark-head strong {
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.model-benchmark-source {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.model-benchmark-source strong {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.model-benchmark table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.model-benchmark th,
+.model-benchmark td {
+  padding: 9px 8px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.model-benchmark th:first-child {
+  width: 34%;
+  text-align: left;
+}
+
+.model-benchmark th:last-child,
+.model-benchmark td:last-child {
+  border-right: 0;
+}
+
+.model-benchmark tbody tr:last-child th,
+.model-benchmark tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.model-benchmark tbody th {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.model-benchmark tbody td {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.model-benchmark-primary {
+  background: #f5f5f1;
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.model-benchmark > p {
+  margin: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.67rem;
+  line-height: 1.35;
+}
+
 .risk-dial {
   display: grid;
   place-items: center;

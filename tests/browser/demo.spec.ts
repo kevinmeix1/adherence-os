@@ -49,7 +49,7 @@ test("judged flow survives coaching, escalation, handoff, and reset", async ({ p
   await expect(page.getByRole("heading", { name: "Call NHS 111 now" })).toBeVisible();
   await expect(page.locator(".decision-risk-score strong")).toHaveText("Abstained");
   await expect(page.getByText("Suppressed", { exact: true })).toBeVisible();
-  await expect(page.locator('[data-node-id^="intervention-"]:not([aria-hidden="true"])')).toHaveCount(0);
+  await expect(page.locator('[data-node-id^="intervention-"]')).toHaveCount(0);
   await expect(page.locator(".graph-relationship-list")).not.toContainText(/nudge|prompt/i);
 
   await page.getByRole("button", { name: "Review handoff draft", exact: true }).click();
@@ -125,9 +125,23 @@ test("model record exposes synthetic operating trade-offs and marginal bounds", 
   await page.goto("/");
   await page.getByRole("button", { name: "Model record", exact: true }).click();
 
-  await expect(page.locator(".metric").filter({ hasText: "Test recall" })).toContainText("80%");
-  await expect(page.locator(".metric").filter({ hasText: "Test precision" })).toContainText("32%");
-  await expect(page.locator(".metric").filter({ hasText: "Rows flagged" })).toContainText("42%");
+  const benchmark = page.locator(".model-benchmark");
+  const primaryModel = benchmark.locator("tbody tr").filter({ hasText: "14-feature model" });
+  const challenger = benchmark.locator("tbody tr").filter({ hasText: "Recent-adherence-only" });
+  await expect(benchmark.getByText("Held-out challenger benchmark", { exact: true })).toBeVisible();
+  await expect(benchmark.getByText("adherence-feature-source-v1", { exact: true })).toBeVisible();
+  await expect(primaryModel).toContainText("0.517");
+  await expect(primaryModel).toContainText("77%");
+  await expect(primaryModel).toContainText("29%");
+  await expect(primaryModel).toContainText("33%");
+  await expect(challenger).toContainText("0.237");
+  await expect(challenger).toContainText("71%");
+  await expect(challenger).toContainText("16%");
+  await expect(challenger).toContainText("57%");
+  await expect(benchmark).toContainText("90% scored; 180 abstained; scored subset 26% precision / 74% recall");
+  await expect(benchmark).toContainText("not clinical validation or measured workflow savings");
+  const benchmarkBox = await benchmark.boundingBox();
+  expect((benchmarkBox?.y ?? 0) + (benchmarkBox?.height ?? 0)).toBeLessThanOrEqual(720);
   await expect(page.locator(".model-support-status")).toHaveText("Marginal bounds passed");
   await expect(page.getByText(/Joint-distribution and semantic drift are not detected/i)).toBeVisible();
   await expect(page.getByText("Held-out synthetic calibration", { exact: true })).toBeVisible();
@@ -135,6 +149,7 @@ test("model record exposes synthetic operating trade-offs and marginal bounds", 
   await page.getByRole("button", { name: "Decision map", exact: true }).click();
   await page.getByRole("button", { name: "Load safety case", exact: true }).click();
   await page.getByRole("button", { name: "Model record", exact: true }).click();
+  await expect(page.locator(".model-benchmark")).toBeVisible();
   await expect(page.locator(".model-support-status")).toHaveText("Marginal bounds exceeded");
   await expect(page.getByRole("heading", { name: "Attribution and sensitivity withheld" })).toBeVisible();
   await expect(page.getByText("Outside marginal feature bounds", { exact: true })).toBeVisible();

@@ -261,13 +261,14 @@ export function buildAdherenceKnowledgeGraph({
   addEdge(edges, "biomarkers", "risk", biomarkerSignal.relationship, biomarkerRisk, biomarkerSignal.status);
 
   edgeRisk.interventions.slice(0, 3).forEach((intervention) => {
+    if (!intervention.rankable) return;
     addEdge(
       edges,
       interventionNodeId(intervention),
       targetDriverForIntervention(intervention),
-      intervention.rankable ? "breaks loop" : "comparison withheld",
+      "breaks loop",
       clamp01((intervention.absoluteReduction ?? 0) / Math.max(edgeRisk.risk, 0.01)),
-      intervention.rankable ? "action" : "neutral"
+      "action"
     );
   });
 

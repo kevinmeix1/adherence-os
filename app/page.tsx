@@ -32,7 +32,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEMO_CHECK_INS, evaluateCheckIn, getPatientInsights, SAFETY_NOTICE } from "@/app/lib/careEngine";
 import { SAFETY_FLAG_OPTIONS, type SafetyFlagId } from "@/app/lib/safetyFlags";
-import { analyzeRiskSensitivity, explainRiskScore, getModelSampleRows, scorePatientRisk } from "@/app/lib/edgeModel";
+import { analyzeRiskSensitivity, explainRiskScore, scorePatientRisk } from "@/app/lib/edgeModel";
 import { buildAdherenceKnowledgeGraph } from "@/app/lib/knowledgeGraph";
 import { buildClinicianDashboardRows } from "@/app/lib/patientDashboard";
 import { patients } from "@/app/lib/patients";
@@ -954,10 +954,10 @@ function ModelLabView({
   const topSensitivityFeatures = sensitivity?.features.slice(0, 5) ?? [];
   const maxSensitivitySpan = Math.max(...topSensitivityFeatures.map((feature) => feature.span), 0.001);
   const maxStepContribution = Math.max(...(explanation?.steps ?? []).map((step) => Math.abs(step.contribution)), 0.01);
-  const parityRows = getModelSampleRows();
-  const sampleRows = [...parityRows.slice(0, 3), ...parityRows.slice(-3)];
   const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
   const confusion = artifact.metrics.confusionMatrix;
+  const challenger = artifact.metrics.challengerBenchmark;
+  const supportEvaluation = artifact.metrics.supportEvaluation;
   const testEventRate = (confusion.tp + confusion.fn) /
     Math.max(confusion.tp + confusion.fp + confusion.fn + confusion.tn, 1);
 
@@ -985,11 +985,47 @@ function ModelLabView({
           </div>
           <BarChart3 size={24} />
         </div>
-        <div className="metric-row compact-metrics">
-          <Metric icon={<TrendingDown size={18} />} label="Synthetic AUPRC" value={artifact.metrics.testAuprc.toFixed(3)} />
-          <Metric icon={<Gauge size={18} />} label="Test recall" value={formatPercent(artifact.metrics.recallAtThreshold)} />
-          <Metric icon={<ClipboardCheck size={18} />} label="Test precision" value={formatPercent(artifact.metrics.precisionAtThreshold)} />
-          <Metric icon={<UserRound size={18} />} label="Rows flagged" value={formatPercent(artifact.metrics.reviewRateAtThreshold)} />
+        <div className="model-benchmark" aria-label="Held-out challenger benchmark">
+          <div className="model-benchmark-head">
+            <div>
+              <span>Held-out challenger benchmark</span>
+              <strong>Same validation-only target: at least {formatPercent(artifact.metrics.thresholdSelection.targetRecall)} recall</strong>
+            </div>
+            <small className="model-benchmark-source">
+              <span>{supportEvaluation.testRows.toLocaleString()} test rows / before runtime gate</span>
+              <strong>{artifact.featureContract.version}</strong>
+            </small>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Ungated synthetic test</th>
+                <th scope="col">AUPRC</th>
+                <th scope="col">Recall</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Rows flagged</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="model-benchmark-primary">
+                <th scope="row">14-feature model</th>
+                <td>{artifact.metrics.testAuprc.toFixed(3)}</td>
+                <td>{formatPercent(artifact.metrics.recallAtThreshold)}</td>
+                <td>{formatPercent(artifact.metrics.precisionAtThreshold)}</td>
+                <td>{formatPercent(artifact.metrics.reviewRateAtThreshold)}</td>
+              </tr>
+              <tr>
+                <th scope="row">{challenger.name}</th>
+                <td>{challenger.testAuprc.toFixed(3)}</td>
+                <td>{formatPercent(challenger.recallAtThreshold)}</td>
+                <td>{formatPercent(challenger.precisionAtThreshold)}</td>
+                <td>{formatPercent(challenger.reviewRateAtThreshold)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Runtime gate on the same rows: {formatPercent(supportEvaluation.coverage)} scored; {supportEvaluation.abstainedRows} abstained; scored subset {formatPercent(supportEvaluation.precisionAtThreshold)} precision / {formatPercent(supportEvaluation.recallAtThreshold)} recall. Synthetic pipeline benchmark; not clinical validation or measured workflow savings.
+          </p>
         </div>
         <p className="model-note">{artifact.cohort.description}</p>
         <div className="model-method-strip">
@@ -1004,6 +1040,10 @@ function ModelLabView({
           <div>
             <span>Version</span>
             <strong>{artifact.version}</strong>
+          </div>
+          <div>
+            <span>Feature source</span>
+            <strong>{artifact.featureContract.version}</strong>
           </div>
           <div>
             <span>Trained</span>
@@ -1290,35 +1330,6 @@ function ModelLabView({
         </div>
       </section>
 
-      <section className="panel wide-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="section-kicker">Synthetic cohort sample</p>
-            <h2>Data in, prediction out</h2>
-          </div>
-          <ClipboardList size={24} />
-        </div>
-        <div className="sample-table">
-          <div className="sample-row sample-head">
-            <span>Week</span>
-            <span>Adherence</span>
-            <span>Nausea</span>
-            <span>Hydration risk</span>
-            <span>Routine</span>
-            <span>Next-week miss</span>
-          </div>
-          {sampleRows.map((row, index) => (
-            <div className="sample-row" key={`${row.patient_id}-${row.week}-${index}`}>
-              <span>{row.week}</span>
-              <span>{Math.round(row.adherence_last_2wk)}%</span>
-              <span>{row.nausea_score.toFixed(1)}</span>
-              <span>{row.hydration_risk.toFixed(1)}</span>
-              <span>{row.routine_disruption.toFixed(2)}</span>
-              <span>{row.target ? "yes" : "no"}</span>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
@@ -1997,6 +2008,12 @@ function KnowledgeGraphCanvas({
             <text x="82" y="20">Care action</text>
           </g>
           {graph.edges.map((edge) => {
+            const hideSuppressedActionEdge =
+              edge.status === "action" &&
+              graph.pathMode === "escalation" &&
+              focusMode !== "all" &&
+              focusMode !== "attribution";
+            if (hideSuppressedActionEdge) return null;
             const renderAsForwardAction = edge.status === "action";
             const source = positions.get(renderAsForwardAction ? edge.target : edge.source);
             const target = positions.get(renderAsForwardAction ? edge.source : edge.target);
@@ -2025,6 +2042,13 @@ function KnowledgeGraphCanvas({
           })}
           {rescueRoutePath && focusMode !== "neighborhood" && focusMode !== "attribution" && <path className={`graph-rescue-route ${graph.pathMode}`} d={rescueRoutePath} aria-hidden="true" />}
           {graph.nodes.map((node) => {
+            const route = graph.routeAlternatives.find((item) => item.interventionNodeId === node.id);
+            const hideSuppressedAction =
+              node.type === "intervention" &&
+              (graph.pathMode === "escalation" || route?.status === "not-ranked") &&
+              focusMode !== "all" &&
+              focusMode !== "attribution";
+            if (hideSuppressedAction) return null;
             const position = positions.get(node.id);
             if (!position) return null;
             const centrality = graph.centrality.find((item) => item.nodeId === node.id)?.score ?? 1;

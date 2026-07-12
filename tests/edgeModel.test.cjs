@@ -2,17 +2,24 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 const patients = require("../data/patients.json");
+const modelFixtures = require("../data/adherence-model-fixtures.json");
 const { DEMO_CHECK_INS } = require("../app/lib/careEngine.ts");
+const { parseModelSampleRows } = require("../app/lib/modelArtifact.ts");
+const {
+  engineerModelFeatures,
+  MODEL_FEATURE_CONTRACT_VERSION,
+  ModelFeatureContractError
+} = require("../app/lib/modelFeatures.ts");
 const {
   analyzeRiskSensitivity,
   explainRiskScore,
   getModelArtifact,
-  getModelSampleRows,
   scoreFeatureVector,
   scorePatientRisk
 } = require("../app/lib/edgeModel.ts");
 
 const patient = patients.find((candidate) => candidate.id === "maya-patel");
+const sampleRows = parseModelSampleRows(modelFixtures.sampleRows);
 
 function buildCheckIn(scenario) {
   return {
@@ -42,10 +49,24 @@ test("edge model artifact exposes honest prospective validation metrics", () => 
   assert.ok(artifact.features.find((feature) => feature.name === "missed_doses_2wk").weight >= 0);
   assert.ok(artifact.features.find((feature) => feature.name === "prior_failure").weight >= 0);
   assert.ok(artifact.features.find((feature) => feature.name === "adherence_last_2wk").weight <= 0);
+  const challenger = artifact.metrics.challengerBenchmark;
+  assert.deepEqual(challenger.featureNames, ["adherence_last_2wk"]);
+  assert.ok(challenger.thresholdSelection.validationRecall >= challenger.thresholdSelection.targetRecall);
+  assert.equal(challenger.thresholdSelection.targetRecall, artifact.metrics.thresholdSelection.targetRecall);
+  assert.ok(artifact.metrics.testAuprc > challenger.testAuprc);
+  assert.ok(artifact.metrics.precisionAtThreshold > challenger.precisionAtThreshold);
+  assert.ok(artifact.metrics.reviewRateAtThreshold < challenger.reviewRateAtThreshold);
+  const supportEvaluation = artifact.metrics.supportEvaluation;
+  assert.equal(supportEvaluation.testRows, testRows);
+  assert.equal(supportEvaluation.supportedRows + supportEvaluation.abstainedRows, testRows);
+  assert.ok(supportEvaluation.coverage >= 0.85);
+  assert.ok(supportEvaluation.abstainedRows > 0);
+  assert.ok(supportEvaluation.testAuprc > testPositiveRate);
+  assert.ok(supportEvaluation.recallAtThreshold >= 0.7);
 });
 
 test("parity fixtures preserve the prospective temporal contract and Python scores", () => {
-  const rows = getModelSampleRows();
+  const rows = sampleRows;
   assert.equal(rows.length, 20);
   assert.ok(rows.some((row) => row.target === 1));
   assert.ok(rows.some((row) => row.target === 0));
@@ -58,6 +79,38 @@ test("parity fixtures preserve the prospective temporal contract and Python scor
     assert.ok(Math.abs(result.modelSpread.p90 - row.expected_p90) < 1e-9);
     assert.equal(result.support.status === "supported" ? 1 : 0, row.expected_supported);
   });
+});
+
+test("raw taken and missed fixtures reproduce all Python-engineered features", () => {
+  assert.equal(modelFixtures.contractVersion, MODEL_FEATURE_CONTRACT_VERSION);
+  assert.equal(modelFixtures.featureRows.length, 12);
+  assert.ok(modelFixtures.featureRows.some((row) => row.source.checkIn.medicationTaken));
+  assert.ok(modelFixtures.featureRows.some((row) => !row.source.checkIn.medicationTaken));
+
+  for (const row of modelFixtures.featureRows) {
+    const actual = engineerModelFeatures(row.source);
+    assert.deepEqual(Object.keys(actual), getModelArtifact().features.map((feature) => feature.name));
+
+    for (const [name, expected] of Object.entries(row.expectedFeatures)) {
+      assert.ok(Math.abs(actual[name] - expected) < 1e-9, `${row.id}.${name} drifted`);
+    }
+  }
+});
+
+test("raw feature construction fails closed on version drift and missing values", () => {
+  const source = structuredClone(modelFixtures.featureRows[0].source);
+  const wrongVersion = { ...source, contractVersion: "adherence-feature-source-v0" };
+  assert.throws(
+    () => engineerModelFeatures(wrongVersion),
+    (error) => error instanceof ModelFeatureContractError && /expected contract/.test(error.message)
+  );
+
+  delete source.checkIn.nauseaScore;
+  const score = scoreFeatureVector(engineerModelFeatures(source));
+  const nauseaViolation = score.support.violations.find((violation) => violation.name === "nausea_score");
+  assert.equal(score.support.status, "out-of-support");
+  assert.equal(nauseaViolation.reason, "missing");
+  assert.equal(nauseaViolation.value, null);
 });
 
 test("risk explanation reconstructs the final probability from additive log-odds", () => {
@@ -150,7 +203,7 @@ test("out-of-support input abstains from numeric intervention ranking", () => {
 });
 
 test("missing and non-finite feature values fail closed", () => {
-  const supportedRow = getModelSampleRows().find((row) => row.expected_supported === 1);
+  const supportedRow = sampleRows.find((row) => row.expected_supported === 1);
   const missing = { ...supportedRow };
   delete missing.nausea_score;
   const nonFinite = { ...supportedRow, nausea_score: Number.NaN };

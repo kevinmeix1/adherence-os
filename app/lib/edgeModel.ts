@@ -1,5 +1,5 @@
-import { getPatientInsights } from "./careEngine";
 import { adherenceModelData, type ModelArtifact } from "./modelArtifact";
+import { extractModelFeatures } from "./modelFeatures";
 import type { CheckInInput, Patient } from "./types";
 
 export type FeatureContribution = {
@@ -104,13 +104,9 @@ export function getModelArtifact() {
   return adherenceModelData.artifact;
 }
 
-export function getModelSampleRows() {
-  return adherenceModelData.sampleRows;
-}
-
 export function scorePatientRisk(patient: Patient, checkIn: CheckInInput): EdgeRiskResult {
   const artifact = adherenceModelData.artifact;
-  const features = extractFeatures(patient, checkIn);
+  const features = extractModelFeatures(patient, checkIn);
   const baseScore = scoreFeatureVector(features, artifact);
   const contributions = artifact.features
     .map((feature) => {
@@ -321,44 +317,6 @@ export function analyzeRiskSensitivity(
     distanceToThreshold: result.artifact.metrics.threshold - result.risk,
     perturbationStd,
     features
-  };
-}
-
-function extractFeatures(patient: Patient, checkIn: CheckInInput): Record<string, number> {
-  const insights = getPatientInsights(patient);
-  const latest = insights.latest;
-  const priorWeek = insights.previous;
-  const text = `${checkIn.freeText} ${checkIn.sideEffects}`.toLowerCase();
-  const routineDisruption =
-    Number(/work|shift|travel|busy|hectic|forgot|missed/.test(text)) * 0.44 +
-    Number(patient.riskFactors.some((factor) => /shift|travel/i.test(factor))) * 0.22 +
-    Number(!checkIn.medicationTaken) * 0.28;
-  const moodAnxious = Number(/anxious|discouraged|worried|frustrated|tired/.test(checkIn.mood.toLowerCase() + text));
-  const weightLossPct = Math.max(0, (-insights.weightDelta / patient.baseline.weightKg) * 100);
-  const hba1cDelta =
-    typeof insights.hba1cDelta === "number"
-      ? insights.hba1cDelta
-      : typeof patient.latestBiomarkers.hba1cPct === "number" && typeof patient.baseline.hba1cPct === "number"
-        ? patient.latestBiomarkers.hba1cPct - patient.baseline.hba1cPct
-        : -0.1;
-
-  return {
-    week: patient.currentWeek,
-    adherence_last_2wk: insights.lastTwoAdherence,
-    missed_doses_2wk:
-      Math.max(0, latest.dosesExpected - latest.dosesTaken + priorWeek.dosesExpected - priorWeek.dosesTaken) +
-      Number(!checkIn.medicationTaken),
-    nausea_score: checkIn.nauseaScore,
-    hydration_risk: Math.max(0, 10 - checkIn.hydrationScore),
-    energy_risk: Math.max(0, 10 - checkIn.energyScore),
-    appetite_suppression: Math.max(0, 10 - checkIn.appetiteScore),
-    weight_loss_pct: weightLossPct,
-    hba1c_delta: hba1cDelta,
-    systolic_bp: patient.latestBiomarkers.systolicBp ?? patient.baseline.systolicBp ?? 130,
-    routine_disruption: Math.min(1, routineDisruption + Number(/vomit|lightheaded|pain|worse/.test(text)) * 0.18),
-    side_effect_spike: Math.max(0, checkIn.nauseaScore - priorWeek.nauseaScore + Number(/vomit|lightheaded|pain|worse/.test(text)) * 0.8),
-    prior_failure: insights.lastTwoAdherence < 90 ? 1 : 0,
-    mood_anxious: moodAnxious
   };
 }
 

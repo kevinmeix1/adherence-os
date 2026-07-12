@@ -41,7 +41,7 @@ test("patient dashboard surfaces engagement and latest-snapshot risk", () => {
   assert.equal(buildLatestCheckIn(maya.patient).medicationTaken, true);
   assert.ok(maya.modelRisk >= 0 && maya.modelRisk <= 1);
   assert.equal(james.modelRisk, null);
-  assert.equal(aisha.modelRisk, null);
+  assert.ok(aisha.modelRisk >= 0 && aisha.modelRisk <= 1);
 });
 
 test("local review workspace preserves each patient's live plan independently", () => {

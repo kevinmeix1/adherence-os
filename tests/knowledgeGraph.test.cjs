@@ -168,7 +168,7 @@ test("model support and deterministic safety remain independent in all four stat
     if (item.expectedSupport === "out-of-support" && item.expectedPath === "coaching") {
       assert.deepEqual(graph.rescuePath.map((step) => step.label), [graph.topDriver.label, "Model abstained", "Rules remain active"]);
       assert.ok(graph.rescuePath.every((step) => !/lower adherence risk/i.test(step.label)));
-      assert.ok(graph.edges.filter((edge) => edge.source.startsWith("intervention-")).every((edge) => edge.status === "neutral"));
+      assert.equal(graph.edges.filter((edge) => edge.source.startsWith("intervention-")).length, 0);
     }
   }
 });
