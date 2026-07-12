@@ -46,6 +46,7 @@ All values are synthetic software-assurance evidence, not clinical validation.
 | `pnpm check:bundle` | Pass, 151.8/155.0 kB gzip |
 | `APP_URL=http://127.0.0.1:3001 pnpm test:browser` | Pass, 6/6 |
 | `APP_URL=http://127.0.0.1:3001 pnpm smoke` | Pass |
+| [GitHub Actions `29201156709`](https://github.com/kevinmeix1/adherence-os/actions/runs/29201156709) | Pass in 1m44s on `9447be9` |
 
 ## Failures Found And Fixed
 
@@ -82,4 +83,4 @@ All values are synthetic software-assurance evidence, not clinical validation.
 
 ## Next Action
 
-Rerun the final code, model, production-browser, smoke, documentation, and secret gates; then commit, push over SSH, update PR #2, and verify remote CI.
+Keep the verified keyless build ready for judging. The highest-value unresolved evidence is a small task-based patient or care-team comprehension study; record real observations without inventing outcomes.

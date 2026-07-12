@@ -80,7 +80,7 @@ Updated: 2026-07-12
 - `APP_URL=http://127.0.0.1:3001 pnpm test:browser`: pass, 6/6 in Chromium against the current production server.
 - Build-isolation rehearsal: a development server on port 3002 remained healthy while `pnpm build` produced `.next`; the resulting production server passed smoke on port 3001 while development was still running.
 - Clean-checkout rehearsal: detached commit `91d3632` passed frozen install, typecheck, 60 tests, model reproduction, production build, bundle gate, and live smoke on port 3003. The host Homebrew Python was broken against `libexpat`; isolated Python 3.12 with NumPy 2.3.5 completed the unchanged model check.
-- Final code-checkpoint gate: GitHub Actions run [`29192907061`](https://github.com/kevinmeix1/adherence-os/actions/runs/29192907061) passed in 1m59s on commit `b6a8853`, including all 64 deterministic tests, model reproduction, all six Chromium/axe contracts, bundle enforcement, and production smoke.
+- Final code-checkpoint gate: GitHub Actions run [`29201156709`](https://github.com/kevinmeix1/adherence-os/actions/runs/29201156709) passed in 1m44s on commit `9447be9`, including all 73 deterministic tests, raw feature and scoring parity, model reproduction, documentation-link validation, all six Chromium/axe contracts, bundle enforcement, and production smoke.
 - Production browser rehearsal: desktop Load coaching case and Load safety case pass with literal rule-state copy and the urgent destination above workflow detail.
 - ML presentation browser rehearsal: the safety case withholds graph attribution, Model record contains no patient score/decomposition/spread/sensitivity, and James's unsupported routed record contains no ML percentage.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; coaching keeps graph order `0/1`, the safety case switches inspector/graph to `0/1`, urgent action and handoff remain above the graph, and no horizontal overflow appears.
@@ -97,7 +97,7 @@ Updated: 2026-07-12
 - Public deployment should remain keyless. Configuring `OPENAI_API_KEY` exposes an unauthenticated cost-bearing demo endpoint.
 - All records and model metrics are synthetic. They demonstrate an executable pipeline, not clinical validation.
 - The evidence map is authored and explanatory; bounded rescoring is not causal evidence.
-- Current parity fixtures prove the exported scoring kernel only. Raw patient/check-in feature construction still needs a versioned source contract, aligned dose/routine/side-effect semantics, and representative validation.
+- Raw parity spans twelve synthetic fixtures and scoring parity spans twenty synthetic vectors; this proves the implemented cross-runtime contract, not real-world semantic coverage or joint-distribution drift detection.
 - `app/page.tsx` remains roughly 2,400 lines, and the two stylesheets exceed 7,600 lines. Decomposition is intentionally deferred until after judging to avoid destabilising the demo.
 - Per-patient sessions are intentionally in-memory only; Reset or a full refresh restores the seeded synthetic scenarios.
 - Pixel-level visual regression and real assistive-technology testing remain manual; structural browser behavior and bounded axe checks now run in CI.
