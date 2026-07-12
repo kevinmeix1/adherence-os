@@ -62,7 +62,10 @@ const redFlagPatterns: RedFlagPattern[] = [
   { label: "severe abdominal pain", pattern: /\b(?:(?:(?:severe|persistent|worsening|agonising|agonizing|unbearable|excruciating)\s+){1,2}(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain\s+(?:is\s+)?(?:getting worse|worsening|won't go away|will not go away|unbearable|agonising|agonizing|excruciating)|(?:upper\s+)?(?:stomach|abdominal|belly|tummy)\s+pain(?:\s+(?:that|which))?\s+(?:spreads?|spread|spreading|radiat(?:es|ed|ing))\s+(?:into|to)\s+(?:(?:my|the)\s+)?back|(?:upper\s+)?(?:stomach|abdomen|belly|tummy)\s+(?:hurt|hurts|is hurting)\s+(?:severely|unbearably|agonisingly|agonizingly|excruciatingly|(?:so\s+)?badly))\b/i },
   { label: "unable to keep fluids down", pattern: /\b(?:(?:(?:have|has|had)\s+not|haven't|hasn't|hadn't)\s+been\s+able\s+to\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+keep\s+(?:fluids?|water|anything|drinks?|sips?)\s+down|(?:cannot|can't|couldn't|unable to|struggl(?:e|ing) to)\s+drink(?:\s+(?:anything|(?:any\s+)?(?:fluids?|water)))?(?=\s*(?:[,.!?;]|$|\b(?:and|because|without)\b))|(?:(?:every|each|any)\s+(?:sip|drink)|(?:even\s+(?:a|one|tiny)\s+)?sips?|(?:all\s+)?(?:fluids?|water))\s+(?:comes?|come|came|is coming|are coming)\s+(?:(?:straight|right)\s+)?back\s+up|vomit(?:ing|ed|s)?|throw(?:ing|s|threw|thrown)\s+up|being\s+sick)\b/i, ignoreResolvedHistory: true },
   { label: "pregnancy concern", pattern: /\b(?:pregnant|positive pregnancy test|missed (?:my )?period)\b/i },
-  { label: "immediate self-harm language", pattern: /\b(?:kill myself|end my life|want to die|cannot keep myself safe)\b/i },
+  {
+    label: "immediate self-harm language",
+    pattern: /\b(?:kill myself|end my life|want to die|(?:(?:cannot|can't|unable to)|(?:do not|don't) feel (?:able to|(?:that )?i can)|(?:will not|won't) be able to)\s+keep myself safe)\b/i
+  },
   { label: "self-harm language", pattern: /\b(?:self[- ]harm|hurt(?:ing)? myself|suicidal)\b/i }
 ];
 
@@ -153,13 +156,14 @@ export function evaluateCheckIn(patient: Patient, input: CheckInInput): CarePlan
 }
 
 function hasNonNegatedMatch(text: string, pattern: RegExp, ignoreResolvedHistory = false) {
+  const normalizedText = normalizeSafetyText(text);
   const matcher = new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`);
-  let match = matcher.exec(text);
+  let match = matcher.exec(normalizedText);
 
   while (match) {
     if (
-      !isNegated(text, match.index) &&
-      !(ignoreResolvedHistory && isResolvedHistoricalMatch(text, match.index, match[0].length))
+      !isNegated(normalizedText, match.index) &&
+      !(ignoreResolvedHistory && isResolvedHistoricalMatch(normalizedText, match.index, match[0].length))
     ) {
       return true;
     }
@@ -169,11 +173,34 @@ function hasNonNegatedMatch(text: string, pattern: RegExp, ignoreResolvedHistory
   return false;
 }
 
+function normalizeSafetyText(text: string) {
+  return text
+    .normalize("NFKC")
+    .replace(/[‘’]/g, "'")
+    .replace(/[‐‑‒–—]/g, "-");
+}
+
 function isNegated(text: string, matchIndex: number) {
   const prefix = text.slice(Math.max(0, matchIndex - 100), matchIndex);
   const clause = prefix.split(/[.!?;\n]|\b(?:but|however|although)\b/i).at(-1) ?? prefix;
-  const negationScope = clause.replace(/\bno\s+(?:idea|clue)\b/gi, "uncertain");
-  return /\b(?:no|not|never|without|deny|denies|denied|negative for|don't|doesn't|didn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't)\b(?:[\s,:-]+[\w'-]+){0,8}[\s,:-]*$/i.test(negationScope);
+  const negationScope = clause
+    .replace(/\bno\s+(?:idea|clue)\b/gi, "uncertain")
+    .replace(/\bnot\s+(?:sure|certain)\b/gi, "uncertain")
+    .replace(/\b(?:do not|don't)\s+know\b/gi, "uncertain")
+    .replace(/\bnot\s+(?:without|negative for)\b/gi, "present")
+    .replace(/\b(?:do not|don't|does not|doesn't|did not|didn't)\s+den(?:y|ies|ied)\b/gi, "present");
+  const directDenials = [
+    /\bno\s+(?:(?:any|new|current|ongoing|active|recent|further|more)\s+)*(?:(?:thoughts?|signs?|symptoms?|evidence)\s+of\s+)?$/i,
+    /\b(?:without|negative for)\s+(?:any\s+)?$/i,
+    /\bden(?:y|ies|ied)\s+(?:(?:having|experiencing|feeling|reporting)\s+)?(?:any\s+)?$/i,
+    /\b(?:do not|don't|does not|doesn't|did not|didn't)\s+(?:(?:currently|now|still)\s+)?(?:(?:have|feel|experience|report|notice)\s+(?:any\s+)?)?$/i,
+    /\b(?:am|is|are|was|were)\s+(?:not|never)\s+(?:(?:currently|now|still|really)\s+)?(?:(?:having|experiencing|feeling|reporting)\s+)?(?:any\s+)?$/i,
+    /\b(?:(?:have|has|had)\s+(?:not|never)|haven't|hasn't|hadn't)\s+(?:(?:currently|recently|ever|still)\s+)?(?:(?:had|felt|experienced|reported|noticed|been(?:\s+(?:having|feeling|experiencing|reporting))?)\s+)?(?:any\s+)?$/i,
+    /\bno longer\s+(?:(?:have|having|experience|experiencing|feel|feeling|report|reporting)\s+(?:any\s+)?)?$/i,
+    /\bno\s+(?:(?:chest|stomach|abdominal|belly|tummy)\s+(?:pain|pressure|tightness)|tight chest|shortness of breath|breathlessness|nausea|vomiting|throwing up|dizziness|fainting|self[- ]harm)\s+(?:or|and)\s+$/i
+  ];
+
+  return directDenials.some((pattern) => pattern.test(negationScope));
 }
 
 function isResolvedHistoricalMatch(text: string, matchIndex: number, matchLength: number) {

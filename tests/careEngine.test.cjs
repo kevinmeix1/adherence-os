@@ -296,7 +296,32 @@ test("adversarial active phrases select destination-specific urgent routes", () 
       destination: /call 999/i
     },
     {
+      freeText: "I am not sure why I have chest pain now.",
+      labels: ["chest pain"],
+      destination: /call 999/i
+    },
+    {
+      freeText: "There is no improvement and chest pain remains.",
+      labels: ["chest pain"],
+      destination: /call 999/i
+    },
+    {
+      freeText: "I am not without chest pain.",
+      labels: ["chest pain"],
+      destination: /call 999/i
+    },
+    {
       freeText: "I want to kill myself.",
+      labels: ["immediate self-harm language"],
+      destination: /call 999|go to A&E/i
+    },
+    {
+      freeText: "I can't keep myself safe.",
+      labels: ["immediate self-harm language"],
+      destination: /call 999|go to A&E/i
+    },
+    {
+      freeText: "I don’t feel able to keep myself safe.",
       labels: ["immediate self-harm language"],
       destination: /call 999|go to A&E/i
     },
@@ -418,6 +443,12 @@ test("negated and benign symptom language does not create false urgent handoffs"
     "Mild stomach discomfort settled after lunch.",
     "I am not pregnant and my period arrived normally.",
     "I have no thoughts of self harm.",
+    "I am not experiencing chest pain.",
+    "I have never had chest pain.",
+    "No current chest pain.",
+    "I have no more chest pain.",
+    "I am no longer vomiting.",
+    "I don't have chest pain.",
     "I do not have agonising upper belly pain that spreads into my back.",
     "No sip comes straight back up and I can drink.",
     "My stomach does not hurt unbearably and I am not throwing up.",

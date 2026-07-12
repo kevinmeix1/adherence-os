@@ -1,6 +1,6 @@
 # Engineering Handoff
 
-Updated: 2026-07-11
+Updated: 2026-07-12
 
 ## Current State
 
@@ -18,6 +18,7 @@ Updated: 2026-07-11
 - Reworked Check-in, Review queue, Model record, patient routes, navigation, controls, metrics, and error recovery into the same flat record system.
 - Kept graph geometry stable and limited node feedback to a short one-shot selection animation.
 - Preserved the deterministic Coaching and Escalation paths, model abstention, route suppression, and draft-only clinician handoff.
+- Replaced broad red-flag negation scope with symptom-scoped denials and added contraction-aware emergency-language coverage.
 - Documented the NHS, Carbon, OpenMRS, and eMed references that informed the design. No external screen, CSS, template code, or branded asset was copied.
 - Rebuilt the README image and all eight walkthrough screenshots from the current UI.
 - Rebuilt the 10-slide pitch deck and the 2:59 narrated, captioned walkthrough from those verified states.
@@ -47,10 +48,11 @@ Updated: 2026-07-11
 
 - `pnpm typecheck`: pass.
 - `pnpm test`: pass, 55/55.
+- Focused care-engine safety suite: pass, 17/17, including uncertain chest pain and self-safety contraction regressions.
 - `pnpm check:model`: pass; checked-in synthetic artifact reproduced with ROC-AUC `0.8098` and Brier score `0.1091`.
-- `pnpm build`: pass; `/` is 45 kB with 150 kB reported first-load JavaScript.
-- `pnpm check:bundle`: pass, `151.1 kB gzip / 155.0 kB`, leaving 3.9 kB headroom.
-- `APP_URL=http://localhost:3002 pnpm smoke`: pass against a temporary production server, including normal and escalation API paths.
+- `pnpm build`: pass; `/` is 45.4 kB with 151 kB reported first-load JavaScript.
+- `pnpm check:bundle`: pass, `151.5 kB gzip / 155.0 kB`, leaving 3.5 kB headroom.
+- `APP_URL=http://localhost:3001 pnpm smoke`: pass against a temporary production server, including normal, escalation, uncertain chest-pain, and immediate self-safety API paths.
 - Production browser rehearsal: pass for Attribution, risk-driver node, bounded route, Escalation abstention, clinician handoff, Reset, and Check-in.
 - Responsive browser rehearsal: pass at 1280 px, 390 px, and 320 px; 320 px document and graph surfaces have no horizontal overflow.
 - Deck QA: all ten slides reviewed at full size; overflow check passes.

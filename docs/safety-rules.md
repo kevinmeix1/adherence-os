@@ -47,7 +47,7 @@ Urgent mode returns one immediate safety action rather than a seven-day coaching
 
 ## Bounded Parser Limits
 
-Each free-text input field is matched separately through hard newline boundaries, so a denial in `sideEffects` cannot suppress an active phrase in `freeText`. Within a field, explicit denials such as "no chest pain" suppress that phrase, while uncertainty such as "no idea why I have chest pain" does not count as a denial. A later positive clause still wins over an earlier denied clause.
+Each free-text input field is matched separately through hard newline boundaries, so a denial in `sideEffects` cannot suppress an active phrase in `freeText`. Within a field, only symptom-scoped denials such as "no chest pain", "I don't have chest pain", or "I am not experiencing chest pain" suppress that phrase. Uncertainty such as "I am not sure why I have chest pain" does not count as a denial. Apostrophes and common Unicode punctuation are normalised before matching, so direct phrases such as "I can’t keep myself safe" follow the same emergency route as their plain-ASCII form. A later positive clause still wins over an earlier denied clause.
 
 The only resolved-history exception applies to vomiting and fluid-intolerance matches. It requires a past-time marker such as "last week" or "yesterday", followed by `but` or `however`, followed by an explicit recovery phrase such as "I am fine now". A later current match still escalates. Immediate self-harm language is never suppressed by this history rule.
 

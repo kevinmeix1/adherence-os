@@ -1,6 +1,6 @@
 # Project Audit
 
-Audit date: 2026-07-11
+Audit date: 2026-07-12
 
 ## 1. Product Summary
 
@@ -39,6 +39,7 @@ The product's strongest proposition is the dual-track decision: ML estimates adh
 - The flat care-ledger visual system uses record, task-list, and evidence-table patterns instead of generic AI-dashboard decoration; public references and adaptation decisions are documented.
 - Normal and escalation paths are seeded, deterministic, and visually distinct.
 - Safety is independent from both the LLM and the adherence model.
+- Red-flag matching distinguishes symptom-scoped denial from uncertainty and normalises typographic contractions before deterministic routing.
 - The app remains complete without a network connection or API key.
 - Structured AI output and request data are validated with Zod.
 - Model explainability is unusually strong for a hackathon: exact log-odds reconstruction, local sensitivity, calibration, and provenance.
@@ -103,6 +104,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - Optional LLM output is schema-validated, but the complete displayed plan is recomputed deterministically.
 - The provider prompt is clear about diagnosis, medication changes, escalation, and structured output.
 - Post-generation safety overrides are deterministic and tested.
+- Adversarial phrase coverage now locks direct-denial, uncertain chest-pain, ASCII and typographic self-safety, cross-field, and resolved-history behavior.
 - Provider timeout, invalid-output, exception, and unsafe-generation branches are exercised through controlled test doubles.
 - Synthetic model metrics are strong but must never be presented as clinical validation.
 - Local sensitivity is not a confidence interval; intervention rescoring is not causal evidence.
@@ -115,7 +117,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 
 ## 13. Deployment And Demo Risks
 
-- CI passed remotely on PR #1; no hosted preview deployment is configured.
+- CI passed remotely on PR #2; no hosted preview deployment is configured.
 - README setup is portable and the app builds without secrets.
 - The local demo requires the presenter to start the server before running smoke checks.
 - The optional AI path should not be relied on during judging; deterministic fallback is the safer live-demo mode.
@@ -201,8 +203,24 @@ Eight additional P1 tasks are complete. The app remains focused on the same thre
 The earlier self-score was too generous. Independent hostile, clinical-safety, ML, UX, and engineering reviews were commissioned on 2026-07-11. They found a leaked model target, 8.2% operating-point recall, free-text safety bypasses, unsupported confidence language, a below-the-fold primary action, and demo tooling mixed into product roles.
 
 - **Now repaired:** the prospective model contract, patient-isolated evaluation, recall-oriented threshold selection, bootstrap spread, support-aware abstention, Python/browser parity, adversarial symptom coverage, and fully deterministic post-provider plan merge.
+- **Latest safety repair:** an eight-word negation window could suppress uncertainty such as “not sure why I have chest pain,” while a common self-safety contraction was not matched. Negation is now symptom-scoped, punctuation is normalised, and both failures are regression-tested.
+
+### 2026-07-12 Independent Critique
+
+Five read-only reviews covered judging impact, clinical safety and ML, healthcare UX and accessibility, release engineering, and the three-minute story. The confirmed red-flag bypass was repaired first. Remaining findings are ranked by likely judging harm, blast radius, and implementation risk:
+
+| Rank | Unresolved finding | Judging or demo impact | Change risk | Next evidence |
+|---:|---|---|---|---|
+| 1 | Emergency routes can retain the generic “Same-day clinical attention needed” headline, and non-urgent copy sometimes overstates negative triage | Safety trust and claim calibration | Low | Destination-aware copy tests and browser check |
+| 2 | `next dev` and `next build` share `.next`; a concurrent build can corrupt the active local demo | Event-day reliability | Low | Release preflight plus clean production rehearsal |
+| 3 | Some patient-specific numeric model evidence remains visible after support-aware abstention | ML credibility | Medium | Presentation-gate assertions across Decision map, Model record, and patient records |
+| 4 | On narrow escalation layouts, the urgent action follows the graph rather than preceding it | Patient safety hierarchy | Low | 390px and 320px escalation screenshots |
+| 5 | Demo copy conflates authored context ranking, model contribution, and the highest-ranked tested action | Three-minute clarity | Low | One authoritative run-of-show and label audit |
+| 6 | User-impact evidence and a hosted keyless preview remain absent | User impact and remote access | External | Small usability study or existing hosting account |
+
+No new feature is justified ahead of these repairs. CSS decomposition, extra graph modes, and multi-condition expansion remain deferred.
 - **Still weak:** automated browser accessibility checks, hosted access, real user or clinician evidence, and concentrated page and stylesheet ownership.
-- **Current regression pressure:** home first-load JavaScript is 151.2 kB gzip, leaving only 3.8 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
+- **Current regression pressure:** home first-load JavaScript is 151.5 kB gzip, leaving only 3.5 kB below the enforced ceiling; `app/page.tsx` and both stylesheets remain concentrated.
 - **Evidence boundary:** synthetic ML metrics prove an executable pipeline only. The graph is an authored evidence map, scenarios are score comparisons rather than effects, and no current artifact demonstrates clinical or commercial impact.
 
 ## Current Score
@@ -219,7 +237,7 @@ The earlier self-score was too generous. Independent hostile, clinical-safety, M
 | Testing | 9.3 | 55 tests plus prospective parity, support abstention, cross-field negation, route semantics, and cadence contracts |
 | Error handling | 8.6 | API, provider, route, and model-abstention states are explicit |
 | Loading/empty states | 8.2 | Core asynchronous and routed recovery states are covered |
-| Performance | 7.0 | 151.2 kB gzip against a 155 kB ceiling leaves narrow headroom |
+| Performance | 7.0 | 151.5 kB gzip against a 155 kB ceiling leaves narrow headroom |
 | Accessibility | 8.4 | Interactive graph semantics, visible focus, semantic clinician table, keyboard nodes, captioned video, and no 320px overflow; automated audit remains |
 | Security/privacy | 7.0 | Synthetic-only and keyless-safe; no auth, DPIA, persistence controls, or production governance |
 | AI usefulness | 8.6 | Leakage-safe explainable ensemble, bootstrap spread, support abstention, exact attribution, and independent deterministic safety |

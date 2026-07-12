@@ -92,6 +92,18 @@ const escalationCheckIn = {
   freeText: "My stomach pain is getting worse and I feel lightheaded when I stand."
 };
 
+const uncertainChestPainCheckIn = {
+  ...normalCheckIn,
+  scenario: "custom",
+  freeText: "I am not sure why I have chest pain now."
+};
+
+const immediateSelfSafetyCheckIn = {
+  ...normalCheckIn,
+  scenario: "custom",
+  freeText: "I can't keep myself safe."
+};
+
 await check("/", async (response) => {
   const html = await response.text();
   if (!html.includes("Adherence OS")) throw new Error("home page is missing the product name");
@@ -161,6 +173,24 @@ await checkCarePlan("escalation", escalationCheckIn, async ({ plan }) => {
   const guardedText = `${plan.patientAction} ${plan.explanation} ${plan.clinicianDraft}`;
   if (/double the|increase (?:the )?dose|stop taking|diagnos/i.test(guardedText)) {
     throw new Error("escalation care-plan smoke check returned unsafe medication or diagnosis language");
+  }
+});
+
+await checkCarePlan("uncertain chest pain", uncertainChestPainCheckIn, async ({ plan }) => {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: chest pain")) {
+    throw new Error("uncertain chest-pain language did not activate the deterministic emergency route");
+  }
+  if (!/call 999/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
+    throw new Error("uncertain chest-pain language did not expose the 999 destination");
+  }
+});
+
+await checkCarePlan("immediate self-safety", immediateSelfSafetyCheckIn, async ({ plan }) => {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: immediate self-harm language")) {
+    throw new Error("immediate self-safety language did not activate the deterministic emergency route");
+  }
+  if (!/call 999|go to A&E/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
+    throw new Error("immediate self-safety language did not expose an emergency destination");
   }
 });
 

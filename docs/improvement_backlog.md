@@ -1,6 +1,6 @@
 # Improvement Backlog
 
-Last updated: 2026-07-11
+Last updated: 2026-07-12
 
 Selection rule: finish P0 work first, then choose high-impact and low-effort P1 work that strengthens the three-minute demo. Refactors and stretch features stay behind reliability, safety, and demo clarity.
 
@@ -45,6 +45,10 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 | P1-17 | Done | Refresh video and deck after final UI | Demo | High | Medium | Low | The checked-in 2:59 captioned video and 10-slide deck show the prospective model, abstention state, evidence-map copy, and selected-review task. | Video and slides show current labels, 5% Coaching, Escalation abstention, and draft-only handoff. | Full-slide review, sampled playback, media probes, and clean decode | `outputs/` |
 | P1-18 | Done | Add a lightweight bundle budget | Performance | Medium | Low | Low | CI measures unique `/layout` and `/page` JavaScript after gzip and rejects home first-load output above 155 kB. | CI records or rejects a clearly documented maximum. | `pnpm build && pnpm check:bundle` | budget script, CI, docs |
 | P1-19 | Done | Align Node and pnpm runtime | Developer experience | High | Low | Low | Node 22+, pnpm 11, `.nvmrc`, package engines, CI, README, and deployment docs now agree. | Frozen install runs under the declared runtime and CI uses a compatible Node version. | `pnpm install --frozen-lockfile` | package metadata, CI, docs |
+| P1-20 | Done | Tighten symptom-scoped red-flag negation | Safety | Critical | Low | Low | Replace the broad eight-word negation window with direct denial forms, normalise typographic contractions, and cover uncertainty plus immediate self-harm variants. | “Not sure why I have chest pain” and “I can’t keep myself safe” escalate; explicit symptom denials remain non-urgent. | Focused care-engine tests and direct reproduction | care engine, safety tests, safety guide |
+| P1-21 | Next | Calibrate urgent and negative-triage copy | Safety | Critical | Low | Low | Use destination-aware urgent headlines and avoid claiming that unmatched symptoms are manageable or not a crisis. | 999 routes say emergency help now; non-urgent copy describes observed rule state without clinical reassurance. | Care-engine copy tests and browser rehearsal | care engine, tests, demo copy |
+| P1-22 | Open | Protect production builds from active dev output | Reliability | Critical | Low | Low | Prevent or clearly fail a same-worktree release build while `next dev` owns `.next`, and add the event-day preflight to the runbook. | Release verification cannot corrupt the running demo and provides a clear recovery message. | Dev/build collision rehearsal and clean build | package scripts, release helper, deployment docs |
+| P1-23 | Open | Gate unsupported patient-specific ML evidence | ML safety | High | Medium | Medium | When the support gate abstains, suppress numeric patient score, decomposition, spread, sensitivity, and derived patient-record risk. | No unsupported patient-specific number survives in Decision map, Model record, or routed records. | Model/UI tests plus escalation browser pass | edge model consumers, page, patient summary tests |
 
 ## P2 — Polish
 
@@ -54,6 +58,8 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 | P2-02 | Deferred | Extract graph canvas module | Refactoring | Medium | Medium | Medium | Isolate SVG positioning and interaction logic. | Graph behavior and accessibility remain unchanged. | Tests plus browser matrix | graph component, CSS |
 | P2-03 | Deferred | Extract Model record module | Refactoring | Medium | Medium | Low | Separate technical proof UI from home-page orchestration. | Model record renders the same artifact and sensitivity data. | Typecheck and browser check | page, model component |
 | P2-20 | Done | Replace generic AI-dashboard styling | Frontend | High | Medium | Low | Reframe the judged path as an original care decision ledger using flat clinical records, sparse status colour, a light evidence map, and one-shot interaction feedback. | Decision map is first, desktop and narrow layouts have no overflow, every core state is recaptured, and the design-reference rationale is public. | Browser matrix, screenshot review, typecheck, and production build | page, CSS, README, design references, walkthrough assets |
+| P2-21 | Open | Put urgent action before the graph on narrow screens | Safety UX | High | Low | Low | Preserve graph-first Coaching while moving the decision inspector ahead of the graph in Escalation below the desktop workbench breakpoint. | 390px and 320px escalation views show destination and handoff before graph exploration. | Responsive browser screenshots | product CSS, walkthrough notes |
+| P2-22 | Open | Unify judged-path terminology | Demo | High | Low | Low | Distinguish context signal, model contributor, and tested action; make one live run-of-show authoritative. | README, scorecard, script, walkthrough, video captions, and visible labels no longer name competing “drivers.” | Label search and timed rehearsal | docs, captions, selected UI copy |
 | P2-04 | Done | Define CSS ownership boundaries | Frontend | Medium | Medium | Low | AGENTS and stylesheet headers define the load order and ownership of shared views versus product/graph/directory surfaces. | New styles have one documented home. | CSS review and build | CSS, AGENTS |
 | P2-05 | Deferred | Remove superseded style rules | Performance | Medium | High | Medium | Delete only selectors proven unused after visual regression checks. | No visual change and CSS size decreases measurably. | Browser screenshots | CSS files |
 | P2-06 | Deferred | Consolidate design tokens | Frontend | Medium | Medium | Low | Reduce duplicate colour and spacing constants. | Shared semantic tokens cover primary surfaces and statuses. | Browser review | CSS files |
@@ -88,4 +94,4 @@ Status values: `Done`, `Next`, `Open`, `Verify`, `Deferred`. `Verify` means impl
 
 ## Selected Next Task
 
-**Run the event-day rehearsal, then freeze the judged-demo branch.** Start the production build from a clean checkout, rehearse normal, escalation, reset, video, and deck, and avoid new feature work. Use P3-05 only if a keyless hosted-preview account is already available.
+**Calibrate urgent and negative-triage copy (P1-21), then protect the event-day build (P1-22).** Do not add features. After those bounded fixes, run the production rehearsal, refresh only affected assets, and freeze the judged-demo branch. Use P3-05 only if a keyless hosted-preview account is already available.
