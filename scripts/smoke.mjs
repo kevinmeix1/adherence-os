@@ -123,7 +123,7 @@ await check("/", async (response) => {
   if (!html.includes("Observed signals to bounded action") || !html.includes("Supporting evidence")) {
     throw new Error("home page is missing the care-ledger decision surface");
   }
-  if (!html.includes('property="og:title"') || !html.includes("adherence-os-live-twin.jpg")) {
+  if (!html.includes('property="og:title"') || !html.includes("adherence-os-live-twin.png")) {
     throw new Error("home page is missing social preview metadata");
   }
 });

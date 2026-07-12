@@ -2823,6 +2823,7 @@ body {
   align-self: stretch;
   min-height: 57px;
   padding: 10px 16px;
+  border-bottom: 3px solid transparent;
   border-radius: 0;
   color: #555b57;
   font-size: 0.78rem;
@@ -2836,18 +2837,10 @@ body {
 
 .product-nav .nav-button.active,
 .graph-first-shell .product-nav .nav-button.active {
+  border-bottom-color: var(--product-ink);
   color: var(--product-ink);
   background: transparent;
-}
-
-.product-nav .nav-button.active::after {
-  position: absolute;
-  right: 12px;
-  bottom: -1px;
-  left: 12px;
-  height: 3px;
-  background: var(--product-ink);
-  content: "";
+  box-shadow: none;
 }
 
 .product-bar-meta {
@@ -3311,6 +3304,11 @@ body {
   cursor: pointer;
   filter: none;
   transition: opacity 160ms ease;
+}
+
+.graph-evidence-panel .graph-node:hover,
+.graph-evidence-panel .graph-node:focus-visible {
+  transform: none;
 }
 
 .graph-evidence-panel .graph-node-hit {
@@ -3913,11 +3911,6 @@ body {
     padding: 6px 4px;
     border-top: 1px solid var(--product-line);
     font-size: 0.68rem;
-  }
-
-  .product-nav .nav-button.active::after {
-    right: 4px;
-    left: 4px;
   }
 
   .product-workspace,
