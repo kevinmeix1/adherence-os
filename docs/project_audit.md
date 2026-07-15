@@ -116,7 +116,7 @@ No current P0 functional bug was reproduced during this audit. The following ris
 - Provider timeout, invalid-output, exception, and unsafe-generation branches are exercised through controlled test doubles.
 - Synthetic model metrics are strong but must never be presented as clinical validation.
 - Local sensitivity is not a confidence interval; tested-action rescoring is not causal evidence.
-- Python/TypeScript fixtures prove scoring-kernel parity on engineered vectors, not raw patient/check-in feature construction parity. Dose-window, routine, and side-effect transforms remain authored serving heuristics.
+- The versioned raw-input contract is verified across twelve Python/TypeScript fixtures and twenty scoring vectors. It proves the implemented synthetic train/serve semantics, not that those authored semantics match real eMed workflows or joint-distribution drift.
 
 ## 12. Testing Gaps
 
