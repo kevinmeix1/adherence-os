@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SAFETY_FLAG_IDS } from "./safetyFlags";
 
 const score = z.number().min(0).max(10);
 
@@ -12,6 +13,7 @@ export const CheckInInputSchema = z.object({
   energyScore: score,
   hydrationScore: score,
   mood: z.string().min(1).max(120),
+  safetyFlags: z.array(z.enum(SAFETY_FLAG_IDS)).max(SAFETY_FLAG_IDS.length),
   sideEffects: z.string().max(4000),
   biomarkerNote: z.string().max(4000),
   freeText: z.string().max(8000)

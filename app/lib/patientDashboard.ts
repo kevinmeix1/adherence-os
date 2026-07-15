@@ -7,7 +7,7 @@ export type PatientDashboardRow = {
   adherencePct: number;
   missedCheckIns: number;
   riskLevel: RiskLevel;
-  modelRisk: number;
+  modelRisk: number | null;
   nextAction: string;
   weightChangeKg: number;
   lastCheckInDate: string;
@@ -21,20 +21,15 @@ export type ClinicianDashboardRow = {
 
 export function buildClinicianDashboardRows(
   patients: Patient[],
-  selectedPatientId: string,
-  selectedPlan: CarePlan,
-  date: string
+  carePlansByPatientId: Readonly<Record<string, CarePlan>>
 ): ClinicianDashboardRow[] {
   return patients.map((patient) => ({
     patient,
-    plan:
-      patient.id === selectedPatientId
-        ? selectedPlan
-        : evaluateCheckIn(patient, {
-            patientId: patient.id,
-            date,
-            ...DEMO_CHECK_INS.normal
-          }),
+    plan: carePlansByPatientId[patient.id] ?? evaluateCheckIn(patient, {
+      patientId: patient.id,
+      date: patient.weeklyData.at(-1)?.date ?? "2026-07-08",
+      ...DEMO_CHECK_INS.normal
+    }),
     insights: getPatientInsights(patient)
   }));
 }
@@ -51,7 +46,7 @@ export function buildPatientDashboardRows(patients: Patient[]): PatientDashboard
       adherencePct: Math.round(insights.adherenceAvg),
       missedCheckIns: Math.max(0, patient.engagement.expectedCheckIns - patient.engagement.completedCheckIns),
       riskLevel: plan.riskLevel,
-      modelRisk: edgeRisk.risk,
+      modelRisk: edgeRisk.support.status === "supported" ? edgeRisk.risk : null,
       nextAction: plan.patientAction,
       weightChangeKg: insights.weightDelta,
       lastCheckInDate: insights.latest.date
@@ -73,6 +68,7 @@ export function buildLatestCheckIn(patient: Patient): CheckInInput {
     energyScore: latest.energyScore,
     hydrationScore,
     mood: latest.mood,
+    safetyFlags: [],
     sideEffects: latest.notes,
     biomarkerNote: latest.biomarkers ? "Latest at-home biomarker snapshot received." : "No new biomarker snapshot this week.",
     freeText: latest.notes

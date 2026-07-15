@@ -1,0 +1,1127 @@
+{
+  "contractVersion": "adherence-feature-source-v1",
+  "featureRows": [
+    {
+      "id": "patient-1020-week-9",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 9,
+        "recentWeeks": [
+          {
+            "adherencePct": 99.37214045493377,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 96.30692069607763,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 4.635391440044167,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 89.74370482182702,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.362112473285984,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 119.41719989399314,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": false,
+          "nauseaScore": 5.340254305470013,
+          "hydrationScore": 4.904260907235306,
+          "energyScore": 4.673013318310269,
+          "appetiteScore": 2.5178752760664094,
+          "mood": "worried",
+          "freeText": "Work has been hectic",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 9,
+        "adherence_last_2wk": 97.8395305755057,
+        "missed_doses_2wk": 0,
+        "nausea_score": 5.340254305470013,
+        "hydration_risk": 5.095739092764694,
+        "energy_risk": 5.326986681689731,
+        "appetite_suppression": 7.482124723933591,
+        "weight_loss_pct": 5.9844253205137266,
+        "hba1c_delta": -0.2708387824332874,
+        "systolic_bp": 119.41719989399314,
+        "routine_disruption": 0.9400000000000001,
+        "side_effect_spike": 0.704862865425846,
+        "prior_failure": 1.0,
+        "mood_anxious": 1.0
+      }
+    },
+    {
+      "id": "patient-1021-week-5",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 5,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 3.6950656552611623,
+        "baselineWeightKg": 75.78740868865846,
+        "currentWeightKg": 73.61193906735309,
+        "baselineHba1cPct": 5.553936708761097,
+        "currentHba1cPct": 5.321795093148512,
+        "baselineSystolicBp": 83.84941705514922,
+        "currentSystolicBp": 80.79929338527695,
+        "riskFactors": [
+          "Stable routine"
+        ],
+        "checkIn": {
+          "medicationTaken": false,
+          "nauseaScore": 5.285142024387095,
+          "hydrationScore": 6.245053668078299,
+          "energyScore": 7.029814686533502,
+          "appetiteScore": 1.1134011398704087,
+          "mood": "worried",
+          "freeText": "Work has been hectic",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 5,
+        "adherence_last_2wk": 100.0,
+        "missed_doses_2wk": 0,
+        "nausea_score": 5.285142024387095,
+        "hydration_risk": 3.754946331921701,
+        "energy_risk": 2.970185313466498,
+        "appetite_suppression": 8.886598860129592,
+        "weight_loss_pct": 2.8704895165929134,
+        "hba1c_delta": -0.23214161561258528,
+        "systolic_bp": 80.79929338527695,
+        "routine_disruption": 0.72,
+        "side_effect_spike": 1.5900763691259323,
+        "prior_failure": 1.0,
+        "mood_anxious": 1.0
+      }
+    },
+    {
+      "id": "patient-1022-week-6",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 6,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 97.79877843735498,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 5.105466563321473,
+        "baselineWeightKg": 96.17337032983207,
+        "currentWeightKg": 94.17875660003997,
+        "baselineHba1cPct": 7.013767139220985,
+        "currentHba1cPct": 6.873816138301686,
+        "baselineSystolicBp": 160.3842478405744,
+        "currentSystolicBp": 160.09024665768482,
+        "riskFactors": [
+          "Stable routine"
+        ],
+        "checkIn": {
+          "medicationTaken": false,
+          "nauseaScore": 2.1722574968376613,
+          "hydrationScore": 7.009841433120817,
+          "energyScore": 7.043144366580287,
+          "appetiteScore": 5.08752228447241,
+          "mood": "worried",
+          "freeText": "Routine has been steady",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 6,
+        "adherence_last_2wk": 98.8993892186775,
+        "missed_doses_2wk": 0,
+        "nausea_score": 2.1722574968376613,
+        "hydration_risk": 2.990158566879183,
+        "energy_risk": 2.956855633419713,
+        "appetite_suppression": 4.91247771552759,
+        "weight_loss_pct": 2.0739771549561494,
+        "hba1c_delta": -0.13995100091929835,
+        "systolic_bp": 160.09024665768482,
+        "routine_disruption": 0.28,
+        "side_effect_spike": 0,
+        "prior_failure": 1.0,
+        "mood_anxious": 1.0
+      }
+    },
+    {
+      "id": "patient-1022-week-8",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 8,
+        "recentWeeks": [
+          {
+            "adherencePct": 80.71005693672316,
+            "dosesTaken": 0.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 4.763074059594219,
+        "baselineWeightKg": 96.17337032983207,
+        "currentWeightKg": 92.89828597818597,
+        "baselineHba1cPct": 7.013767139220985,
+        "currentHba1cPct": 6.809540249244373,
+        "baselineSystolicBp": 160.3842478405744,
+        "currentSystolicBp": 152.10563385852777,
+        "riskFactors": [
+          "Stable routine"
+        ],
+        "checkIn": {
+          "medicationTaken": false,
+          "nauseaScore": 2.787779796218093,
+          "hydrationScore": 8.331601964191986,
+          "energyScore": 6.466244174140955,
+          "appetiteScore": 3.1353427356237002,
+          "mood": "steady",
+          "freeText": "Routine has been steady",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 8,
+        "adherence_last_2wk": 90.35502846836158,
+        "missed_doses_2wk": 1.0,
+        "nausea_score": 2.787779796218093,
+        "hydration_risk": 1.6683980358080142,
+        "energy_risk": 3.5337558258590454,
+        "appetite_suppression": 6.8646572643763,
+        "weight_loss_pct": 3.40539625513176,
+        "hba1c_delta": -0.20422688997661176,
+        "systolic_bp": 152.10563385852777,
+        "routine_disruption": 0.28,
+        "side_effect_spike": 0,
+        "prior_failure": 1.0,
+        "mood_anxious": 0.0
+      }
+    },
+    {
+      "id": "patient-1022-week-10",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 10,
+        "recentWeeks": [
+          {
+            "adherencePct": 78.80261881736361,
+            "dosesTaken": 0.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 5.677905395541071,
+        "baselineWeightKg": 96.17337032983207,
+        "currentWeightKg": 91.94618725761313,
+        "baselineHba1cPct": 7.013767139220985,
+        "currentHba1cPct": 6.760662217711797,
+        "baselineSystolicBp": 160.3842478405744,
+        "currentSystolicBp": 160.82174291988625,
+        "riskFactors": [
+          "Stable routine"
+        ],
+        "checkIn": {
+          "medicationTaken": false,
+          "nauseaScore": 5.3910477462117905,
+          "hydrationScore": 3.5014761605768956,
+          "energyScore": 5.449437842414269,
+          "appetiteScore": 3.0345655200944313,
+          "mood": "steady",
+          "freeText": "Routine has been steady",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 10,
+        "adherence_last_2wk": 89.40130940868181,
+        "missed_doses_2wk": 1.0,
+        "nausea_score": 5.3910477462117905,
+        "hydration_risk": 6.498523839423104,
+        "energy_risk": 4.550562157585731,
+        "appetite_suppression": 6.965434479905569,
+        "weight_loss_pct": 4.395377907337103,
+        "hba1c_delta": -0.2531049215091876,
+        "systolic_bp": 160.82174291988625,
+        "routine_disruption": 0.28,
+        "side_effect_spike": 0,
+        "prior_failure": 1.0,
+        "mood_anxious": 0.0
+      }
+    },
+    {
+      "id": "patient-1023-week-4",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 4,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 4.0020674205710005,
+        "baselineWeightKg": 90.21405715695644,
+        "currentWeightKg": 88.81806910279877,
+        "baselineHba1cPct": 5.139079136149312,
+        "currentHba1cPct": 4.996654309358834,
+        "baselineSystolicBp": 134.17323974733722,
+        "currentSystolicBp": 128.5030013517038,
+        "riskFactors": [
+          "Stable routine"
+        ],
+        "checkIn": {
+          "medicationTaken": false,
+          "nauseaScore": 3.570746376340778,
+          "hydrationScore": 6.39205219896684,
+          "energyScore": 5.478271305506336,
+          "appetiteScore": 4.870640611892625,
+          "mood": "worried",
+          "freeText": "Routine has been steady",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 4,
+        "adherence_last_2wk": 100.0,
+        "missed_doses_2wk": 0,
+        "nausea_score": 3.570746376340778,
+        "hydration_risk": 3.60794780103316,
+        "energy_risk": 4.521728694493664,
+        "appetite_suppression": 5.129359388107375,
+        "weight_loss_pct": 1.5474174404205079,
+        "hba1c_delta": -0.14242482679047797,
+        "systolic_bp": 128.5030013517038,
+        "routine_disruption": 0.28,
+        "side_effect_spike": 0,
+        "prior_failure": 1.0,
+        "mood_anxious": 1.0
+      }
+    },
+    {
+      "id": "patient-1020-week-1",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 1,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 2.5,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 94.8016728177798,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.601741591036833,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 120.69121028789041,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": true,
+          "nauseaScore": 1.8672254661168348,
+          "hydrationScore": 6.916209664437474,
+          "energyScore": 5.25990763918976,
+          "appetiteScore": 6.419713646839522,
+          "mood": "steady",
+          "freeText": "Work has been hectic",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 1,
+        "adherence_last_2wk": 100.0,
+        "missed_doses_2wk": 0,
+        "nausea_score": 1.8672254661168348,
+        "hydration_risk": 3.083790335562526,
+        "energy_risk": 4.74009236081024,
+        "appetite_suppression": 3.580286353160478,
+        "weight_loss_pct": 0.6856941304649004,
+        "hba1c_delta": -0.031209664682438465,
+        "systolic_bp": 120.69121028789041,
+        "routine_disruption": 0.66,
+        "side_effect_spike": 0,
+        "prior_failure": 0.0,
+        "mood_anxious": 0.0
+      }
+    },
+    {
+      "id": "patient-1020-week-2",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 2,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 1.8672254661168348,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 94.2746464843849,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.573673628077503,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 122.25609055416871,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": true,
+          "nauseaScore": 2.6096630379120915,
+          "hydrationScore": 6.658935463905224,
+          "energyScore": 6.410458391744241,
+          "appetiteScore": 7.571204407341831,
+          "mood": "steady",
+          "freeText": "Routine has been steady",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 2,
+        "adherence_last_2wk": 100.0,
+        "missed_doses_2wk": 0,
+        "nausea_score": 2.6096630379120915,
+        "hydration_risk": 3.341064536094776,
+        "energy_risk": 3.589541608255759,
+        "appetite_suppression": 2.428795592658169,
+        "weight_loss_pct": 1.2378073255209294,
+        "hba1c_delta": -0.05927762764176858,
+        "systolic_bp": 122.25609055416871,
+        "routine_disruption": 0.22,
+        "side_effect_spike": 0.7424375717952567,
+        "prior_failure": 0.0,
+        "mood_anxious": 0.0
+      }
+    },
+    {
+      "id": "patient-1020-week-3",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 3,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 99.80893731845651,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 2.6096630379120915,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 93.70295546287988,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.527994746759096,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 125.7642761811966,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": true,
+          "nauseaScore": 2.484139137274196,
+          "hydrationScore": 7.716913562061949,
+          "energyScore": 6.337670453074913,
+          "appetiteScore": 5.431797537422885,
+          "mood": "steady",
+          "freeText": "Work has been hectic",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 3,
+        "adherence_last_2wk": 99.90446865922826,
+        "missed_doses_2wk": 0,
+        "nausea_score": 2.484139137274196,
+        "hydration_risk": 2.283086437938051,
+        "energy_risk": 3.662329546925087,
+        "appetite_suppression": 4.568202462577115,
+        "weight_loss_pct": 1.8367112824347351,
+        "hba1c_delta": -0.10495650896017583,
+        "systolic_bp": 125.7642761811966,
+        "routine_disruption": 0.66,
+        "side_effect_spike": 0,
+        "prior_failure": 0.0,
+        "mood_anxious": 0.0
+      }
+    },
+    {
+      "id": "patient-1020-week-4",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 4,
+        "recentWeeks": [
+          {
+            "adherencePct": 99.80893731845651,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 2.484139137274196,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 93.06378653073976,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.4885570500049985,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 118.3165077509888,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": true,
+          "nauseaScore": 5.100331773892441,
+          "hydrationScore": 6.267246246228755,
+          "energyScore": 4.939754778729168,
+          "appetiteScore": 3.820414465048716,
+          "mood": "worried",
+          "freeText": "Work has been hectic",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 4,
+        "adherence_last_2wk": 99.90446865922826,
+        "missed_doses_2wk": 0,
+        "nausea_score": 5.100331773892441,
+        "hydration_risk": 3.732753753771245,
+        "energy_risk": 5.060245221270832,
+        "appetite_suppression": 6.1795855349512845,
+        "weight_loss_pct": 2.5063051507927527,
+        "hba1c_delta": -0.1443942057142733,
+        "systolic_bp": 118.3165077509888,
+        "routine_disruption": 0.66,
+        "side_effect_spike": 2.6161926366182455,
+        "prior_failure": 0.0,
+        "mood_anxious": 1.0
+      }
+    },
+    {
+      "id": "patient-1020-week-5",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 5,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 5.100331773892441,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 92.04554343882751,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.4940519671562145,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 115.6641657907027,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": true,
+          "nauseaScore": 3.192959104337274,
+          "hydrationScore": 6.244749853639999,
+          "energyScore": 6.369524456973937,
+          "appetiteScore": 4.5166944072428015,
+          "mood": "worried",
+          "freeText": "Routine has been steady",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 5,
+        "adherence_last_2wk": 100.0,
+        "missed_doses_2wk": 0,
+        "nausea_score": 3.192959104337274,
+        "hydration_risk": 3.7552501463600008,
+        "energy_risk": 3.630475543026063,
+        "appetite_suppression": 5.4833055927571985,
+        "weight_loss_pct": 3.5730174025279227,
+        "hba1c_delta": -0.13889928856305733,
+        "systolic_bp": 115.6641657907027,
+        "routine_disruption": 0.22,
+        "side_effect_spike": 0,
+        "prior_failure": 0.0,
+        "mood_anxious": 1.0
+      }
+    },
+    {
+      "id": "patient-1020-week-6",
+      "source": {
+        "contractVersion": "adherence-feature-source-v1",
+        "week": 6,
+        "recentWeeks": [
+          {
+            "adherencePct": 100.0,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          },
+          {
+            "adherencePct": 96.62587976017336,
+            "dosesTaken": 1.0,
+            "dosesExpected": 1.0
+          }
+        ],
+        "previousNauseaScore": 3.192959104337274,
+        "baselineWeightKg": 95.45621044999967,
+        "currentWeightKg": 91.48899301842823,
+        "baselineHba1cPct": 7.632951255719272,
+        "currentHba1cPct": 7.451247876163042,
+        "baselineSystolicBp": 119.34233454111043,
+        "currentSystolicBp": 113.02509013369566,
+        "riskFactors": [
+          "Shift work"
+        ],
+        "checkIn": {
+          "medicationTaken": true,
+          "nauseaScore": 3.1294066018381113,
+          "hydrationScore": 4.982637882931929,
+          "energyScore": 6.440001107811465,
+          "appetiteScore": 3.7692952736452305,
+          "mood": "steady",
+          "freeText": "Work has been hectic",
+          "sideEffects": "No severe symptoms reported"
+        }
+      },
+      "expectedFeatures": {
+        "week": 6,
+        "adherence_last_2wk": 98.31293988008667,
+        "missed_doses_2wk": 0,
+        "nausea_score": 3.1294066018381113,
+        "hydration_risk": 5.017362117068071,
+        "energy_risk": 3.559998892188535,
+        "appetite_suppression": 6.2307047263547695,
+        "weight_loss_pct": 4.15606005399668,
+        "hba1c_delta": -0.18170337955622973,
+        "systolic_bp": 113.02509013369566,
+        "routine_disruption": 0.66,
+        "side_effect_spike": 0,
+        "prior_failure": 0.0,
+        "mood_anxious": 0.0
+      }
+    }
+  ],
+  "sampleRows": [
+    {
+      "patient_id": 1020,
+      "week": 8,
+      "outcome_week": 9,
+      "adherence_last_2wk": 99.68607022746689,
+      "missed_doses_2wk": 0,
+      "nausea_score": 4.635391440044167,
+      "hydration_risk": 2.946776783271673,
+      "energy_risk": 4.851561393131895,
+      "appetite_suppression": 7.159605972585007,
+      "weight_loss_pct": 5.724743788967204,
+      "hba1c_delta": -0.24618830324435237,
+      "systolic_bp": 115.21872684355971,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 0,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.125262206944,
+      "expected_p10": 0.120684727799,
+      "expected_p90": 0.12806583256,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1021,
+      "week": 4,
+      "outcome_week": 5,
+      "adherence_last_2wk": 99.15149879136871,
+      "missed_doses_2wk": 0,
+      "nausea_score": 3.6950656552611623,
+      "hydration_risk": 4.279512938428254,
+      "energy_risk": 5.590656608261259,
+      "appetite_suppression": 6.411060644295244,
+      "weight_loss_pct": 2.0191738763816405,
+      "hba1c_delta": -0.1793854177277332,
+      "systolic_bp": 80.02872957962742,
+      "routine_disruption": 0.0,
+      "side_effect_spike": 1.540221716080953,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.103790547544,
+      "expected_p10": 0.093382893489,
+      "expected_p90": 0.11818385974,
+      "expected_supported": 0
+    },
+    {
+      "patient_id": 1022,
+      "week": 5,
+      "outcome_week": 6,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 5.105466563321473,
+      "hydration_risk": 3.2301833871033985,
+      "energy_risk": 5.397895116460891,
+      "appetite_suppression": 6.640311908358754,
+      "weight_loss_pct": 1.9663636906689468,
+      "hba1c_delta": -0.09868283562526248,
+      "systolic_bp": 163.9044068285252,
+      "routine_disruption": 0.0,
+      "side_effect_spike": 1.2800297472209436,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.104741163853,
+      "expected_p10": 0.09572788939,
+      "expected_p90": 0.113053246097,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1022,
+      "week": 7,
+      "outcome_week": 8,
+      "adherence_last_2wk": 89.25441768703908,
+      "missed_doses_2wk": 1.0,
+      "nausea_score": 4.763074059594219,
+      "hydration_risk": 3.3808365155021214,
+      "energy_risk": 4.184361865767407,
+      "appetite_suppression": 7.538721487456609,
+      "weight_loss_pct": 2.8643319116556203,
+      "hba1c_delta": -0.18052113684003945,
+      "systolic_bp": 161.55713309910436,
+      "routine_disruption": 0.44,
+      "side_effect_spike": 2.5908165627565576,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.322534019278,
+      "expected_p10": 0.302704487012,
+      "expected_p90": 0.349474537671,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1022,
+      "week": 9,
+      "outcome_week": 10,
+      "adherence_last_2wk": 89.40130940868181,
+      "missed_doses_2wk": 1.0,
+      "nausea_score": 5.677905395541071,
+      "hydration_risk": 6.724321137025141,
+      "energy_risk": 6.533469171176866,
+      "appetite_suppression": 8.006008918814878,
+      "weight_loss_pct": 4.198886764664079,
+      "hba1c_delta": -0.25381410192064546,
+      "systolic_bp": 158.46643625727057,
+      "routine_disruption": 0.18,
+      "side_effect_spike": 3.690125599322978,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.688977417254,
+      "expected_p10": 0.657003614593,
+      "expected_p90": 0.741116483478,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1022,
+      "week": 10,
+      "outcome_week": 11,
+      "adherence_last_2wk": 89.40130940868181,
+      "missed_doses_2wk": 1.0,
+      "nausea_score": 5.3910477462117905,
+      "hydration_risk": 6.498523839423104,
+      "energy_risk": 4.550562157585731,
+      "appetite_suppression": 6.965434479905569,
+      "weight_loss_pct": 4.395377907337103,
+      "hba1c_delta": -0.2531049215091876,
+      "systolic_bp": 160.82174291988625,
+      "routine_disruption": 0.28,
+      "side_effect_spike": 0,
+      "prior_failure": 1.0,
+      "mood_anxious": 0.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.513922501161,
+      "expected_p10": 0.470611713928,
+      "expected_p90": 0.560786103877,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1023,
+      "week": 3,
+      "outcome_week": 4,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 4.0020674205710005,
+      "hydration_risk": 2.9433778745373615,
+      "energy_risk": 3.4312779880285627,
+      "appetite_suppression": 5.201847973898051,
+      "weight_loss_pct": 0.9955827052687207,
+      "hba1c_delta": -0.1023493930763264,
+      "systolic_bp": 133.55540986290475,
+      "routine_disruption": 0.0,
+      "side_effect_spike": 2.881731817973217,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.083825819883,
+      "expected_p10": 0.080770170699,
+      "expected_p90": 0.091214587459,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1026,
+      "week": 5,
+      "outcome_week": 6,
+      "adherence_last_2wk": 98.32642360329723,
+      "missed_doses_2wk": 0,
+      "nausea_score": 5.37818529049708,
+      "hydration_risk": 4.97350320532232,
+      "energy_risk": 3.989512501875554,
+      "appetite_suppression": 7.112912164999951,
+      "weight_loss_pct": 1.9880634573380322,
+      "hba1c_delta": -0.18223198446013278,
+      "systolic_bp": 143.21198871913325,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 1.6064363225649223,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.284423848567,
+      "expected_p10": 0.273050409895,
+      "expected_p90": 0.306429813735,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1026,
+      "week": 8,
+      "outcome_week": 9,
+      "adherence_last_2wk": 91.83852871156672,
+      "missed_doses_2wk": 1.0,
+      "nausea_score": 4.851459528955412,
+      "hydration_risk": 2.151378144640929,
+      "energy_risk": 4.494408539837441,
+      "appetite_suppression": 7.6386000123092765,
+      "weight_loss_pct": 3.0777125213526215,
+      "hba1c_delta": -0.2416737800541231,
+      "systolic_bp": 145.68379314871993,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 0.4350820099805217,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.230325705488,
+      "expected_p10": 0.212051012719,
+      "expected_p90": 0.251247428936,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1026,
+      "week": 9,
+      "outcome_week": 10,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 7.148338736058747,
+      "hydration_risk": 2.8429973772063057,
+      "energy_risk": 6.348559761965655,
+      "appetite_suppression": 9.339142394688405,
+      "weight_loss_pct": 3.4214107201330592,
+      "hba1c_delta": -0.2687656200749817,
+      "systolic_bp": 137.51185857289772,
+      "routine_disruption": 0.9400000000000001,
+      "side_effect_spike": 2.296879207103335,
+      "prior_failure": 1.0,
+      "mood_anxious": 1.0,
+      "target": 1.0,
+      "expected_consensus_risk": 0.663805606983,
+      "expected_p10": 0.625555113573,
+      "expected_p90": 0.681491689108,
+      "expected_supported": 0
+    },
+    {
+      "patient_id": 1020,
+      "week": 1,
+      "outcome_week": 2,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 1.8672254661168348,
+      "hydration_risk": 3.083790335562526,
+      "energy_risk": 4.74009236081024,
+      "appetite_suppression": 3.580286353160478,
+      "weight_loss_pct": 0.6856941304649004,
+      "hba1c_delta": -0.031209664682438465,
+      "systolic_bp": 120.69121028789041,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 0,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.031818570802,
+      "expected_p10": 0.028468036036,
+      "expected_p90": 0.034668493338,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 2,
+      "outcome_week": 3,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 2.6096630379120915,
+      "hydration_risk": 3.341064536094776,
+      "energy_risk": 3.589541608255759,
+      "appetite_suppression": 2.428795592658169,
+      "weight_loss_pct": 1.2378073255209294,
+      "hba1c_delta": -0.05927762764176858,
+      "systolic_bp": 122.25609055416871,
+      "routine_disruption": 0.22,
+      "side_effect_spike": 0.7424375717952567,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.025505750717,
+      "expected_p10": 0.023862196903,
+      "expected_p90": 0.02837124724,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 3,
+      "outcome_week": 4,
+      "adherence_last_2wk": 99.90446865922826,
+      "missed_doses_2wk": 0,
+      "nausea_score": 2.484139137274196,
+      "hydration_risk": 2.283086437938051,
+      "energy_risk": 3.662329546925087,
+      "appetite_suppression": 4.568202462577115,
+      "weight_loss_pct": 1.8367112824347351,
+      "hba1c_delta": -0.10495650896017583,
+      "systolic_bp": 125.7642761811966,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 0,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.031226667399,
+      "expected_p10": 0.029188593286,
+      "expected_p90": 0.033473211208,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 4,
+      "outcome_week": 5,
+      "adherence_last_2wk": 99.90446865922826,
+      "missed_doses_2wk": 0,
+      "nausea_score": 5.100331773892441,
+      "hydration_risk": 3.732753753771245,
+      "energy_risk": 5.060245221270832,
+      "appetite_suppression": 6.1795855349512845,
+      "weight_loss_pct": 2.5063051507927527,
+      "hba1c_delta": -0.1443942057142733,
+      "systolic_bp": 118.3165077509888,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 2.6161926366182455,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.239698421151,
+      "expected_p10": 0.233682818025,
+      "expected_p90": 0.256792254986,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 5,
+      "outcome_week": 6,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 3.192959104337274,
+      "hydration_risk": 3.7552501463600008,
+      "energy_risk": 3.630475543026063,
+      "appetite_suppression": 5.4833055927571985,
+      "weight_loss_pct": 3.5730174025279227,
+      "hba1c_delta": -0.13889928856305733,
+      "systolic_bp": 115.6641657907027,
+      "routine_disruption": 0.22,
+      "side_effect_spike": 0,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.052233746269,
+      "expected_p10": 0.049768242878,
+      "expected_p90": 0.054976764763,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 6,
+      "outcome_week": 7,
+      "adherence_last_2wk": 98.31293988008667,
+      "missed_doses_2wk": 0,
+      "nausea_score": 3.1294066018381113,
+      "hydration_risk": 5.017362117068071,
+      "energy_risk": 3.559998892188535,
+      "appetite_suppression": 6.2307047263547695,
+      "weight_loss_pct": 4.15606005399668,
+      "hba1c_delta": -0.18170337955622973,
+      "systolic_bp": 113.02509013369566,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 0,
+      "prior_failure": 0.0,
+      "mood_anxious": 0.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.087931892408,
+      "expected_p10": 0.08275905714,
+      "expected_p90": 0.097272070713,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 7,
+      "outcome_week": 8,
+      "adherence_last_2wk": 98.31293988008667,
+      "missed_doses_2wk": 0,
+      "nausea_score": 5.080044365500641,
+      "hydration_risk": 3.6628027923622346,
+      "energy_risk": 4.533901087270372,
+      "appetite_suppression": 7.285837755584976,
+      "weight_loss_pct": 5.055019057574241,
+      "hba1c_delta": -0.22236570089256613,
+      "systolic_bp": 124.43436180736443,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 1.95063776366253,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.243493805745,
+      "expected_p10": 0.236842546075,
+      "expected_p90": 0.258888063218,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1020,
+      "week": 9,
+      "outcome_week": 10,
+      "adherence_last_2wk": 97.8395305755057,
+      "missed_doses_2wk": 0,
+      "nausea_score": 5.340254305470013,
+      "hydration_risk": 5.095739092764694,
+      "energy_risk": 5.326986681689731,
+      "appetite_suppression": 7.482124723933591,
+      "weight_loss_pct": 5.9844253205137266,
+      "hba1c_delta": -0.2708387824332874,
+      "systolic_bp": 119.41719989399314,
+      "routine_disruption": 0.9400000000000001,
+      "side_effect_spike": 0.704862865425846,
+      "prior_failure": 1.0,
+      "mood_anxious": 1.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.50864808006,
+      "expected_p10": 0.471973505506,
+      "expected_p90": 0.52882093095,
+      "expected_supported": 0
+    },
+    {
+      "patient_id": 1020,
+      "week": 10,
+      "outcome_week": 11,
+      "adherence_last_2wk": 85.08810647006428,
+      "missed_doses_2wk": 1.0,
+      "nausea_score": 1.695408849925173,
+      "hydration_risk": 2.9392284348972852,
+      "energy_risk": 3.8034365012262876,
+      "appetite_suppression": 4.990652947065563,
+      "weight_loss_pct": 6.196723686054056,
+      "hba1c_delta": -0.3152816067215065,
+      "systolic_bp": 117.41599649422986,
+      "routine_disruption": 0.66,
+      "side_effect_spike": 0,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.11272319326,
+      "expected_p10": 0.102535378986,
+      "expected_p90": 0.119302823044,
+      "expected_supported": 1
+    },
+    {
+      "patient_id": 1021,
+      "week": 1,
+      "outcome_week": 2,
+      "adherence_last_2wk": 100.0,
+      "missed_doses_2wk": 0,
+      "nausea_score": 4.103801745152664,
+      "hydration_risk": 3.456875298948999,
+      "energy_risk": 4.240247647343092,
+      "appetite_suppression": 4.473617305873756,
+      "weight_loss_pct": 0.7907559104125286,
+      "hba1c_delta": -0.019988211472456996,
+      "systolic_bp": 82.30118167012381,
+      "routine_disruption": 0.44,
+      "side_effect_spike": 1.6038017451526638,
+      "prior_failure": 0.0,
+      "mood_anxious": 1.0,
+      "target": 0.0,
+      "expected_consensus_risk": 0.079938255447,
+      "expected_p10": 0.071737967555,
+      "expected_p90": 0.091675365743,
+      "expected_supported": 0
+    }
+  ]
+}

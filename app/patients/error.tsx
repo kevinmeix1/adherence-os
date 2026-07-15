@@ -9,10 +9,10 @@ export default function PatientsError({ reset }: { error: Error & { digest?: str
       <section className="directory-empty error">
         <AlertTriangle size={30} />
         <h1>Patient directory unavailable</h1>
-        <p>The demo data could not be loaded. Retry once, then return to the live twin.</p>
+        <p>The demo data could not be loaded. Retry once, then return to the Decision map.</p>
         <div>
           <button onClick={reset}><RotateCcw size={16} /> Retry</button>
-          <Link href="/">Return to live twin</Link>
+          <Link href="/">Return to Decision map</Link>
         </div>
       </section>
     </main>

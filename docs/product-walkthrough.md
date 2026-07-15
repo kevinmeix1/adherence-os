@@ -2,67 +2,77 @@
 
 This walkthrough follows the exact production build used for release verification. Every patient and metric shown is synthetic. Use it to learn the product flow or as a visual fallback if a live demo is unavailable.
 
-## 1. Start With The Decision
+## 1. Start With The Evidence Chain
 
-![Live twin coaching overview](../public/walkthrough/01-live-twin-coaching.jpg)
+![Decision map coaching overview](../public/walkthrough/01-live-twin-coaching.png)
 
-The opening view answers four questions before exposing implementation detail: What is the next-week adherence-interruption risk? Is recent adherence weakening? Which bounded support route changes the score under its assumptions? Is coaching allowed by the independent safety layer?
+The opening view is a compact synthetic case record followed immediately by the evidence chain. It answers five questions: What is the next-week adherence-interruption risk? Which context signal ranks highest? Which model contributor explains the score? Which tested action changes it under bounded assumptions? Did a configured safety rule stop coaching?
 
-The graph is the first analytical surface, but the adjacent summary keeps the next safe move visible. **5%** is the local model output for this seeded synthetic check-in; it is not a medical-risk score.
+The graph is the first substantial surface, while the adjacent decision record keeps the next bounded action and its provenance visible. **42%** is the local model output for this seeded synthetic check-in; it is an adherence-interruption score from synthetic data, not a medical-risk score.
 
-## 2. Inspect The Active Driver
+## 2. Inspect The Model Contributor
 
-![Attribution view with Routine disruption selected](../public/walkthrough/02-attribution-driver.jpg)
+![Attribution view with Nausea burden selected](../public/walkthrough/02-attribution-driver.png)
 
-Select **Attribution**, then **Routine disruption**. The graph reveals source badges and the inspector maps the node back to three structured features. The signed log-odds contribution and attribution share come from the local logistic model.
+Select **Attribution**, then **Nausea burden**. The graph reveals source labels and the inspector maps the node back to nausea and side-effect-spike features. The signed log-odds contribution and attribution share come from the local logistic model.
 
-The graph score is an authored inspection aid. It does not prove that the node caused adherence behavior.
+Nausea burden is the largest risk-raising model group for this supported input. Separately, appetite and energy is the highest-ranked risk-raising signal under authored graph weights. Every edge label is derived from the signed local contribution, so a protective group cannot be described as adding risk. None of these labels proves causality.
 
-## 3. Inspect A Bounded Support Route
+## 3. Inspect A Tested Action
 
-![Hydration nudge bounded support route](../public/walkthrough/03-bounded-support-route.jpg)
+![Meal-timing prompt tested-action comparison](../public/walkthrough/03-bounded-support-route.png)
 
-Select **Hydration nudge**. The app changes explicit feature assumptions, rescores the same model, and reports a **2 percentage-point** scenario decrease. The route is only ranked while both the observed and simulated vectors remain inside synthetic training support.
+Select **Meal-timing prompt**. The app changes explicit feature assumptions, rescores the same model, and reports a **16 percentage-point** scenario decrease. The tested action is only ranked while every observed and simulated feature remains inside its configured marginal bounds.
 
 This is a planning comparison, not a treatment-effect estimate or medication recommendation.
 
 ## 4. Trigger The Safety Override
 
-![Escalation scenario with model abstention and safety handoff](../public/walkthrough/04-safety-escalation.jpg)
+![Escalation scenario with model abstention and safety handoff](../public/walkthrough/04-safety-escalation.png)
 
-Select **Escalation**. The synthetic symptom vector moves outside model support, so numeric ML ranking **abstains**. Deterministic rules remain active, suppress support scenarios, and route the decision through the safety guardrail to an urgent clinician-review draft.
+Select **Load safety case**. The synthetic symptom vector exceeds configured marginal feature bounds, so numeric ML ranking **abstains**. Deterministic rules remain active, suppress tested actions, and switch the decision to the safety guardrail and an urgent clinician-review draft.
 
 This is the key product boundary: model uncertainty cannot disable safety, and a high adherence-risk score is not required for red-flag escalation.
 
 ## 5. Review, Do Not Auto-Send
 
-![Clinician handoff review workspace](../public/walkthrough/05-clinician-handoff-review.jpg)
+![Local clinician-review workspace](../public/walkthrough/05-clinician-handoff-review.png)
 
-Select **Review handoff draft**. The care-team view opens directly on the pending task with its trigger, unassigned owner, **Draft only / not sent** delivery state, longitudinal summary, patient-facing draft, and five-step audit trail.
+Select **Review handoff draft**. **Review drafts** opens directly on the local record with its trigger, **In-memory only** scope, **Not sent** delivery state, longitudinal summary, patient-facing draft, and five-step audit trail.
 
 The prototype prepares context for a human decision. It does not diagnose, make a medication change, assign a clinician, or claim that a message was delivered.
 
+Each synthetic patient's local decision state is independent while the app remains open. Selecting another record does not clear Maya's review; **Reset demo session** in Resources or a full refresh restores every seeded session. When no same-day or urgent draft exists, the queue and message area now render a literal empty state instead of coaching records.
+
 ## 6. See The Patient-Side Input
 
-![Patient home check-in and care plan](../public/walkthrough/06-patient-check-in.jpg)
+![Patient home check-in and care plan](../public/walkthrough/06-patient-check-in.png)
 
-The patient workspace turns a short structured check-in into a care plan, adherence profile, seven-day support plan, rule trace, and eight-week context. Editing any field recomputes the deterministic decision immediately and invalidates older in-flight provider requests.
+The **Check-in** view turns a short structured input into a care plan, adherence profile, seven-day support plan, rule trace, and eight-week context. An eight-item current-symptom checklist provides an explicit route into deterministic urgent mode; free-text phrase matching remains a secondary backstop. Editing any field recomputes the decision immediately and invalidates older in-flight provider requests.
 
-The seeded **Normal** and **Escalation** controls exist for a repeatable judged demo; a field edit visibly changes the state to **Custom**.
+The seeded **Load coaching** and **Load safety** controls are explicitly labelled **Demo cases**; they load repeatable presenter fixtures rather than letting a patient choose a clinical state. A field edit visibly changes the state to **Custom**. The review action remains visible at desktop and mobile sizes while optional context notes stay editable in an expander.
 
-## 7. Audit The Model
+## 7. Open The Model Record
 
-![Model evidence with abstention and prospective metrics](../public/walkthrough/07-model-evidence.jpg)
+![Model record with abstention and prospective metrics](../public/walkthrough/07-model-evidence.png)
 
-The technical view exposes artifact versioning, the prospective target, patient-isolated splits, held-out AUPRC, recall, threshold, review rate, Brier skill, exact attribution, one-feature sensitivity, bootstrap spread, reliability bins, and support-aware what-if behavior.
+The technical view opens with an exported held-out challenger benchmark. At the same validation-only recall target, the 14-feature model flags 33% of all held-out synthetic rows at 29% precision, compared with 57% at 16% precision for a recent-adherence-only logistic baseline. The same record reports that the runtime gate scores 90% of rows, abstains on 180, and achieves 26% precision and 74% recall on the scored subset. These are pipeline comparisons, not measured staffing savings or clinical validation.
 
-The screenshot intentionally shows an abstention state. The raw 90% score is displayed for model inspection, but it does not become an operational route outside training support.
+Below that proof, the view exposes artifact and raw-feature-contract versioning, the prospective target, patient-isolated splits, threshold, Brier skill, calibration bins, and bounds-aware what-if behavior. Exact attribution, one-feature sensitivity, and bootstrap spread appear only when all marginal bounds pass.
+
+The screenshot intentionally shows an abstention state. Patient score, attribution, bootstrap spread, sensitivity, and tested-action ranking are withheld; only artifact-level evidence, observed inputs, support exceptions, and deterministic safety remain visible.
 
 ## 8. Verify The Narrow Layout
 
-![320 pixel mobile Live twin](../public/walkthrough/08-mobile-live-twin.jpg)
+![320 pixel mobile Decision map](../public/walkthrough/08-mobile-live-twin.png)
 
-At 320 px wide the app has zero horizontal page overflow. Navigation wraps into a compact product bar, the decision metrics form a stable two-column grid, and the evidence map remains the first analytical section. Lower-density evidence is progressively disclosed further down the page.
+At 320 px wide the app has zero horizontal page overflow. Navigation becomes a compact two-row product bar, presenter controls retain 44 px targets, and Review care plan remains fixed in view. The coaching case remains graph-first and the complete context sentence remains visible without truncation.
+
+## 9. Verify Urgent Mobile Ordering
+
+![320 pixel mobile safety decision](../public/walkthrough/09-mobile-safety-escalation.png)
+
+Load safety case moves the NHS 111 destination, immediate action, and **Review handoff draft** button ahead of graph exploration. Coaching actions and action relationships are suppressed from the default safety map; blocked alternatives remain available only in the explicit tested-action comparison.
 
 ## Reproduce The Walkthrough
 
@@ -72,4 +82,4 @@ pnpm build
 pnpm start
 ```
 
-Open `http://localhost:3000`, select **Reset demo**, and follow steps 1-7. In another terminal, run `pnpm smoke` to verify the home page, health route, patient routes, normal API path, and escalation API path.
+Open `http://localhost:3000`, choose **Reset demo session** from Resources, and follow steps 1-9. In another terminal, run `pnpm smoke` to verify the home page, health route, patient routes, coaching API path, and safety API path.

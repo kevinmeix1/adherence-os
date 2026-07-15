@@ -3,7 +3,7 @@ import { ArrowLeft, HeartPulse } from "lucide-react";
 import type { ReactNode } from "react";
 import type { RiskLevel } from "@/app/lib/types";
 
-export function PatientDirectoryHeader({ backHref = "/", backLabel = "Live twin" }: { backHref?: string; backLabel?: string }) {
+export function PatientDirectoryHeader({ backHref = "/", backLabel = "Decision map" }: { backHref?: string; backLabel?: string }) {
   return (
     <header className="directory-bar">
       <Link className="directory-brand" href="/">

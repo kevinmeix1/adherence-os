@@ -1,40 +1,52 @@
 # Architecture And Study Guide
 
-Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. Its central design choice is separation: prediction estimates adherence interruption, deterministic rules own safety, the evidence map explains the route, and a clinician remains responsible for review.
+Adherence OS is a browser-first prototype for at-home GLP-1 adherence support. Its central design choice is separation: prediction estimates adherence interruption, the evidence map distinguishes context from model contribution and tested action, deterministic rules own safety, and a clinician remains responsible for review.
 
 ## Whole-System Diagram
 
 ```mermaid
 flowchart TB
     subgraph Build["Offline synthetic model build"]
-        Seed["Seeded synthetic cohort generator"] --> Cohort["12,000 prospective patient-week rows"]
+        Seed["Seeded synthetic cohort generator"] --> Sources["12,000 versioned patient/check-in sources"]
+        Contract["adherence-feature-source-v1"] --> Sources
+        Sources --> Cohort["Python 14-feature construction"]
         Cohort --> Split["Patient-isolated 70 / 15 / 15 split"]
         Split --> Train["Constrained logistic training + 16 bootstraps"]
+        Split --> Challenger["Recent-adherence-only challenger"]
         Train --> Select["Validation-selected operating threshold"]
-        Select --> Artifact["Versioned JSON model artifact"]
-        Artifact --> Parity["Python / TypeScript parity fixtures"]
+        Challenger --> Compare["Common validation recall target"]
+        Select --> Compare
+        Compare --> Artifact["Browser JSON artifact<br/>all-row + runtime-gate evidence"]
+        Train --> ScoreParity["20 scoring-kernel fixtures"]
+        Sources --> RawParity["12 taken/missed raw-feature fixtures"]
     end
 
     subgraph Runtime["Keyless browser runtime"]
-        CheckIn["60-second home check-in"] --> Validate["Typed input validation"]
-        History["Synthetic 8-week history"] --> Features["Prospective feature builder"]
-        Validate --> Features
+        CheckIn["60-second home check-in<br/>typed safety flags + structured values"] --> Session["Per-patient in-memory session"]
+        Session --> Validate["Typed input validation"]
+        History["Synthetic 8-week history"] --> Source["Versioned raw feature source"]
+        Validate --> Source
+        Contract --> Source
+        Source --> Features["Prospective 14-feature builder"]
         Features --> Model["Local edge inference"]
         Artifact --> Model
-        Model --> Support["Training-support gate"]
-        Support --> Explain["Exact log-odds attribution + bounded rescoring"]
+        Model --> Support["Marginal feature-bounds gate"]
+        Support -->|Every bound passes| Explain["Exact log-odds attribution + bounded rescoring"]
+        Support -->|Any bound exceeded| Abstain["Withhold patient ML evidence"]
 
         Validate --> Safety["Deterministic safety engine"]
         History --> Safety
-        Safety --> Plan["Deterministic care plan"]
+        Safety --> Plan["Rules-owned care plan"]
 
         Explain --> Graph["Inspectable evidence-map builder"]
+        Abstain --> Graph
         Safety --> Graph
         History --> Graph
-        Graph --> Live["Live twin"]
-        Plan --> Patient["Patient workspace"]
-        Plan --> Queue["Clinician review queue"]
-        Artifact --> Lab["Model evidence"]
+        Graph --> Live["Decision map"]
+        Plan --> Patient["Home check-in"]
+        Plan --> Review["Local review drafts"]
+        Artifact --> Lab["Model record"]
+        Abstain --> Lab
     end
 
     subgraph Optional["Optional provider boundary"]
@@ -46,7 +58,7 @@ flowchart TB
     Validate --> API
     Recompute --> Plan
     API -. "timeout, invalid, or no key" .-> Plan
-    Safety -. "urgent rules suppress coaching" .-> Queue
+    Safety -. "urgent rules suppress coaching" .-> Review
 ```
 
 The dotted provider fallback is deliberate. The judged demo is complete without a key; optional generated output cannot weaken, rewrite, or own the displayed care plan.
@@ -61,13 +73,14 @@ sequenceDiagram
     participant ML as Browser edge model
     participant Graph as Evidence-map builder
     participant API as Optional care-plan API
-    participant Clinician as Review queue
+    participant Reviewer as Local review workspace
 
-    Patient->>UI: Submit or edit a structured check-in
-    UI->>Rules: Evaluate symptoms, adherence, and red flags
-    UI->>ML: Build week-t features and score week-t+1 interruption
-    ML-->>UI: Risk, attribution, support status, bounded scenarios
+    Patient->>UI: Submit or edit structured values and current-symptom flags
+    UI->>Rules: Evaluate explicit flags, phrase backstop, adherence, and thresholds
+    UI->>ML: Build v1 raw source, derive week-t features, and score week-t+1 interruption
+    ML-->>UI: Support status; patient ML evidence only inside support
     Rules-->>UI: Coaching mode or destination-specific handoff draft
+    UI->>UI: Preserve check-in and plan under the patient identifier
     UI->>Graph: Combine context, model evidence, and safety state
     Graph-->>UI: Nodes, typed edges, provenance, and rescue path
     opt Provider key configured
@@ -76,13 +89,13 @@ sequenceDiagram
         UI->>Rules: Keep the recomputed deterministic plan
     end
     alt Red flag active
-        UI->>Clinician: Show pending draft, owner, trigger, and audit trail
-    else Coaching permitted
+        UI->>Reviewer: Show in-memory draft, trigger, unsent state, and audit trail
+    else Coaching path remains active
         UI-->>Patient: Show one bounded behavioral next step
     end
 ```
 
-Edits and scenario changes invalidate any in-flight request before recomputing locally. That prevents an older response from replacing the decision for the currently visible check-in.
+Edits and scenario changes invalidate any in-flight request before recomputing locally. That prevents an older response from replacing the decision for the currently visible check-in. Each synthetic patient keeps an independent in-memory check-in, care plan, provider state, and notice while the app is open; Reset or a full page refresh restores all three seeded sessions.
 
 ## Intelligence Layers
 
@@ -91,19 +104,20 @@ Edits and scenario changes invalidate any in-flight request before recomputing l
 - Every index-week row predicts a planned adherence event in the following week. Same-row outcomes cannot enter its features.
 - Patients, not rows, are isolated into deterministic 70/15/15 training, validation, and test partitions.
 - A monotonic consensus logistic model and 16 patient-bootstrap members are trained on 12,000 synthetic patient-weeks with projected-gradient sign constraints.
-- The artifact exports coefficients, training-only support bounds, the selected threshold, held-out metrics, bootstrap members, reliability bins, and parity fixtures.
-- Inference runs locally over 14 structured features. Exact signed contributions reconstruct the final log-odds score.
-- Numeric route ranking abstains when the observed or simulated vector falls outside the training-only 0.5th-99.5th percentile support bounds.
+- The browser artifact exports coefficients, its required raw-source contract version, training-only support bounds, the selected threshold, held-out metrics, a validation-matched recent-adherence challenger, runtime-gate coverage, bootstrap members, and reliability bins.
+- Twelve Python-generated taken/missed raw cases reproduce all 14 TypeScript features, and twenty additional rows reproduce consensus plus bootstrap scores. These test-only fixtures are not shipped to the browser.
+- Inference runs locally over 14 structured features. For supported inputs, exact signed contributions reconstruct the final log-odds score.
+- The bounds gate checks each feature independently against training-only 0.5th-99.5th percentile ranges, or the valid set for binary features. If any bound is exceeded, the presentation layer withholds patient score, decomposition, bootstrap spread, sensitivity, and tested-action ranking. It does not detect joint-distribution or semantic drift. Routed patient records use the same gate.
 
-Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`data/adherence-model.json`](../data/adherence-model.json) and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
+Start with [`scripts/train_adherence_model.py`](../scripts/train_adherence_model.py), then read [`app/lib/modelFeatures.ts`](../app/lib/modelFeatures.ts), [`data/adherence-model.json`](../data/adherence-model.json), [`data/adherence-model-fixtures.json`](../data/adherence-model-fixtures.json), and [`app/lib/edgeModel.ts`](../app/lib/edgeModel.ts).
 
 ### 2. Evidence Map
 
 - Patient, symptom, routine, biomarker, risk, intervention, safety, and clinician nodes are assembled for the current check-in.
-- Authored edge weights identify the most connected inspectable driver and a concise decision path.
+- Authored edge weights identify the highest-ranked inspectable context signal and a concise decision path.
 - Every node declares provenance: model attribution, bounded simulation, deterministic rule, or patient context.
 - Decision-path, selected-neighborhood, attribution, and all-signal modes change presentation, not the underlying decision.
-- Route comparison is disabled outside synthetic support and suppressed whenever safety owns the next action.
+- Model-derived node attribution and tested-action comparison are withheld when a marginal feature bound is exceeded; deterministic rules and observed context remain visible.
 
 This is an explainable decision representation, not a learned knowledge-graph model or causal graph. Read [`app/lib/knowledgeGraph.ts`](../app/lib/knowledgeGraph.ts) after the edge model.
 
@@ -111,12 +125,14 @@ This is an explainable decision representation, not a learned knowledge-graph mo
 
 - No diagnosis.
 - No medication start, stop, or dose-change advice.
+- A typed current-symptom checklist provides the primary explicit red-flag input and always overrides coaching.
 - Clause-aware red-flag matching distinguishes active, negated, and explicitly resolved symptoms.
+- Phrase matching remains a secondary backstop rather than clinical-language understanding.
 - Active red flags select cautious UK destinations such as NHS 111, 999, or A&E according to the matched symptom family.
 - Safety is independent of the adherence score and can override it when the model abstains or reports a low score.
 - Review and urgent states prepare drafts only; the UI never claims that a message was sent.
 
-The implementation is in [`app/lib/careEngine.ts`](../app/lib/careEngine.ts), with adversarial and threshold tests in [`tests/careEngine.test.cjs`](../tests/careEngine.test.cjs).
+The typed flag contract is in [`app/lib/safetyFlags.ts`](../app/lib/safetyFlags.ts). Routing is implemented in [`app/lib/careEngine.ts`](../app/lib/careEngine.ts), with structured, adversarial, and threshold tests in [`tests/careEngine.test.cjs`](../tests/careEngine.test.cjs).
 
 ### 4. Optional OpenAI Boundary
 
@@ -132,9 +148,10 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 | Concern | Source of truth | Runs where | Failure behavior |
 |---|---|---|---|
 | Synthetic patient history | `data/patients.json` | Build and browser | Runtime validation fails with a precise path |
+| Raw ML feature semantics | `app/lib/modelFeatures.ts` and artifact contract version | Python build and browser | Version drift throws; missing values become abstention violations |
 | Adherence prediction | `data/adherence-model.json` | Browser | Artifact validation fails; unsupported inputs abstain |
-| Safety mode and route | `app/lib/careEngine.ts` | Browser and route handler | Deterministic handoff overrides coaching |
-| Evidence-map structure | `app/lib/knowledgeGraph.ts` | Browser | No causal claim; routes remain inspectable |
+| Safety mode and destination | `app/lib/careEngine.ts` | Browser and route handler | Deterministic handoff overrides coaching |
+| Evidence-map structure | `app/lib/knowledgeGraph.ts` | Browser | No causal claim; paths and tested actions remain inspectable |
 | Generated provider attempt | `app/lib/carePlanProvider.ts` | Server route | Visible deterministic fallback |
 | View and request state | `app/page.tsx` | Browser | Patient/scenario/edit changes invalidate stale requests |
 | Release readiness | tests, model check, build, bundle, smoke | Local and GitHub Actions | Release gate fails visibly |
@@ -146,9 +163,11 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 | `app/page.tsx` | Orchestrates patient, scenario, view, graph focus, and request state |
 | `app/product.css` | Owns the commercial workspace and graph presentation |
 | `app/lib/types.ts` | Shared contracts between engine, API, graph, and UI |
+| `app/lib/modelFeatures.ts` | Maps patient history and a current check-in into the versioned 14-feature vector |
 | `app/lib/schemas.ts` | Runtime API and provider-output validation |
 | `app/lib/patientData.ts` | Runtime validation for checked-in synthetic records |
 | `scripts/smoke.mjs` | Exercises production routes plus normal and escalation POST paths |
+| `scripts/capture-walkthrough.mjs` | Reproduces the README image and nine judged desktop/mobile states from a running production app |
 | `.github/workflows/ci.yml` | Repeats the full release gate without secrets |
 
 ## Suggested Study Order
@@ -165,6 +184,6 @@ Read [`app/api/care-plan/route.ts`](../app/api/care-plan/route.ts), [`app/lib/ca
 
 - All patient records and model metrics are synthetic; they are pipeline evidence, not clinical validation.
 - The graph is an authored explanatory representation, not causal evidence.
-- Intervention simulations mutate explicit feature assumptions and rescore the same model; they do not estimate treatment effects.
+- Tested actions are implemented as intervention simulations that mutate explicit feature assumptions and rescore the same model; they do not estimate treatment effects.
 - Bootstrap spread describes model variation inside one synthetic cohort, not a clinical confidence interval.
 - Production use would require real-world validation, clinical governance, privacy and security review, monitoring, authentication, and integration with eMed workflows.

@@ -142,6 +142,11 @@ export function buildAdherenceKnowledgeGraph({
         ? Math.max(0, patient.latestBiomarkers.restingHeartRate - patient.baseline.restingHeartRate) / 25
         : 0)
   );
+  const nauseaSignal = describeModelFeatureGroup(edgeRisk, ["nausea_score", "side_effect_spike"]);
+  const hydrationSignal = describeModelFeatureGroup(edgeRisk, ["hydration_risk"]);
+  const appetiteEnergySignal = describeModelFeatureGroup(edgeRisk, ["appetite_suppression", "energy_risk"]);
+  const routineSignal = describeModelFeatureGroup(edgeRisk, ["routine_disruption", "adherence_last_2wk", "missed_doses_2wk"]);
+  const biomarkerSignal = describeModelFeatureGroup(edgeRisk, ["weight_loss_pct", "hba1c_delta", "systolic_bp"]);
 
   addNode(nodes, {
     id: "patient",
@@ -160,37 +165,37 @@ export function buildAdherenceKnowledgeGraph({
     evidence:
       edgeRisk.support.status === "supported"
         ? `${formatPercent(edgeRisk.risk)} edge-model risk; ${carePlan.headline.toLowerCase()}.`
-        : `Model abstained outside synthetic training support; ${carePlan.headline.toLowerCase()}.`
+        : `Model abstained outside marginal synthetic feature bounds; ${carePlan.headline.toLowerCase()}.`
   });
   addNode(nodes, {
     id: "nausea",
     label: "Nausea burden",
     type: "symptom",
-    status: riskFromWeight(nauseaRisk),
+    status: nauseaSignal.status,
     weight: nauseaRisk,
     evidence: `Today ${checkIn.nauseaScore}/10; trend ${insights.nauseaTrend >= 0 ? "+" : ""}${insights.nauseaTrend}.`
   });
   addNode(nodes, {
     id: "hydration",
-    label: "Hydration risk",
+    label: "Hydration level",
     type: "symptom",
-    status: riskFromWeight(hydrationRisk),
+    status: hydrationSignal.status,
     weight: hydrationRisk,
     evidence: `Hydration ${checkIn.hydrationScore}/10 from home check-in.`
   });
   addNode(nodes, {
     id: "appetite-energy",
-    label: "Appetite and energy drag",
+    label: "Appetite and energy",
     type: "symptom",
-    status: riskFromWeight(Math.max(appetiteRisk, energyRisk)),
+    status: appetiteEnergySignal.status,
     weight: Math.max(appetiteRisk, energyRisk),
     evidence: `Appetite ${checkIn.appetiteScore}/10 and energy ${checkIn.energyScore}/10.`
   });
   addNode(nodes, {
     id: "routine",
-    label: "Routine disruption",
+    label: "Routine and dose continuity",
     type: "routine",
-    status: riskFromWeight(routineRisk),
+    status: routineSignal.status,
     weight: routineRisk,
     evidence: `${Math.round(insights.lastTwoAdherence)}% recent adherence; planned weekly dose ${checkIn.medicationTaken ? "recorded" : "missed"} in this check-in.`
   });
@@ -198,7 +203,7 @@ export function buildAdherenceKnowledgeGraph({
     id: "biomarkers",
     label: "Biomarker trend",
     type: "biomarker",
-    status: biomarkerRisk > 0.45 ? "watch" : "protective",
+    status: biomarkerSignal.status,
     weight: biomarkerRisk,
     evidence: `${insights.weightDelta.toFixed(1)} kg since baseline; HbA1c ${formatSigned(insights.hba1cDelta)} pts where available.`
   });
@@ -221,7 +226,7 @@ export function buildAdherenceKnowledgeGraph({
       weight: clamp01(reduction / Math.max(edgeRisk.risk, 0.01)),
       evidence: intervention.rankable
         ? `${formatPercentagePoints(reduction)} scenario-score decrease under explicit assumptions.`
-        : "Not ranked because the current input is outside synthetic training support."
+        : "Not ranked because the current input is outside configured marginal feature bounds."
     });
   });
 
@@ -242,20 +247,21 @@ export function buildAdherenceKnowledgeGraph({
     evidence: carePlan.escalation.channel
   });
 
-  addEdge(edges, "patient", "nausea", "reports", nauseaRisk, riskFromWeight(nauseaRisk));
-  addEdge(edges, "patient", "hydration", "reports", hydrationRisk, riskFromWeight(hydrationRisk));
-  addEdge(edges, "patient", "appetite-energy", "reports", Math.max(appetiteRisk, energyRisk), riskFromWeight(Math.max(appetiteRisk, energyRisk)));
-  addEdge(edges, "patient", "routine", "lives inside", routineRisk, riskFromWeight(routineRisk));
-  addEdge(edges, "patient", "biomarkers", "streams", biomarkerRisk, biomarkerRisk > 0.45 ? "watch" : "protective");
+  addEdge(edges, "patient", "nausea", "reports", nauseaRisk, nauseaSignal.status);
+  addEdge(edges, "patient", "hydration", "reports", hydrationRisk, hydrationSignal.status);
+  addEdge(edges, "patient", "appetite-energy", "reports", Math.max(appetiteRisk, energyRisk), appetiteEnergySignal.status);
+  addEdge(edges, "patient", "routine", "lives inside", routineRisk, routineSignal.status);
+  addEdge(edges, "patient", "biomarkers", "streams", biomarkerRisk, biomarkerSignal.status);
   addEdge(edges, "protective-progress", "risk", "buffers", 0.46, "protective");
 
-  addEdge(edges, "nausea", "risk", "raises interruption risk", nauseaRisk, riskFromWeight(nauseaRisk));
-  addEdge(edges, "hydration", "risk", "raises safety risk", hydrationRisk, riskFromWeight(hydrationRisk));
-  addEdge(edges, "appetite-energy", "risk", "adds friction", Math.max(appetiteRisk, energyRisk), riskFromWeight(Math.max(appetiteRisk, energyRisk)));
-  addEdge(edges, "routine", "risk", "adds missed-dose friction", routineRisk, riskFromWeight(routineRisk));
-  addEdge(edges, "biomarkers", "risk", biomarkerRisk > 0.45 ? "needs context" : "shows progress", biomarkerRisk, biomarkerRisk > 0.45 ? "watch" : "protective");
+  addEdge(edges, "nausea", "risk", nauseaSignal.relationship, nauseaRisk, nauseaSignal.status);
+  addEdge(edges, "hydration", "risk", hydrationSignal.relationship, hydrationRisk, hydrationSignal.status);
+  addEdge(edges, "appetite-energy", "risk", appetiteEnergySignal.relationship, Math.max(appetiteRisk, energyRisk), appetiteEnergySignal.status);
+  addEdge(edges, "routine", "risk", routineSignal.relationship, routineRisk, routineSignal.status);
+  addEdge(edges, "biomarkers", "risk", biomarkerSignal.relationship, biomarkerRisk, biomarkerSignal.status);
 
   edgeRisk.interventions.slice(0, 3).forEach((intervention) => {
+    if (!intervention.rankable) return;
     addEdge(
       edges,
       interventionNodeId(intervention),
@@ -276,12 +282,18 @@ export function buildAdherenceKnowledgeGraph({
 
   const centrality = calculateCentrality(nodes, edges);
   const nodeExplanations = buildNodeExplanations(nodes, edges, edgeRisk, carePlan);
+  const riskRaisingNodeIds = new Set(
+    nodeExplanations
+      .filter((explanation) => explanation.direction === "raises risk")
+      .map((explanation) => explanation.nodeId)
+  );
   const topDriver =
+    centrality.find((item) => ["symptom", "routine", "biomarker"].includes(item.type) && riskRaisingNodeIds.has(item.nodeId)) ??
     centrality.find((item) => ["symptom", "routine", "biomarker"].includes(item.type)) ??
     centrality.find((item) => item.nodeId === "risk") ??
     centrality[0];
   const bestIntervention = edgeRisk.interventions[0];
-  const rescuePath = buildRescuePath(carePlan, topDriver, bestIntervention);
+  const rescuePath = buildRescuePath(carePlan, topDriver, bestIntervention, edgeRisk.support.status === "supported");
   const repeatedLoopScore = calculateRepeatedLoopScore(patient, checkIn);
   const cohortMatches = findCohortMatches(patient, cohort);
   const similarPatternScore = cohortMatches[0]?.similarity ?? 0;
@@ -308,7 +320,7 @@ export function buildAdherenceKnowledgeGraph({
       rationale: carePlan.escalation.needed
         ? "Deterministic red flags suppress automated coaching even when the adherence simulation improves."
         : !intervention.rankable
-          ? "No numeric comparison is shown outside the synthetic training support."
+          ? "No numeric comparison is shown outside configured marginal feature bounds."
         : index === 0
           ? "Largest supported scenario-score decrease under the current explicit assumptions."
           : "Lower-ranked modelled option retained for clinician or patient review."
@@ -317,10 +329,12 @@ export function buildAdherenceKnowledgeGraph({
   const mlFeatures: GraphMlFeature[] = [
     {
       id: "top_driver_graph_score",
-      label: "Top-driver graph score",
+      label: riskRaisingNodeIds.has(topDriver.nodeId) ? "Top risk-raising signal score" : "Top context-signal score",
       value: topDriver.score,
       displayValue: topDriver.score.toFixed(2),
-      interpretation: `${topDriver.label} ranks highest under the authored node and edge weights.`
+      interpretation: riskRaisingNodeIds.has(topDriver.nodeId)
+        ? `${topDriver.label} ranks highest among locally risk-raising model groups under the authored graph weights.`
+        : `${topDriver.label} ranks highest under the authored node and edge weights.`
     },
     {
       id: "safety_route_state",
@@ -333,12 +347,12 @@ export function buildAdherenceKnowledgeGraph({
     },
     {
       id: "scenario_route_ratio",
-      label: "Scenario route ratio",
+      label: "Tested-action strength",
       value: rescuePathStrength,
       displayValue: bestIntervention?.rankable ? formatPercent(rescuePathStrength) : "Not ranked",
       interpretation: bestIntervention?.rankable
         ? `${bestIntervention.label} has the largest supported scenario-score change.`
-        : "The model abstains from route comparison outside synthetic support."
+        : "The model abstains from tested-action comparison outside marginal feature bounds."
     },
     {
       id: "recent_friction_index",
@@ -370,7 +384,9 @@ export function buildAdherenceKnowledgeGraph({
     summary:
       carePlan.escalation.needed
         ? `The evidence map links ${patient.name.split(" ")[0]}'s active signals to a deterministic safety handoff draft.`
-        : `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked inspectable driver under its authored weights.`
+        : riskRaisingNodeIds.has(topDriver.nodeId)
+          ? `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked locally risk-raising signal under its authored graph weights.`
+          : `The evidence map surfaces ${topDriver.label.toLowerCase()} as the highest-ranked context signal under its authored weights.`
   };
 }
 
@@ -420,21 +436,23 @@ function buildNodeExplanations(
 
     if (node.id.startsWith("intervention-")) {
       const intervention = edgeRisk.interventions.find((item) => interventionNodeId(item) === node.id);
+      const reduction = intervention?.rankable === true ? intervention.absoluteReduction : null;
+      const rankable = reduction !== null;
       return {
         nodeId: node.id,
         source: "simulation",
-        contribution: intervention?.absoluteReduction ?? 0,
-        contributionUnit: "absolute-risk",
-        direction: "reduces risk",
-        impactShare: intervention
-          ? clamp01((intervention.absoluteReduction ?? 0) / Math.max(edgeRisk.risk, 0.01))
+        contribution: reduction,
+        contributionUnit: rankable ? "absolute-risk" : "none",
+        direction: rankable ? "reduces risk" : "neutral",
+        impactShare: rankable
+          ? clamp01(reduction / Math.max(edgeRisk.risk, 0.01))
           : 0,
         featureNames: [],
         featureLabels: [],
         evidenceEdgeCount,
         summary: intervention?.rankable
           ? "An explicit feature perturbation rescores the same model. The delta is a what-if estimate, not causal evidence."
-          : "The route is not numerically ranked because the observed or simulated input is outside synthetic training support."
+          : "The route is not numerically ranked because the observed or simulated input is outside configured marginal feature bounds."
       };
     }
 
@@ -442,6 +460,21 @@ function buildNodeExplanations(
     const mappedContributions = featureNames
       .map((name) => edgeRisk.contributions.find((item) => item.name === name))
       .filter((item): item is EdgeRiskResult["contributions"][number] => Boolean(item));
+
+    if (mappedContributions.length > 0 && edgeRisk.support.status !== "supported") {
+      return {
+        nodeId: node.id,
+        source: "model",
+        contribution: null,
+        contributionUnit: "none",
+        direction: "neutral",
+        impactShare: 0,
+        featureNames: [],
+        featureLabels: [],
+        evidenceEdgeCount,
+        summary: "Patient-specific model attribution is withheld because this input is outside marginal feature bounds."
+      };
+    }
 
     if (mappedContributions.length > 0) {
       const contribution = mappedContributions.reduce((sum, item) => sum + item.contribution, 0);
@@ -488,6 +521,28 @@ function addNode(nodes: KnowledgeGraphNode[], node: KnowledgeGraphNode) {
   if (!nodes.some((existing) => existing.id === node.id)) nodes.push(node);
 }
 
+function describeModelFeatureGroup(edgeRisk: EdgeRiskResult, featureNames: string[]) {
+  if (edgeRisk.support.status !== "supported") {
+    return {
+      relationship: "model attribution withheld",
+      status: "neutral" as const
+    };
+  }
+
+  const contribution = featureNames.reduce(
+    (sum, name) => sum + (edgeRisk.contributions.find((item) => item.name === name)?.contribution ?? 0),
+    0
+  );
+
+  if (contribution > 0.005) {
+    return { relationship: "raises model risk", status: "watch" as const };
+  }
+  if (contribution < -0.005) {
+    return { relationship: "lowers model risk", status: "protective" as const };
+  }
+  return { relationship: "neutral model contribution", status: "neutral" as const };
+}
+
 function addEdge(
   edges: KnowledgeGraphEdge[],
   source: string,
@@ -525,14 +580,15 @@ function calculateCentrality(nodes: KnowledgeGraphNode[], edges: KnowledgeGraphE
 function buildRescuePath(
   carePlan: CarePlan,
   topDriver: GraphCentrality,
-  bestIntervention: InterventionSimulation | undefined
+  bestIntervention: InterventionSimulation | undefined,
+  modelSupported: boolean
 ): RescuePathStep[] {
   if (carePlan.escalation.needed) {
     return [
       {
         nodeId: topDriver.nodeId,
         label: topDriver.label,
-        summary: "Active driver is no longer handled as self-coaching."
+        summary: "The active context signal is no longer handled as self-coaching."
       },
       {
         nodeId: "safety-guardrail",
@@ -547,11 +603,31 @@ function buildRescuePath(
     ];
   }
 
+  if (!modelSupported) {
+    return [
+      {
+        nodeId: topDriver.nodeId,
+        label: topDriver.label,
+        summary: "Observed context remains visible without patient-specific model attribution."
+      },
+      {
+        nodeId: "risk",
+        label: "Model abstained",
+        summary: "No patient score, ranked action, or risk-reduction claim is produced."
+      },
+      {
+        nodeId: "safety-guardrail",
+        label: "Rules remain active",
+        summary: "The deterministic care plan continues without using an unsupported model comparison."
+      }
+    ];
+  }
+
   return [
     {
       nodeId: topDriver.nodeId,
       label: topDriver.label,
-      summary: "Most connected risk driver in the current journey graph."
+      summary: "Highest-ranked context signal under authored graph weights."
     },
     {
       nodeId: bestIntervention ? interventionNodeId(bestIntervention) : "protective-progress",

@@ -1,30 +1,33 @@
 # Safety Rules
 
-Adherence OS is a chronic-care support prototype. It helps patients stay adherent and helps clinicians prioritise follow-up. It does not diagnose, prescribe, change doses, or replace care teams.
+Adherence OS is a chronic-care support prototype. It helps patients stay adherent and gives care teams a local review draft when configured rules match. It does not diagnose, prescribe, change doses, deliver messages, or replace care teams.
 
 ## Hard Rules
 
 1. Do not diagnose or suggest a differential diagnosis.
 2. Do not recommend medication dose changes, stopping medication, restarting medication, or substitutions.
 3. Do not reassure away severe or worsening symptoms.
-4. Red flags escalate to a clinician or urgent care language.
+4. Selected structured red flags suppress coaching and display a destination-specific urgent action; phrase matching provides a secondary backstop.
 5. Patient guidance should stay behavioural, supportive, and bounded.
 6. Clinician output is a summary and draft message, not an automated clinical decision.
 
 ## Red Flags In The Prototype
 
+The home check-in asks directly whether any configured urgent symptom family is happening now. Those typed selections are evaluated before free-text phrase matches and cannot be weakened by the adherence model or optional provider.
+
 - Chest pain or breathlessness.
 - Severe, persistent, worsening, agonising, or unbearable stomach, upper-abdominal, belly, or tummy pain, including pain that spreads or radiates to the back.
 - Fainting, blackout, severe dizziness, or dehydration concern.
 - Vomiting or throwing up, inability to drink or keep fluids down, or reports that sips come back up.
+- A reported overdose, too much medicine, or possible poisoning.
 - Pregnancy concern.
-- Self-harm language, with direct statements such as "I want to kill myself" treated as possible immediate danger.
+- Self-harm or suicide language, with a stated plan or inability to stay safe treated as possible immediate danger.
 
 ## Deterministic Thresholds
 
 | Result | Prototype boundary |
 |---|---|
-| Urgent route | Any active red-flag phrase, or hydration at 1/10 or lower; coaching is suppressed and one immediate action is shown |
+| Urgent route | Any selected structured safety flag, active red-flag phrase, or hydration at 1/10 or lower; coaching is suppressed and one immediate action is shown |
 | Same-day review | Hydration at 2/10, or missed medication with nausea at 6/10 or higher; a draft is prepared and remains pending manual review |
 | Watch | Latest adherence below 85%, nausea at 5/10 or higher, or two soft rule hits; coaching continues with no active escalation |
 | High-nausea evidence | Nausea at 7/10 or higher; this records evidence but does not by itself create urgent status |
@@ -33,25 +36,34 @@ These are deterministic prototype rules for the synthetic demo, not clinically v
 
 ## Prototype Urgent Routes
 
-| Active phrase family | Route displayed by the prototype |
-|---|---|
-| Chest pain or breathlessness | Call 999 or go to A&E now; do not drive yourself |
-| Severe or persistent abdominal pain with vomiting or inability to keep fluids down | Call NHS 111 now for urgent assessment; use 999 or A&E if pain is sudden or so severe that it is hard to think or talk |
-| Immediate self-harm language | Call 999 or go to A&E now; stay with a trusted person while getting help if possible |
-| Other self-harm language | Call NHS 111 and select the mental-health option; use 999 or A&E if there is immediate danger |
-| Other urgent prototype rules | Call NHS 111; use 999 or A&E for immediate danger or severe symptoms |
+| Active phrase family | Headline | Route displayed by the prototype |
+|---|---|---|
+| Chest pain or breathlessness | Call 999 now | Call 999 now; do not drive yourself to A&E |
+| Possible overdose or poisoning | Call 999 or go to A&E now | Call 999 or go to A&E now; do not drive yourself and bring the medicine or packaging if possible |
+| Severe or persistent abdominal pain with vomiting or inability to keep fluids down | Call NHS 111 now | Call NHS 111 now for urgent assessment; call 999 or go to A&E now if pain is sudden or so severe that it is hard to think or talk |
+| Immediate self-harm language | Call 999 or go to A&E now | Call 999 or go to A&E now; stay with a trusted person while getting help if possible |
+| Other self-harm language | Call NHS 111 now | Call NHS 111 and select the mental-health option; call 999 or go to A&E now if there is immediate danger |
+| Other urgent prototype rules | Call NHS 111 now | Call NHS 111 now; use 999 or A&E for immediate danger or severe symptoms |
 
-These destinations are conservative prototype messages, not validated triage. They are based on current public wording from [NHS chest-pain guidance](https://www.nhs.uk/conditions/chest-pain/), [NHS vomiting guidance](https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/), [NHS urgent mental-health guidance](https://www.nhs.uk/nhs-services/mental-health-services/), and the MHRA warning below. The prototype cannot assess severity, place calls, contact emergency services, or determine which service will accept a patient.
+These destinations are conservative prototype messages, not validated triage. They are based on current public wording from [NHS chest-pain guidance](https://www.nhs.uk/conditions/chest-pain/), [NHS vomiting guidance](https://www.nhs.uk/symptoms/diarrhoea-and-vomiting/), [NHS poisoning guidance](https://www.nhs.uk/conditions/poisoning/), [NHS urgent mental-health guidance](https://www.nhs.uk/nhs-services/mental-health-services/where-to-get-urgent-help-for-mental-health/), and the MHRA warning below. The prototype cannot assess severity, place calls, contact emergency services, or determine which service will accept a patient.
 
 Urgent mode returns one immediate safety action rather than a seven-day coaching sequence. All adherence-twin coaching moves are also suppressed while the urgent rule is active. A clinician handoff draft may be prepared for context, but it remains pending manual review.
 
+## Non-Urgent Copy Boundary
+
+A phrase or threshold that does not match is not negative triage. Steady and watch explanations therefore report only the configured rule state and observed structured values. They do not claim that symptoms are safe, manageable, stable, or "not a crisis". The UI explicitly states that a non-match is not a clinical assessment and does not mean symptoms were assessed or found safe.
+
+The seven-day support plan follows the same contract. Its care-team notes name the implemented boundaries: hydration at 2/10 creates same-day review; a missed dose requires nausea at 6/10 or higher for same-day review; nausea alone can create watch but not review; and no mood-only or repeated-friction escalation rule is implemented.
+
 ## Bounded Parser Limits
 
-Each free-text input field is matched separately through hard newline boundaries, so a denial in `sideEffects` cannot suppress an active phrase in `freeText`. Within a field, explicit denials such as "no chest pain" suppress that phrase, while uncertainty such as "no idea why I have chest pain" does not count as a denial. A later positive clause still wins over an earlier denied clause.
+The structured checklist is the primary explicit safety input. Free-text matching remains a secondary backstop for entered notes and voice transcripts; it is not the only route into urgent mode.
+
+Each free-text input field is matched separately through hard newline boundaries, so a denial in `sideEffects` cannot suppress an active phrase in `freeText`. Within a field, only symptom-scoped denials such as "no chest pain", "I don't have chest pain", or "I am not experiencing chest pain" suppress that phrase. Uncertainty such as "I am not sure why I have chest pain" does not count as a denial. Apostrophes and common Unicode punctuation are normalised before matching, so direct phrases such as "I can’t keep myself safe" follow the same emergency route as their plain-ASCII form. A later positive clause still wins over an earlier denied clause.
 
 The only resolved-history exception applies to vomiting and fluid-intolerance matches. It requires a past-time marker such as "last week" or "yesterday", followed by `but` or `however`, followed by an explicit recovery phrase such as "I am fine now". A later current match still escalates. Immediate self-harm language is never suppressed by this history rule.
 
-This is a small English phrase parser, not clinical-language understanding. It can miss or misread spelling variants, slang, quoted or hypothetical speech, indirect references, complex timelines, and languages other than English. Its phrase coverage and routing need clinical governance, representative evaluation, and a safer fallback before real-world use.
+This is a small English phrase parser, not clinical-language understanding. It can miss or misread spelling variants, slang, quoted or hypothetical speech, indirect references, complex timelines, and languages other than English. The explicit checklist reduces reliance on that parser but does not guarantee complete symptom capture. Checklist wording, phrase coverage, routing, and the behavior when a patient skips the checklist all need clinical governance and representative evaluation before real-world use.
 
 The severe, persistent abdominal-pain and dehydration framing follows current UK medicines-safety guidance for GLP-1 medicines. See the [MHRA Drug Safety Update](https://www.gov.uk/drug-safety-update/glp-1-receptor-agonists-and-dual-glp-1-slash-gip-receptor-agonists-strengthened-warnings-on-acute-pancreatitis-including-necrotising-and-fatal-cases).
 
@@ -61,11 +73,11 @@ The severe, persistent abdominal-pain and dehydration framing follows current UK
 - `review`: `escalation.needed=true` and `urgency=same_day`; a clinician-review draft is prepared and remains pending manual review.
 - `urgent`: `escalation.needed=true` and `urgency=urgent`; coaching is suppressed, a destination-specific action is shown, and any clinician handoff remains a pending draft.
 
-There is no message, queue, notification, emergency-call, or clinical-record transport in this MVP. "Draft" never means that a clinician or service has been contacted.
+There is no message, queue, notification, emergency-call, or clinical-record transport in this MVP. Every clinician draft states that it is pending manual review and that no clinician or service has been contacted. "Draft" never means delivery.
 
 ## Internal Heuristic Fields
 
-The care-plan and adherence-profile schemas contain no confidence field. The UI reports model spread only from the patient-bootstrap ensemble and explicitly states that this is not a confidence interval or clinical certainty.
+The care-plan and adherence-profile schemas contain no confidence field. When every feature passes its completeness, finiteness, binary-value, and marginal-range checks, the UI reports model spread only from the patient-bootstrap ensemble and explicitly states that this is not a confidence interval or clinical certainty. Any violation withholds patient score, attribution, spread, sensitivity, and tested-action ranking. An unsupported but safety-clear check-in may still receive a deterministic non-model care plan, but the evidence path must terminate at abstention rather than claim lower modelled risk. This gate does not detect implausible joint combinations or semantic drift.
 
 ## Deterministic Provider Merge
 

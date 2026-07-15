@@ -18,10 +18,10 @@ export const metadata: Metadata = {
     siteName: "Adherence OS",
     images: [
       {
-        url: "/adherence-os-live-twin.jpg",
+        url: "/adherence-os-live-twin.png",
         width: 1280,
         height: 720,
-        alt: "Adherence OS Live twin showing an explainable synthetic adherence-risk graph"
+        alt: "Adherence OS Decision map showing an explainable synthetic adherence-risk graph"
       }
     ]
   },
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-    images: ["/adherence-os-live-twin.jpg"]
+    images: ["/adherence-os-live-twin.png"]
   }
 };
 

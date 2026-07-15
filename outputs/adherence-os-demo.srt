@@ -1,123 +1,119 @@
 1
-00:00:00,250 --> 00:00:03,800
+00:00:00,250 --> 00:00:04,500
 Adherence OS is an AI decision layer for at-home GLP-1 care.
 
 2
-00:00:03,800 --> 00:00:15,400
-It predicts next week's adherence interruption, explains the active driver, compares one bounded support route, and uses independent deterministic rules to decide when AI must stop and a clinician must review.
+00:00:04,500 --> 00:00:15,400
+It is organised as a care decision ledger: estimate next week's adherence interruption, show the evidence, compare one bounded support assumption, and review safely when rules detect a red flag.
 
 3
-00:00:16,321 --> 00:00:23,000
-Maya begins in coaching mode. Her synthetic eight-week history and today's check-in produce a five per cent next-week adherence-interruption estimate.
+00:00:16,300 --> 00:00:23,000
+Maya opens in a supported Watch state. Current symptoms and routine context produce a forty-two per cent adherence-interruption estimate.
 
 4
-00:00:23,000 --> 00:00:27,200
-Recent adherence is one hundred per cent.
+00:00:23,000 --> 00:00:28,000
+Recent adherence is still one hundred per cent, so this is a proactive coaching window rather than a missed-dose alert.
 
 5
-00:00:27,200 --> 00:00:34,600
-The evidence map surfaces appetite and energy drag, while the decision summary keeps one safe next move, a hydration nudge, visible beside the graph.
+00:00:28,000 --> 00:00:35,200
+The evidence map separates the highest-ranked risk-raising signal, the largest model contributor, and a bounded tested action.
 
 6
-00:00:35,527 --> 00:00:40,200
-Switching to Attribution shows where each part of the route comes from.
+00:00:35,400 --> 00:00:41,200
+Attribution separates model evidence, simulations, safety rules, and patient context.
 
 7
-00:00:40,200 --> 00:00:45,200
-Routine disruption accounts for thirty-two per cent of absolute local attribution.
+00:00:41,200 --> 00:00:46,000
+Nausea burden is the largest risk-raising model group in this supported case.
 
 8
-00:00:45,200 --> 00:00:51,900
-Blue nodes represent model evidence, amber nodes are bounded simulations, red nodes are deterministic rules, and grey-green nodes are patient context.
+00:00:46,000 --> 00:00:52,500
+Selecting a node opens its provenance and exact local contribution without moving the decision canvas.
 
 9
-00:00:52,897 --> 00:00:56,500
-Selecting Hydration nudge does not claim a treatment effect.
+00:00:53,200 --> 00:00:57,200
+Now select Meal-timing prompt. This does not claim a treatment effect.
 
 10
-00:00:56,500 --> 00:01:03,400
-The app changes explicit feature assumptions, rescores the same monotonic model, and shows a two percentage-point scenario decrease.
+00:00:57,200 --> 00:01:04,400
+The app changes explicit feature assumptions, rescores the same monotonic model, and shows a sixteen percentage-point scenario decrease.
 
 11
-00:01:03,400 --> 00:01:09,500
-It ranks the route only while both the observed and simulated vectors remain inside the synthetic training-support envelope.
+00:01:04,400 --> 00:01:10,000
+The comparison appears only while every observed and simulated feature remains inside configured marginal bounds.
 
 12
-00:01:10,429 --> 00:01:16,800
-In Escalation, Maya reports severe abdominal pain, vomiting, poor hydration, and lightheadedness.
+00:01:10,400 --> 00:01:17,000
+Load safety case adds severe abdominal pain, vomiting, poor hydration, and lightheadedness.
 
 13
-00:01:16,800 --> 00:01:24,200
-The input moves outside synthetic support, so numeric model ranking abstains and every coaching route is suppressed.
+00:01:17,000 --> 00:01:24,500
+Several features exceed their marginal bounds. Patient-specific ML evidence is withheld, and every tested action is suppressed.
 
 14
-00:01:24,200 --> 00:01:29,900
-Deterministic safety remains active, selects a cautious NHS 111 route, and prepares an urgent handoff draft.
+00:01:24,500 --> 00:01:30,200
+Independent deterministic rules remain active and prepare an urgent local review draft.
 
 15
-00:01:30,866 --> 00:01:35,500
-The care queue opens on the selected review task.
+00:01:31,200 --> 00:01:36,000
+Review drafts opens directly on Maya's local record.
 
 16
-00:01:35,500 --> 00:01:40,100
-It shows the trigger, an unassigned owner, and the explicit state: draft only, not sent.
+00:01:36,000 --> 00:01:41,000
+It exposes the rule trigger, in-memory scope, and explicit delivery state: not sent.
 
 17
-00:01:40,100 --> 00:01:46,800
-Eight weeks of context, current red flags, the patient-facing draft, and the five-step audit trail are compressed for human review.
+00:01:41,000 --> 00:01:47,000
+Red flags, context, the draft, and the audit trail are compressed for human review.
 
 18
-00:01:46,800 --> 00:01:49,900
-Nothing is diagnosed, assigned, or delivered automatically.
+00:01:47,000 --> 00:01:50,000
+Nothing is diagnosed or sent automatically.
 
 19
-00:01:50,868 --> 00:01:56,000
-The patient workspace keeps input lightweight: a planned weekly dose, four symptom and wellbeing scores, mood, and short notes.
+00:01:51,000 --> 00:01:56,500
+The patient Check-in keeps eight named safety flags and Review care plan visible, with optional context notes behind one expander.
 
 20
-00:01:56,000 --> 00:02:02,300
-The deterministic plan updates immediately, then exposes a seven-day support plan and longitudinal context.
+00:01:56,500 --> 00:02:03,000
+Deterministic safety updates immediately, then the app can generate a seven-day support plan with visible provider provenance.
 
 21
-00:02:02,300 --> 00:02:09,900
-Field edits invalidate older in-flight requests so stale provider work cannot overwrite the visible decision.
+00:02:03,000 --> 00:02:10,000
+Field edits invalidate older requests, so stale provider work cannot overwrite the current decision.
 
 22
-00:02:10,895 --> 00:02:14,500
-Model evidence is inspectable, not hidden behind a chatbot.
+00:02:11,000 --> 00:02:15,500
+The Model record makes the machine-learning boundary inspectable.
 
 23
-00:02:14,500 --> 00:02:19,000
-The prospective target predicts the following week's planned adherence event.
+00:02:15,500 --> 00:02:20,000
+Its prospective target is the following week's planned adherence event.
 
 24
-00:02:19,000 --> 00:02:23,000
-Patients are isolated across train, validation, and test.
+00:02:20,000 --> 00:02:25,000
+A predeclared adherence-only challenger uses the same patient split and validation recall target.
 
 25
-00:02:23,000 --> 00:02:32,300
-The browser loads a fourteen-feature logistic artifact with sixteen bootstrap members, exact log-odds decomposition, reliability bins, sensitivity checks, and support-aware abstention.
+00:02:25,000 --> 00:02:33,000
+The fourteen-feature model flags thirty-three per cent of synthetic test rows, compared with fifty-seven per cent for that lagging signal.
 
 26
-00:02:32,300 --> 00:02:36,900
-All metrics are synthetic pipeline evidence, not clinical validation.
+00:02:33,000 --> 00:02:38,000
+The versioned feature source and runtime gate report ninety per cent coverage separately. This is pipeline evidence, not clinical validation.
 
 27
-00:02:38,077 --> 00:02:41,800
-This is why Adherence OS fits eMed.
+00:02:39,000 --> 00:02:43,500
+The same decision order and forty-four-pixel presenter controls work at three hundred and twenty pixels without horizontal overflow.
 
 28
-00:02:41,800 --> 00:02:45,700
-Patient impact comes from one clear action before dropout.
+00:02:43,500 --> 00:02:48,000
+Patient impact comes from one clear action before adherence breaks.
 
 29
-00:02:45,700 --> 00:02:49,600
-Innovation comes from dual-track machine learning and safety.
+00:02:48,000 --> 00:02:53,000
+Innovation combines local ML, graph evidence, and independent safety.
 
 30
-00:02:49,600 --> 00:02:54,400
-Feasibility comes from local inference, typed data, keyless fallback, and asynchronous review.
-
-31
-00:02:54,400 --> 00:02:58,700
-The live story is simple: predict the interruption, explain the driver, and hand off before harm.
+00:02:53,000 --> 00:02:58,700
+The live story is simple: estimate, explain, test a bounded action, and review safely.

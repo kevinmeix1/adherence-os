@@ -53,11 +53,20 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Check documentation links
+        run: pnpm check:docs
+
       - name: Build production app
         run: pnpm build
 
       - name: Check home bundle budget
         run: pnpm check:bundle
+
+      - name: Install Chromium runtime
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Test browser and accessibility contracts
+        run: pnpm test:browser
 
       - name: Smoke production app
         shell: bash

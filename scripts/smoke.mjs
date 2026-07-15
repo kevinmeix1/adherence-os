@@ -65,6 +65,7 @@ const sharedCheckIn = {
   date: "2026-07-08",
   appetiteScore: 5,
   mood: "steady",
+  safetyFlags: [],
   biomarkerNote: "Synthetic smoke-test biomarker note."
 };
 
@@ -72,11 +73,13 @@ const normalCheckIn = {
   ...sharedCheckIn,
   scenario: "normal",
   medicationTaken: true,
-  nauseaScore: 3,
-  energyScore: 6,
-  hydrationScore: 7,
-  sideEffects: "Mild nausea after lunch.",
-  freeText: "Routine is steady and the reminder worked."
+  nauseaScore: 6,
+  appetiteScore: 2,
+  energyScore: 4,
+  hydrationScore: 4,
+  mood: "anxious",
+  sideEffects: "Nausea is stronger after meals and my appetite is low, but I can keep fluids down.",
+  freeText: "Work has been hectic and I nearly missed the planned dose, but I recorded it. I am worried the routine will slip next week."
 };
 
 const escalationCheckIn = {
@@ -88,17 +91,39 @@ const escalationCheckIn = {
   energyScore: 3,
   hydrationScore: 2,
   mood: "anxious",
+  safetyFlags: ["severe-abdominal-pain", "unable-to-keep-fluids-down"],
   sideEffects: "Vomiting twice today and struggling to keep fluids down.",
   freeText: "My stomach pain is getting worse and I feel lightheaded when I stand."
+};
+
+const uncertainChestPainCheckIn = {
+  ...normalCheckIn,
+  scenario: "custom",
+  freeText: "I am not sure why I have chest pain now."
+};
+
+const immediateSelfSafetyCheckIn = {
+  ...normalCheckIn,
+  scenario: "custom",
+  freeText: "I can't keep myself safe."
+};
+
+const structuredSafetyCheckIn = {
+  ...normalCheckIn,
+  scenario: "custom",
+  safetyFlags: ["overdose-or-poisoning"],
+  sideEffects: "",
+  biomarkerNote: "",
+  freeText: ""
 };
 
 await check("/", async (response) => {
   const html = await response.text();
   if (!html.includes("Adherence OS")) throw new Error("home page is missing the product name");
-  if (!html.includes("Decision evidence map") || !html.includes("Supporting evidence")) {
-    throw new Error("home page is missing the commercial decision-first surface");
+  if (!html.includes("Observed signals to bounded action") || !html.includes("Supporting evidence")) {
+    throw new Error("home page is missing the care-ledger decision surface");
   }
-  if (!html.includes('property="og:title"') || !html.includes("adherence-os-live-twin.jpg")) {
+  if (!html.includes('property="og:title"') || !html.includes("adherence-os-live-twin.png")) {
     throw new Error("home page is missing social preview metadata");
   }
 });
@@ -124,6 +149,13 @@ await check("/patients/maya-patel", async (response) => {
   }
 });
 
+await check("/patients/james-oconnor", async (response) => {
+  const html = await response.text();
+  if (!html.includes("ML abstained outside marginal feature bounds") || /\d+% ML adherence risk/.test(html)) {
+    throw new Error("unsupported patient record exposed a patient-specific ML risk number");
+  }
+});
+
 await checkStatus("/patients/not-a-patient", 200, async (response) => {
   const html = await response.text();
   if (
@@ -140,6 +172,14 @@ await checkCarePlan("normal", normalCheckIn, async ({ plan }) => {
     throw new Error("normal care-plan smoke check unexpectedly entered urgent mode");
   }
 
+  if (plan.riskLevel !== "watch" || plan.headline !== "Monitor this adherence pattern" || plan.escalation?.needed) {
+    throw new Error("normal care-plan smoke check did not preserve the supported coaching window");
+  }
+
+  if (!/configured watch rule matched/i.test(plan.explanation)) {
+    throw new Error("normal care-plan smoke check is missing the bounded non-triage copy contract");
+  }
+
   if (plan.unsafeRequestDemo?.blocked !== true || plan.rescuePlan?.length !== 7) {
     throw new Error("normal care-plan smoke check is missing safety or rescue-plan output");
   }
@@ -154,6 +194,10 @@ await checkCarePlan("escalation", escalationCheckIn, async ({ plan }) => {
     throw new Error("escalation care-plan smoke check is missing deterministic red-flag evidence");
   }
 
+  if (plan.headline !== "Call NHS 111 now") {
+    throw new Error("escalation care-plan smoke check did not put the NHS 111 destination in the headline");
+  }
+
   if (plan.rescuePlan?.length !== 1 || !/draft|pending/i.test(`${plan.escalation?.channel} ${plan.clinicianDraft}`)) {
     throw new Error("escalation care-plan smoke check did not suppress coaching or expose draft-only handoff state");
   }
@@ -161,6 +205,39 @@ await checkCarePlan("escalation", escalationCheckIn, async ({ plan }) => {
   const guardedText = `${plan.patientAction} ${plan.explanation} ${plan.clinicianDraft}`;
   if (/double the|increase (?:the )?dose|stop taking|diagnos/i.test(guardedText)) {
     throw new Error("escalation care-plan smoke check returned unsafe medication or diagnosis language");
+  }
+});
+
+await checkCarePlan("uncertain chest pain", uncertainChestPainCheckIn, async ({ plan }) => {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: chest pain")) {
+    throw new Error("uncertain chest-pain language did not activate the deterministic emergency route");
+  }
+  if (plan.headline !== "Call 999 now") {
+    throw new Error("uncertain chest-pain language did not put the 999 destination in the headline");
+  }
+  if (!/call 999/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
+    throw new Error("uncertain chest-pain language did not expose the 999 destination");
+  }
+});
+
+await checkCarePlan("immediate self-safety", immediateSelfSafetyCheckIn, async ({ plan }) => {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: immediate self-harm language")) {
+    throw new Error("immediate self-safety language did not activate the deterministic emergency route");
+  }
+  if (plan.headline !== "Call 999 or go to A&E now") {
+    throw new Error("immediate self-safety language did not put the emergency destination in the headline");
+  }
+  if (!/call 999|go to A&E/i.test(`${plan.patientAction} ${plan.escalation?.channel}`)) {
+    throw new Error("immediate self-safety language did not expose an emergency destination");
+  }
+});
+
+await checkCarePlan("structured safety override", structuredSafetyCheckIn, async ({ plan }) => {
+  if (plan.riskLevel !== "urgent" || !plan.ruleHits?.includes("red flag: possible overdose or poisoning")) {
+    throw new Error("structured safety flag did not activate the deterministic emergency route");
+  }
+  if (plan.headline !== "Call 999 or go to A&E now") {
+    throw new Error("structured safety flag did not put the emergency destination in the headline");
   }
 });
 

@@ -31,7 +31,8 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DEMO_CHECK_INS, evaluateCheckIn, getPatientInsights, SAFETY_NOTICE } from "@/app/lib/careEngine";
-import { analyzeRiskSensitivity, explainRiskScore, getModelSampleRows, scorePatientRisk } from "@/app/lib/edgeModel";
+import { SAFETY_FLAG_OPTIONS, type SafetyFlagId } from "@/app/lib/safetyFlags";
+import { analyzeRiskSensitivity, explainRiskScore, scorePatientRisk } from "@/app/lib/edgeModel";
 import { buildAdherenceKnowledgeGraph } from "@/app/lib/knowledgeGraph";
 import { buildClinicianDashboardRows } from "@/app/lib/patientDashboard";
 import { patients } from "@/app/lib/patients";
@@ -41,6 +42,12 @@ import type { AdherenceKnowledgeGraph, KnowledgeGraphNode } from "@/app/lib/know
 
 type View = "patient" | "clinician" | "model" | "graph" | "scorecard" | "scripts" | "safety";
 type GraphFocusMode = "decision" | "neighborhood" | "attribution" | "all";
+type PatientSession = {
+  checkIn: CheckInInput;
+  carePlan: CarePlan;
+  source: CarePlanResponse["source"];
+  generationNotice: string | null;
+};
 
 const riskLabels: Record<RiskLevel, string> = {
   steady: "Steady",
@@ -53,10 +60,9 @@ export default function HomePage() {
   const [selectedPatientId, setSelectedPatientId] = useState(patients[0].id);
   const [view, setView] = useState<View>("graph");
   const selectedPatient = patients.find((patient) => patient.id === selectedPatientId) ?? patients[0];
-  const [checkIn, setCheckIn] = useState<CheckInInput>(() => buildCheckIn(selectedPatient.id, "normal"));
-  const [carePlan, setCarePlan] = useState<CarePlan>(() => evaluateCheckIn(selectedPatient, checkIn));
-  const [source, setSource] = useState<CarePlanResponse["source"]>("rules-fallback");
-  const [generationNotice, setGenerationNotice] = useState<string | null>(null);
+  const [patientSessions, setPatientSessions] = useState<Record<string, PatientSession>>(buildInitialPatientSessions);
+  const activeSession = patientSessions[selectedPatient.id] ?? buildPatientSession(selectedPatient);
+  const { checkIn, carePlan, source, generationNotice } = activeSession;
   const [carePlanAnnouncement, setCarePlanAnnouncement] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [graphResetVersion, setGraphResetVersion] = useState(0);
@@ -75,9 +81,15 @@ export default function HomePage() {
       }),
     [selectedPatient, checkIn, carePlan, edgeRisk]
   );
+  const carePlansByPatientId = useMemo<Record<string, CarePlan>>(
+    () => Object.fromEntries(
+      Object.entries(patientSessions).map(([patientId, session]) => [patientId, session.carePlan])
+    ),
+    [patientSessions]
+  );
   const clinicianPlans = useMemo(
-    () => buildClinicianDashboardRows(patients, selectedPatient.id, carePlan, checkIn.date),
-    [carePlan, checkIn.date, selectedPatient.id]
+    () => buildClinicianDashboardRows(patients, carePlansByPatientId),
+    [carePlansByPatientId]
   );
 
   useEffect(() => {
@@ -87,13 +99,8 @@ export default function HomePage() {
   function selectPatient(patientId: string) {
     const patient = patients.find((candidate) => candidate.id === patientId) ?? patients[0];
     if (patient.id === selectedPatientId) return;
-    const nextCheckIn = buildCheckIn(patient.id, "normal");
     requestVersionRef.current += 1;
     setSelectedPatientId(patient.id);
-    setCheckIn(nextCheckIn);
-    setCarePlan(evaluateCheckIn(patient, nextCheckIn));
-    setSource("rules-fallback");
-    setGenerationNotice(null);
     setCarePlanAnnouncement("");
     setIsLoading(false);
   }
@@ -101,11 +108,16 @@ export default function HomePage() {
   function loadScenario(scenario: "normal" | "escalation") {
     const nextCheckIn = buildCheckIn(selectedPatient.id, scenario);
     requestVersionRef.current += 1;
-    setCheckIn(nextCheckIn);
     const nextPlan = evaluateCheckIn(selectedPatient, nextCheckIn);
-    setCarePlan(nextPlan);
-    setSource("rules-fallback");
-    setGenerationNotice(null);
+    setPatientSessions((current) => ({
+      ...current,
+      [selectedPatient.id]: {
+        checkIn: nextCheckIn,
+        carePlan: nextPlan,
+        source: "rules-fallback",
+        generationNotice: null
+      }
+    }));
     setCarePlanAnnouncement(buildCarePlanAnnouncement(nextPlan));
     setIsLoading(false);
   }
@@ -113,10 +125,15 @@ export default function HomePage() {
   function updateCheckIn(nextCheckIn: CheckInInput) {
     requestVersionRef.current += 1;
     const nextPlan = evaluateCheckIn(selectedPatient, nextCheckIn);
-    setCheckIn(nextCheckIn);
-    setCarePlan(nextPlan);
-    setSource("rules-fallback");
-    setGenerationNotice("Check-in changed. The deterministic safety result updated immediately.");
+    setPatientSessions((current) => ({
+      ...current,
+      [selectedPatient.id]: {
+        checkIn: nextCheckIn,
+        carePlan: nextPlan,
+        source: "rules-fallback",
+        generationNotice: "Check-in changed. The deterministic safety result updated immediately."
+      }
+    }));
     setCarePlanAnnouncement(buildCarePlanAnnouncement(nextPlan));
     setIsLoading(false);
   }
@@ -124,17 +141,15 @@ export default function HomePage() {
   function navigateTo(nextView: View) {
     setView(nextView);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.requestAnimationFrame(() => {
+      document.getElementById("main-workspace")?.focus({ preventScroll: true });
+    });
   }
 
   function resetDemo() {
-    const patient = patients[0];
-    const nextCheckIn = buildCheckIn(patient.id, "normal");
     requestVersionRef.current += 1;
-    setSelectedPatientId(patient.id);
-    setCheckIn(nextCheckIn);
-    setCarePlan(evaluateCheckIn(patient, nextCheckIn));
-    setSource("rules-fallback");
-    setGenerationNotice(null);
+    setSelectedPatientId(patients[0].id);
+    setPatientSessions(buildInitialPatientSessions());
     setCarePlanAnnouncement("");
     setIsLoading(false);
     setView("graph");
@@ -163,16 +178,28 @@ export default function HomePage() {
       if (!response.ok) throw new Error("Care plan request failed");
       const payload = (await response.json()) as CarePlanResponse;
       if (requestVersion !== requestVersionRef.current) return;
-      setCarePlan(payload.plan);
-      setSource(payload.source);
-      setGenerationNotice(getGenerationNotice(payload.fallbackReason, payload.meta));
+      setPatientSessions((current) => ({
+        ...current,
+        [selectedPatient.id]: {
+          checkIn,
+          carePlan: payload.plan,
+          source: payload.source,
+          generationNotice: getGenerationNotice(payload.fallbackReason, payload.meta)
+        }
+      }));
       setCarePlanAnnouncement(buildCarePlanAnnouncement(payload.plan));
     } catch {
       if (requestVersion !== requestVersionRef.current) return;
       const fallbackPlan = evaluateCheckIn(selectedPatient, checkIn);
-      setCarePlan(fallbackPlan);
-      setSource("rules-fallback");
-      setGenerationNotice("Care-plan API unavailable. The deterministic local safety engine produced this result.");
+      setPatientSessions((current) => ({
+        ...current,
+        [selectedPatient.id]: {
+          checkIn,
+          carePlan: fallbackPlan,
+          source: "rules-fallback",
+          generationNotice: "Care-plan API unavailable. The deterministic local safety engine produced this result."
+        }
+      }));
       setCarePlanAnnouncement(buildCarePlanAnnouncement(fallbackPlan));
     } finally {
       if (requestVersion === requestVersionRef.current) setIsLoading(false);
@@ -186,12 +213,21 @@ export default function HomePage() {
       </a>
       <ProductHeader view={view} patient={selectedPatient} onNavigate={navigateTo} onReset={resetDemo} />
 
-      <section className="workspace product-workspace" id="main-workspace" tabIndex={-1}>
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {carePlanAnnouncement}
+      </p>
+
+      <section
+        aria-label="Current care workspace"
+        className="workspace product-workspace"
+        id="main-workspace"
+        tabIndex={-1}
+      >
         {view !== "graph" && (
           <header className="topbar">
             <div>
               <p className="section-kicker">
-                {view === "patient" ? "Patient workspace" : view === "clinician" ? "Care-team workspace" : "Model evidence"}
+                {view === "patient" ? "Home check-in" : view === "clinician" ? "Local review" : "Model record"}
               </p>
               <h1>{selectedPatient.name}</h1>
               <p>{selectedPatient.programme}</p>
@@ -200,7 +236,7 @@ export default function HomePage() {
               <RiskPill level={carePlan.riskLevel} />
               <div className="ai-source">
                 <ShieldCheck size={16} />
-                Deterministic care plan
+                Rules own safety
               </div>
             </div>
           </header>
@@ -214,7 +250,6 @@ export default function HomePage() {
             carePlan={carePlan}
             isLoading={isLoading}
             generationNotice={generationNotice}
-            carePlanAnnouncement={carePlanAnnouncement}
             onChange={updateCheckIn}
             onScenario={loadScenario}
             onSubmit={submitCheckIn}
@@ -251,6 +286,20 @@ function buildCheckIn(patientId: string, scenario: "normal" | "escalation"): Che
     date: "2026-07-08",
     ...DEMO_CHECK_INS[scenario]
   };
+}
+
+function buildPatientSession(patient: Patient, scenario: "normal" | "escalation" = "normal"): PatientSession {
+  const checkIn = buildCheckIn(patient.id, scenario);
+  return {
+    checkIn,
+    carePlan: evaluateCheckIn(patient, checkIn),
+    source: "rules-fallback",
+    generationNotice: null
+  };
+}
+
+function buildInitialPatientSessions(): Record<string, PatientSession> {
+  return Object.fromEntries(patients.map((patient) => [patient.id, buildPatientSession(patient)]));
 }
 
 function NavButton({
@@ -313,21 +362,19 @@ function ProductHeader({
 
   return (
     <header className="product-bar">
-      <button className="product-brand" onClick={() => onNavigate("graph")} title="Open live adherence twin">
-        <span className="brand-mark">
-          <HeartPulse size={20} />
-        </span>
+      <button className="product-brand" onClick={() => onNavigate("graph")} title="Open decision map">
+        <span className="brand-mark" aria-hidden="true">A/</span>
         <span>
           <strong>Adherence OS</strong>
-          <small>Metabolic care</small>
+          <small>Care decision ledger</small>
         </span>
       </button>
 
       <nav className="product-nav" aria-label="Product navigation">
-        <NavButton label="Live twin" active={view === "graph"} icon={<Network size={17} />} onClick={() => onNavigate("graph")} />
-        <NavButton label="Patient app" active={view === "patient"} icon={<Home size={17} />} onClick={() => onNavigate("patient")} />
+        <NavButton label="Decision map" active={view === "graph"} icon={<Network size={17} />} onClick={() => onNavigate("graph")} />
+        <NavButton label="Check-in" active={view === "patient"} icon={<Home size={17} />} onClick={() => onNavigate("patient")} />
         <NavButton
-          label="Care queue"
+          label="Review drafts"
           active={view === "clinician"}
           icon={<Stethoscope size={17} />}
           onClick={() => onNavigate("clinician")}
@@ -337,12 +384,9 @@ function ProductHeader({
       <div className="product-bar-meta">
         <span className="demo-status">
           <i />
-          Synthetic demo
+          Synthetic / local
         </span>
         <span className="current-patient">{patient.name}</span>
-        <button className="demo-reset" aria-label="Reset demo" title="Reset demo" onClick={resetFromHeader}>
-          <RotateCcw size={17} />
-        </button>
         <details
           className="product-more"
           ref={menuRef}
@@ -365,13 +409,16 @@ function ProductHeader({
               <ShieldCheck size={16} /> Safety boundary
             </button>
             <button onClick={() => navigateFromMenu("model")}>
-              <BarChart3 size={16} /> Model evidence
+              <BarChart3 size={16} /> Model record
             </button>
             <button onClick={() => navigateFromMenu("scripts")}>
               <ClipboardList size={16} /> Demo guide
             </button>
             <button onClick={() => navigateFromMenu("scorecard")}>
               <ClipboardCheck size={16} /> Evaluation brief
+            </button>
+            <button className="menu-reset" onClick={resetFromHeader}>
+              <RotateCcw size={16} /> Reset demo session
             </button>
           </div>
         </details>
@@ -387,7 +434,6 @@ function PatientView({
   carePlan,
   isLoading,
   generationNotice,
-  carePlanAnnouncement,
   onChange,
   onScenario,
   onSubmit
@@ -398,138 +444,176 @@ function PatientView({
   carePlan: CarePlan;
   isLoading: boolean;
   generationNotice: string | null;
-  carePlanAnnouncement: string;
   onChange: (input: CheckInInput) => void;
   onScenario: (scenario: "normal" | "escalation") => void;
   onSubmit: () => void;
 }) {
   const handoffPending = carePlan.riskLevel === "urgent" || carePlan.riskLevel === "review";
 
+  function updateSafetyFlag(flagId: SafetyFlagId, checked: boolean) {
+    const safetyFlags = checked
+      ? [...new Set([...checkIn.safetyFlags, flagId])]
+      : checkIn.safetyFlags.filter((candidate) => candidate !== flagId);
+
+    onChange({ ...checkIn, safetyFlags, scenario: "custom" });
+  }
+
   return (
     <div className="patient-grid">
       <section className="panel checkin-panel">
-        <div className="panel-heading">
+        <div className="panel-heading checkin-heading">
           <div>
-            <p className="section-kicker">60 second home check-in</p>
-            <h2>Today</h2>
+            <p>60 second home check-in</p>
+            <h2>How are you today?</h2>
           </div>
-          <div className="scenario-actions">
-            <button
-              aria-pressed={checkIn.scenario === "normal"}
-              className={`icon-button text-button ${checkIn.scenario === "normal" ? "active" : ""}`}
-              onClick={() => onScenario("normal")}
-              title="Load normal demo"
-            >
-              <CheckCircle2 size={17} />
-              Normal
-            </button>
-            <button
-              aria-pressed={checkIn.scenario === "escalation"}
-              className={`icon-button text-button danger ${checkIn.scenario === "escalation" ? "active" : ""}`}
-              onClick={() => onScenario("escalation")}
-              title="Load escalation demo"
-            >
-              <AlertTriangle size={17} />
-              Escalation
-            </button>
-            {checkIn.scenario === "custom" && (
-              <span className="scenario-custom-state" aria-label="Custom check-in">
-                <PenLine size={15} /> Custom
+          <div className="checkin-demo-cases">
+            <span className="demo-case-label"><ClipboardList size={15} /> Demo cases</span>
+            <div className="scenario-actions" role="group" aria-label="Presenter demo cases">
+              <button
+                aria-pressed={checkIn.scenario === "normal"}
+                className={`icon-button text-button ${checkIn.scenario === "normal" ? "active" : ""}`}
+                onClick={() => onScenario("normal")}
+                title="Load coaching demo case"
+              >
+                <CheckCircle2 size={17} />
+                Load coaching
+              </button>
+              <button
+                aria-pressed={checkIn.scenario === "escalation"}
+                className={`icon-button text-button danger ${checkIn.scenario === "escalation" ? "active" : ""}`}
+                onClick={() => onScenario("escalation")}
+                title="Load safety demo case"
+              >
+                <AlertTriangle size={17} />
+                Load safety
+              </button>
+              {checkIn.scenario === "custom" && (
+                <span className="scenario-custom-state" aria-label="Custom check-in">
+                  <PenLine size={15} /> Custom
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="checkin-body">
+          <div className="form-grid">
+            <label className="toggle-row wide">
+              <span>
+                <Pill size={18} />
+                Planned weekly dose recorded
               </span>
-            )}
+              <input
+                type="checkbox"
+                checked={checkIn.medicationTaken}
+                onChange={(event) => onChange({ ...checkIn, medicationTaken: event.target.checked, scenario: "custom" })}
+              />
+            </label>
+
+            <fieldset className="safety-checklist">
+              <legend>Symptoms needing urgent help now</legend>
+              <p>Select any that are happening now.</p>
+              <div className="safety-checklist-options">
+                {SAFETY_FLAG_OPTIONS.map((option) => (
+                  <label className="safety-check-option" key={option.id}>
+                    <input
+                      type="checkbox"
+                      checked={checkIn.safetyFlags.includes(option.id)}
+                      onChange={(event) => updateSafetyFlag(option.id, event.target.checked)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <Slider
+              label="Nausea"
+              value={checkIn.nauseaScore}
+              icon={<Gauge size={18} />}
+              onChange={(value) => onChange({ ...checkIn, nauseaScore: value, scenario: "custom" })}
+            />
+            <Slider
+              label="Appetite"
+              value={checkIn.appetiteScore}
+              icon={<Activity size={18} />}
+              onChange={(value) => onChange({ ...checkIn, appetiteScore: value, scenario: "custom" })}
+            />
+            <Slider
+              label="Energy"
+              value={checkIn.energyScore}
+              icon={<Sparkles size={18} />}
+              onChange={(value) => onChange({ ...checkIn, energyScore: value, scenario: "custom" })}
+            />
+            <Slider
+              label="Hydration"
+              value={checkIn.hydrationScore}
+              icon={<HeartPulse size={18} />}
+              onChange={(value) => onChange({ ...checkIn, hydrationScore: value, scenario: "custom" })}
+            />
+
+            <label className="field wide mood-field">
+              <span>Mood</span>
+              <select value={checkIn.mood} onChange={(event) => onChange({ ...checkIn, mood: event.target.value, scenario: "custom" })}>
+                <option value="steady">steady</option>
+                <option value="hopeful">hopeful</option>
+                <option value="anxious">anxious</option>
+                <option value="tired">tired</option>
+                <option value="discouraged">discouraged</option>
+              </select>
+            </label>
+
+            <details className="checkin-notes">
+              <summary>
+                <span><MessageSquareText size={17} /> Context notes</span>
+                <small>Side effects, biomarker and voice</small>
+                <ChevronDown size={17} />
+              </summary>
+              <div className="checkin-notes-grid">
+                <label className="field wide">
+                  <span>Side effects</span>
+                  <textarea
+                    value={checkIn.sideEffects}
+                    onChange={(event) => onChange({ ...checkIn, sideEffects: event.target.value, scenario: "custom" })}
+                  />
+                </label>
+
+                <label className="field wide">
+                  <span>Biomarker note</span>
+                  <textarea
+                    value={checkIn.biomarkerNote}
+                    onChange={(event) => onChange({ ...checkIn, biomarkerNote: event.target.value, scenario: "custom" })}
+                  />
+                </label>
+
+                <label className="field wide">
+                  <span>
+                    <Mic size={16} />
+                    Voice note transcript
+                  </span>
+                  <textarea
+                    value={checkIn.freeText}
+                    onChange={(event) => onChange({ ...checkIn, freeText: event.target.value, scenario: "custom" })}
+                  />
+                </label>
+              </div>
+            </details>
           </div>
         </div>
 
-        <div className="form-grid">
-          <label className="toggle-row">
-            <span>
-              <Pill size={18} />
-              Planned weekly dose recorded
-            </span>
-            <input
-              type="checkbox"
-              checked={checkIn.medicationTaken}
-              onChange={(event) => onChange({ ...checkIn, medicationTaken: event.target.checked, scenario: "custom" })}
-            />
-          </label>
-
-          <Slider
-            label="Nausea"
-            value={checkIn.nauseaScore}
-            icon={<Gauge size={18} />}
-            onChange={(value) => onChange({ ...checkIn, nauseaScore: value, scenario: "custom" })}
-          />
-          <Slider
-            label="Appetite"
-            value={checkIn.appetiteScore}
-            icon={<Activity size={18} />}
-            onChange={(value) => onChange({ ...checkIn, appetiteScore: value, scenario: "custom" })}
-          />
-          <Slider
-            label="Energy"
-            value={checkIn.energyScore}
-            icon={<Sparkles size={18} />}
-            onChange={(value) => onChange({ ...checkIn, energyScore: value, scenario: "custom" })}
-          />
-          <Slider
-            label="Hydration"
-            value={checkIn.hydrationScore}
-            icon={<HeartPulse size={18} />}
-            onChange={(value) => onChange({ ...checkIn, hydrationScore: value, scenario: "custom" })}
-          />
-
-          <label className="field">
-            <span>Mood</span>
-            <select value={checkIn.mood} onChange={(event) => onChange({ ...checkIn, mood: event.target.value, scenario: "custom" })}>
-              <option value="steady">steady</option>
-              <option value="hopeful">hopeful</option>
-              <option value="anxious">anxious</option>
-              <option value="tired">tired</option>
-              <option value="discouraged">discouraged</option>
-            </select>
-          </label>
-
-          <label className="field wide">
-            <span>Side effects</span>
-            <textarea
-              value={checkIn.sideEffects}
-              onChange={(event) => onChange({ ...checkIn, sideEffects: event.target.value, scenario: "custom" })}
-            />
-          </label>
-
-          <label className="field wide">
-            <span>Biomarker note</span>
-            <textarea
-              value={checkIn.biomarkerNote}
-              onChange={(event) => onChange({ ...checkIn, biomarkerNote: event.target.value, scenario: "custom" })}
-            />
-          </label>
-
-          <label className="field wide">
-            <span>
-              <Mic size={16} />
-              Voice note transcript
-            </span>
-            <textarea
-              value={checkIn.freeText}
-              onChange={(event) => onChange({ ...checkIn, freeText: event.target.value, scenario: "custom" })}
-            />
-          </label>
+        <div className="checkin-submit-bar">
+          <span className="checkin-safety-state"><ShieldCheck size={17} /> Safety rules active</span>
+          <button className="primary-action" onClick={onSubmit} disabled={isLoading}>
+            <Send size={18} />
+            {isLoading ? "Reviewing..." : "Review care plan"}
+          </button>
+          {generationNotice && (
+            <div className="generation-notice">
+              <ShieldCheck size={17} />
+              <span>{generationNotice}</span>
+            </div>
+          )}
         </div>
-
-        <button className="primary-action" onClick={onSubmit} disabled={isLoading}>
-          <Send size={18} />
-          {isLoading ? "Reviewing..." : "Review care plan"}
-        </button>
-        {generationNotice && (
-          <div className="generation-notice">
-            <ShieldCheck size={17} />
-            <span>{generationNotice}</span>
-          </div>
-        )}
-        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-          {carePlanAnnouncement}
-        </p>
       </section>
 
       <section className="panel result-panel">
@@ -542,10 +626,10 @@ function PatientView({
         </div>
 
         <div className="care-moment">
-          <div className="device-visual" aria-hidden="true">
-            <div className={`pulse-ring ${carePlan.riskLevel}`} />
-            <HeartPulse size={46} />
-            <span>{riskLabels[carePlan.riskLevel]}</span>
+          <div className={`care-index ${carePlan.riskLevel}`} aria-hidden="true">
+            <span>Current plan</span>
+            <strong>{riskLabels[carePlan.riskLevel]}</strong>
+            <small>Week {patient.currentWeek}</small>
           </div>
           <div>
             <p className="patient-action">{carePlan.patientAction}</p>
@@ -681,8 +765,13 @@ function ClinicianView({
   selectedPatientId: string;
   onSelect: (patientId: string) => void;
 }) {
-  const urgentCount = rows.filter((row) => row.plan.riskLevel === "urgent" || row.plan.riskLevel === "review").length;
-  const selectedRow = rows.find((row) => row.patient.id === selectedPatientId) ?? rows[0];
+  const reviewRows = rows.filter((row) => row.plan.riskLevel === "urgent" || row.plan.riskLevel === "review");
+  const reviewDraftCount = reviewRows.length;
+  const selectedRow =
+    reviewRows.find((row) => row.patient.id === selectedPatientId) ??
+    reviewRows[0] ??
+    rows.find((row) => row.patient.id === selectedPatientId) ??
+    rows[0];
   const selectedNeedsReview = selectedRow.plan.riskLevel === "urgent" || selectedRow.plan.riskLevel === "review";
 
   return (
@@ -695,7 +784,7 @@ function ClinicianView({
             <p>{selectedRow.patient.conditionFocus}</p>
           </div>
           <span className={`review-state ${selectedNeedsReview ? "pending" : "clear"}`}>
-            {selectedNeedsReview ? "Pending review" : "No active review"}
+            {selectedNeedsReview ? "Review draft active" : "No review draft"}
           </span>
         </div>
 
@@ -709,63 +798,77 @@ function ClinicianView({
             <strong>{selectedRow.plan.escalation.reason}</strong>
           </div>
           <div>
-            <span>Ownership</span>
-            <strong>{selectedNeedsReview ? "Unassigned" : "Monitoring"}</strong>
+            <span>Draft scope</span>
+            <strong>{selectedNeedsReview ? "In-memory only" : "No review draft"}</strong>
           </div>
           <div>
             <span>Delivery</span>
-            <strong>{selectedNeedsReview ? "Draft only / not sent" : "No handoff created"}</strong>
+            <strong>{selectedNeedsReview ? "Not sent" : "No draft"}</strong>
           </div>
         </div>
 
-        <div className="clinician-review-brief">
-          <div>
-            <span>Deterministic summary</span>
-            <p>{selectedRow.plan.clinicianSummary}</p>
+        {selectedNeedsReview ? (
+          <div className="clinician-review-brief">
+            <div>
+              <span>Deterministic summary</span>
+              <p>{selectedRow.plan.clinicianSummary}</p>
+            </div>
+            <blockquote>{selectedRow.plan.clinicianDraft}</blockquote>
           </div>
-          <blockquote>{selectedRow.plan.clinicianDraft}</blockquote>
-        </div>
+        ) : (
+          <div className="queue-empty" role="status">
+            <strong>No local review draft</strong>
+            <span>{selectedRow.patient.name}&apos;s current check-in remains on the coaching path.</span>
+          </div>
+        )}
       </section>
 
       <section className="panel queue-panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Clinical inbox</p>
-            <h2>{urgentCount} pending review</h2>
+            <p className="section-kicker">Local review set</p>
+            <h2>{reviewDraftCount} {reviewDraftCount === 1 ? "draft" : "drafts"} to review</h2>
           </div>
           <Stethoscope size={24} />
         </div>
 
         <div className="queue-list">
-          {rows.map(({ patient, plan, insights }) => (
-            <button
-              key={patient.id}
-              className={`queue-item ${patient.id === selectedPatientId ? "active" : ""}`}
-              onClick={() => onSelect(patient.id)}
-            >
-              <div>
-                <strong>{patient.name}</strong>
-                <span>{patient.conditionFocus}</span>
-              </div>
-              <RiskPill level={plan.riskLevel} />
-              <small>{Math.round(insights.lastTwoAdherence)}% recent adherence</small>
-            </button>
-          ))}
+          {reviewRows.length > 0 ? (
+            reviewRows.map(({ patient, plan, insights }) => (
+              <button
+                key={patient.id}
+                className={`queue-item ${patient.id === selectedRow.patient.id ? "active" : ""}`}
+                onClick={() => onSelect(patient.id)}
+              >
+                <div>
+                  <strong>{patient.name}</strong>
+                  <span>{patient.conditionFocus}</span>
+                </div>
+                <RiskPill level={plan.riskLevel} />
+                <small>{Math.round(insights.lastTwoAdherence)}% recent adherence</small>
+              </button>
+            ))
+          ) : (
+            <div className="queue-empty">
+              <strong>No drafts waiting</strong>
+              <span>Only same-day and urgent local drafts appear here.</span>
+            </div>
+          )}
         </div>
       </section>
 
       <section className="panel population-panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Population view</p>
-            <h2>Signals before appointments</h2>
+            <p className="section-kicker">Synthetic cohort</p>
+            <h2>Source-order overview</h2>
           </div>
           <BarChart3 size={24} />
         </div>
 
         <div className="metric-row">
           <Metric icon={<UserRound size={18} />} label="Active patients" value={String(rows.length)} />
-          <Metric icon={<AlertTriangle size={18} />} label="Escalations" value={String(urgentCount)} />
+          <Metric icon={<AlertTriangle size={18} />} label="Review drafts" value={String(reviewDraftCount)} />
           <Metric
             icon={<TrendingDown size={18} />}
             label="Avg weight change"
@@ -773,7 +876,12 @@ function ClinicianView({
           />
         </div>
 
-        <div className="clinician-table-wrap">
+        <div
+          aria-label="Synthetic cohort source-order table"
+          className="clinician-table-wrap"
+          role="region"
+          tabIndex={0}
+        >
           <table className="clinician-table">
             <thead>
               <tr>
@@ -802,21 +910,28 @@ function ClinicianView({
       <section className="panel wide-panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Handoff drafts</p>
-            <h2>Review before delivery</h2>
+            <p className="section-kicker">Local message drafts</p>
+            <h2>Manual review before use</h2>
           </div>
         </div>
         <div className="handoff-grid">
-          {rows.map(({ patient, plan }) => (
-            <article key={patient.id} className="handoff-card">
-              <div className="handoff-card-head">
-                <strong>{patient.name}</strong>
-                <RiskPill level={plan.riskLevel} />
-              </div>
-              <p>{plan.clinicianSummary}</p>
-              <blockquote>{plan.clinicianDraft}</blockquote>
-            </article>
-          ))}
+          {reviewRows.length > 0 ? (
+            reviewRows.map(({ patient, plan }) => (
+              <article key={patient.id} className="handoff-card">
+                <div className="handoff-card-head">
+                  <strong>{patient.name}</strong>
+                  <RiskPill level={plan.riskLevel} />
+                </div>
+                <p>{plan.clinicianSummary}</p>
+                <blockquote>{plan.clinicianDraft}</blockquote>
+              </article>
+            ))
+          ) : (
+            <div className="queue-empty">
+              <strong>No message drafts</strong>
+              <span>Nothing has been prepared or sent.</span>
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -833,29 +948,32 @@ function ModelLabView({
   edgeRisk: EdgeRiskResult;
 }) {
   const artifact = edgeRisk.artifact;
+  const modelSupported = edgeRisk.support.status === "supported";
   const explanation = explainRiskScore(edgeRisk, 6);
   const sensitivity = analyzeRiskSensitivity(edgeRisk);
-  const topSensitivityFeatures = sensitivity.features.slice(0, 5);
+  const topSensitivityFeatures = sensitivity?.features.slice(0, 5) ?? [];
   const maxSensitivitySpan = Math.max(...topSensitivityFeatures.map((feature) => feature.span), 0.001);
-  const maxStepContribution = Math.max(...explanation.steps.map((step) => Math.abs(step.contribution)), 0.01);
-  const parityRows = getModelSampleRows();
-  const sampleRows = [...parityRows.slice(0, 3), ...parityRows.slice(-3)];
+  const maxStepContribution = Math.max(...(explanation?.steps ?? []).map((step) => Math.abs(step.contribution)), 0.01);
   const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
-  const modelSupported = edgeRisk.support.status === "supported";
+  const confusion = artifact.metrics.confusionMatrix;
+  const challenger = artifact.metrics.challengerBenchmark;
+  const supportEvaluation = artifact.metrics.supportEvaluation;
+  const testEventRate = (confusion.tp + confusion.fn) /
+    Math.max(confusion.tp + confusion.fp + confusion.fn + confusion.tn, 1);
 
   return (
     <div className="model-grid">
       <section className="panel wide-panel model-hero">
         <div>
-          <p className="section-kicker">Model Lab</p>
-          <h2>Edge ML predicts next-week adherence interruption risk</h2>
+          <p className="section-kicker">Model record</p>
+          <h2>Edge ML estimates next-week adherence interruption risk</h2>
           <p>
-            A leakage-safe monotonic model scores structured home-care features in the browser. Sixteen patient-bootstrap members expose model spread while deterministic rules own safety.
+            A monotonic model trained on an authored synthetic cohort scores structured home-care features in the browser. Sixteen patient-bootstrap members expose model spread while deterministic rules own safety.
           </p>
         </div>
         <div className="risk-dial">
           <span>{modelSupported ? formatPercent(edgeRisk.risk) : "Abstained"}</span>
-          <strong>{modelSupported ? riskBand(edgeRisk.risk, artifact.metrics.threshold) : "Outside support"}</strong>
+          <strong>{modelSupported ? riskBand(edgeRisk.risk, artifact.metrics.threshold) : "Marginal bounds exceeded"}</strong>
         </div>
       </section>
 
@@ -867,11 +985,47 @@ function ModelLabView({
           </div>
           <BarChart3 size={24} />
         </div>
-        <div className="metric-row compact-metrics">
-          <Metric icon={<UserRound size={18} />} label="Patients" value={String(artifact.cohort.patients)} />
-          <Metric icon={<ClipboardCheck size={18} />} label="Samples" value={artifact.metrics.samples.toLocaleString()} />
-          <Metric icon={<TrendingDown size={18} />} label="Synthetic AUPRC" value={artifact.metrics.testAuprc.toFixed(3)} />
-          <Metric icon={<Gauge size={18} />} label="Test recall" value={formatPercent(artifact.metrics.recallAtThreshold)} />
+        <div className="model-benchmark" aria-label="Held-out challenger benchmark">
+          <div className="model-benchmark-head">
+            <div>
+              <span>Held-out challenger benchmark</span>
+              <strong>Same validation-only target: at least {formatPercent(artifact.metrics.thresholdSelection.targetRecall)} recall</strong>
+            </div>
+            <small className="model-benchmark-source">
+              <span>{supportEvaluation.testRows.toLocaleString()} test rows / before runtime gate</span>
+              <strong>{artifact.featureContract.version}</strong>
+            </small>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Ungated synthetic test</th>
+                <th scope="col">AUPRC</th>
+                <th scope="col">Recall</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Rows flagged</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="model-benchmark-primary">
+                <th scope="row">14-feature model</th>
+                <td>{artifact.metrics.testAuprc.toFixed(3)}</td>
+                <td>{formatPercent(artifact.metrics.recallAtThreshold)}</td>
+                <td>{formatPercent(artifact.metrics.precisionAtThreshold)}</td>
+                <td>{formatPercent(artifact.metrics.reviewRateAtThreshold)}</td>
+              </tr>
+              <tr>
+                <th scope="row">{challenger.name}</th>
+                <td>{challenger.testAuprc.toFixed(3)}</td>
+                <td>{formatPercent(challenger.recallAtThreshold)}</td>
+                <td>{formatPercent(challenger.precisionAtThreshold)}</td>
+                <td>{formatPercent(challenger.reviewRateAtThreshold)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Runtime gate on the same rows: {formatPercent(supportEvaluation.coverage)} scored; {supportEvaluation.abstainedRows} abstained; scored subset {formatPercent(supportEvaluation.precisionAtThreshold)} precision / {formatPercent(supportEvaluation.recallAtThreshold)} recall. Synthetic pipeline benchmark; not clinical validation or measured workflow savings.
+          </p>
         </div>
         <p className="model-note">{artifact.cohort.description}</p>
         <div className="model-method-strip">
@@ -886,6 +1040,10 @@ function ModelLabView({
           <div>
             <span>Version</span>
             <strong>{artifact.version}</strong>
+          </div>
+          <div>
+            <span>Feature source</span>
+            <strong>{artifact.featureContract.version}</strong>
           </div>
           <div>
             <span>Trained</span>
@@ -904,12 +1062,12 @@ function ModelLabView({
             <strong>{formatPercent(artifact.metrics.threshold)}</strong>
           </div>
           <div>
-            <span>Precision</span>
-            <strong>{formatPercent(artifact.metrics.precisionAtThreshold)}</strong>
+            <span>Test patients</span>
+            <strong>{artifact.metrics.testPatients}</strong>
           </div>
           <div>
-            <span>Review rate</span>
-            <strong>{formatPercent(artifact.metrics.reviewRateAtThreshold)}</strong>
+            <span>Test event rate</span>
+            <strong>{formatPercent(testEventRate)}</strong>
           </div>
           <div>
             <span>Brier skill</span>
@@ -925,7 +1083,7 @@ function ModelLabView({
             <h2>{patient.name}</h2>
           </div>
           <span className={`model-support-status ${modelSupported ? "supported" : "abstained"}`}>
-            {modelSupported ? "Within training support" : "Model abstained"}
+            {modelSupported ? "Marginal bounds passed" : "Marginal bounds exceeded"}
           </span>
         </div>
         <div className="inference-list">
@@ -934,23 +1092,34 @@ function ModelLabView({
           <span>Nausea {checkIn.nauseaScore}/10</span>
           <span>Hydration {checkIn.hydrationScore}/10</span>
         </div>
+        <p className="model-note">
+          The gate checks each feature independently against training-only marginal ranges: 0.5th-99.5th percentiles for continuous features and valid values for binary features. Joint-distribution and semantic drift are not detected.
+        </p>
         <div className="prediction-box">
-          <strong>Top supported scenario</strong>
+          <strong>Tested action status</strong>
           <span>
             {bestIntervention.rankable && bestIntervention.absoluteReduction !== null
               ? `${bestIntervention.label}: ${formatPercentagePoints(bestIntervention.absoluteReduction)} scenario-score decrease.`
-              : "Numeric route ranking is disabled outside synthetic training support."}
+              : "Numeric tested-action ranking is disabled outside the configured marginal feature bounds."}
           </span>
         </div>
-        <div className="inference-list" aria-label="Bootstrap model spread">
-          <span>{artifact.ensemble.members.length} bootstrap members</span>
-          <span>
-            Spread {formatPercent(edgeRisk.modelSpread.p10)}-{formatPercent(edgeRisk.modelSpread.p90)}
-          </span>
-          <span>{edgeRisk.support.violations.length} support exceptions</span>
-        </div>
+        {modelSupported ? (
+          <div className="inference-list" aria-label="Bootstrap model spread">
+            <span>{artifact.ensemble.members.length} bootstrap members</span>
+            <span>Spread {formatPercent(edgeRisk.modelSpread.p10)}-{formatPercent(edgeRisk.modelSpread.p90)}</span>
+            <span>No marginal-bound exceptions</span>
+          </div>
+        ) : (
+          <div className="inference-list" aria-label="Abstention reason">
+            <span>Patient spread withheld</span>
+            <span>Attribution and sensitivity withheld</span>
+            <span>{edgeRisk.support.violations.map((violation) => violation.label).join(", ")}</span>
+          </div>
+        )}
       </section>
 
+      {modelSupported && explanation && sensitivity ? (
+        <>
       <section className="panel wide-panel">
         <div className="panel-heading">
           <div>
@@ -1073,6 +1242,27 @@ function ModelLabView({
           One feature is varied at a time within bounded synthetic ranges. This is a local sensitivity test, not a confidence interval or clinical uncertainty estimate.
         </p>
       </section>
+        </>
+      ) : (
+        <section className="panel wide-panel model-abstention-panel">
+          <div className="panel-heading">
+            <div>
+              <p className="section-kicker">Patient-specific ML boundary</p>
+              <h2>Attribution and sensitivity withheld</h2>
+            </div>
+            <ShieldCheck size={24} />
+          </div>
+          <div className="model-abstention-record">
+            <AlertTriangle size={22} />
+            <div>
+              <strong>Outside marginal feature bounds</strong>
+              <p>
+                This record does not show a patient score, feature decomposition, bootstrap spread, or local sensitivity. Unsupported features: {edgeRisk.support.violations.map((violation) => violation.label).join(", ")}.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="panel wide-panel">
         <div className="panel-heading">
@@ -1094,7 +1284,7 @@ function ModelLabView({
               <p>{intervention.note}</p>
               <div className="sim-risk-row">
                 <small>New risk</small>
-                <strong>{intervention.risk === null ? "Outside support" : formatPercent(intervention.risk)}</strong>
+                <strong>{intervention.risk === null ? "Outside bounds" : formatPercent(intervention.risk)}</strong>
               </div>
             </article>
           ))}
@@ -1104,8 +1294,8 @@ function ModelLabView({
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <p className="section-kicker">Held-out reliability</p>
-            <h2>Predicted vs observed bins</h2>
+            <p className="section-kicker">Held-out synthetic calibration</p>
+            <h2>Predicted vs observed test bins</h2>
           </div>
           <Gauge size={24} />
         </div>
@@ -1140,35 +1330,6 @@ function ModelLabView({
         </div>
       </section>
 
-      <section className="panel wide-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="section-kicker">Synthetic cohort sample</p>
-            <h2>Data in, prediction out</h2>
-          </div>
-          <ClipboardList size={24} />
-        </div>
-        <div className="sample-table">
-          <div className="sample-row sample-head">
-            <span>Week</span>
-            <span>Adherence</span>
-            <span>Nausea</span>
-            <span>Hydration risk</span>
-            <span>Routine</span>
-            <span>Next-week miss</span>
-          </div>
-          {sampleRows.map((row, index) => (
-            <div className="sample-row" key={`${row.patient_id}-${row.week}-${index}`}>
-              <span>{row.week}</span>
-              <span>{Math.round(row.adherence_last_2wk)}%</span>
-              <span>{row.nausea_score.toFixed(1)}</span>
-              <span>{row.hydration_risk.toFixed(1)}</span>
-              <span>{row.routine_disruption.toFixed(2)}</span>
-              <span>{row.target ? "yes" : "no"}</span>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
@@ -1221,14 +1382,15 @@ function KnowledgeGraphView({
       <section className="decision-intro">
         <div className="decision-copy">
           <p className="decision-eyebrow">
-            <span /> Week {patient.currentWeek} / adherence evidence map
+            Case {patient.id} / Week {patient.currentWeek} / Synthetic record
           </p>
-          <h1>
+          <h1>{patient.name}</h1>
+          <strong className="decision-statement">
             {graph.pathMode === "escalation"
-              ? `${firstName} needs a clinician, not another nudge.`
-              : `${firstName}'s adherence risk is still reversible.`}
-          </h1>
-          <p>{graph.summary}</p>
+              ? `${firstName}'s check-in requires clinical review.`
+              : `${firstName}'s check-in remains on the coaching path.`}
+          </strong>
+          <p className="decision-summary">{graph.summary}</p>
         </div>
         <div className="decision-controls">
           <div className="graph-patient-strip" aria-label="Demo patients">
@@ -1248,76 +1410,39 @@ function KnowledgeGraphView({
               </button>
             ))}
           </div>
-          <div className="scenario-switch" aria-label="Demo scenario">
-            <button
-              aria-pressed={graph.pathMode === "coaching"}
-              className={graph.pathMode === "coaching" ? "active" : ""}
-              onClick={() => onScenario("normal")}
-            >
-              <CheckCircle2 size={16} /> Coaching
-            </button>
-            <button
-              aria-pressed={graph.pathMode === "escalation"}
-              className={graph.pathMode === "escalation" ? "active danger" : ""}
-              onClick={() => onScenario("escalation")}
-            >
-              <AlertTriangle size={16} /> Escalation
-            </button>
+          <div className="presenter-cases">
+            <span className="demo-case-label"><ClipboardList size={14} /> Demo cases</span>
+            <div className="scenario-switch" aria-label="Presenter demo cases">
+              <button
+                aria-pressed={graph.pathMode === "coaching"}
+                className={graph.pathMode === "coaching" ? "active" : ""}
+                onClick={() => onScenario("normal")}
+              >
+                <CheckCircle2 size={16} /> Load coaching case
+              </button>
+              <button
+                aria-pressed={graph.pathMode === "escalation"}
+                className={graph.pathMode === "escalation" ? "active danger" : ""}
+                onClick={() => onScenario("escalation")}
+              >
+                <AlertTriangle size={16} /> Load safety case
+              </button>
+            </div>
           </div>
         </div>
-      </section>
-
-      <section className="decision-metrics" aria-label="Current patient summary">
-        <DecisionMetric
-          label="Adherence interruption risk"
-          value={edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}
-          note={
-            edgeRisk.support.status === "supported"
-              ? carePlan.escalation.needed
-                ? "Safety rule overrides model"
-                : riskBand(edgeRisk.risk, edgeRisk.artifact.metrics.threshold)
-              : "Outside synthetic support"
-          }
-          tone={edgeRisk.support.status === "supported" ? "action" : "watch"}
-        />
-        <DecisionMetric label="Recent adherence" value={`${Math.round(insights.lastTwoAdherence)}%`} note="Last 2 weeks" tone="steady" />
-        <DecisionMetric
-          label="Scenario score change"
-          value={
-            graph.pathMode === "escalation"
-              ? "Suppressed"
-              : bestIntervention.absoluteReduction === null
-                ? "Not ranked"
-                : `-${formatPercentagePoints(bestIntervention.absoluteReduction)}`
-          }
-          note={
-            graph.pathMode === "escalation"
-              ? "Safety override"
-              : bestIntervention.rankable
-                ? bestIntervention.label
-                : "Outside synthetic support"
-          }
-          tone={graph.pathMode === "escalation" ? "urgent" : "action"}
-        />
-        <DecisionMetric
-          label="Safety status"
-          value={graph.pathMode === "escalation" ? "Handoff draft" : "Coaching permitted"}
-          note={graph.pathMode === "escalation" ? "Pending human review" : "No red-flag rule active"}
-          tone={graph.pathMode === "escalation" ? "urgent" : "protective"}
-        />
       </section>
 
       <section className="decision-workbench">
         <article className="graph-evidence-panel">
           <header className="graph-evidence-head">
             <div>
-              <p className="section-kicker">Decision evidence map</p>
-              <h2>Signals to safe action</h2>
-              <p>Home context, edge inference, what-if actions and clinical guardrails.</p>
+              <p className="section-kicker">Evidence chain</p>
+              <h2>Observed signals to bounded action</h2>
+              <p>Home inputs, local score, support assumption, and deterministic handoff.</p>
             </div>
             <div className="graph-evidence-meta">
               <span>
-                <ShieldCheck size={15} /> {source === "deterministic-rules" ? "Provider validated / deterministic plan" : "Local model / deterministic rules"}
+                <ShieldCheck size={15} /> {source === "deterministic-rules" ? "Validated output / rules" : "Local score / rules"}
               </span>
               <RiskPill level={riskLevel} />
             </div>
@@ -1340,16 +1465,56 @@ function KnowledgeGraphView({
         />
       </section>
 
+      <section className="decision-metrics" aria-label="Current patient summary">
+        <DecisionMetric
+          label="Interruption risk"
+          value={edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}
+          note={
+            edgeRisk.support.status === "supported"
+              ? carePlan.escalation.needed
+                ? "Safety rule overrides model"
+                : riskBand(edgeRisk.risk, edgeRisk.artifact.metrics.threshold)
+              : "Marginal bounds exceeded"
+          }
+          tone={edgeRisk.support.status === "supported" ? "action" : "watch"}
+        />
+        <DecisionMetric label="Recent adherence" value={`${Math.round(insights.lastTwoAdherence)}%`} note="Previous 2 weeks" tone="steady" />
+        <DecisionMetric
+          label="Bounded scenario"
+          value={
+            graph.pathMode === "escalation"
+              ? "Suppressed"
+              : bestIntervention.absoluteReduction === null
+                ? "Not ranked"
+                : `-${formatPercentagePoints(bestIntervention.absoluteReduction)}`
+          }
+          note={
+            graph.pathMode === "escalation"
+              ? "Safety override"
+              : bestIntervention.rankable
+                ? bestIntervention.label
+                : "Marginal bounds exceeded"
+          }
+          tone={graph.pathMode === "escalation" ? "urgent" : "action"}
+        />
+        <DecisionMetric
+          label="Rule state"
+          value={graph.pathMode === "escalation" ? "Handoff draft" : "Coaching path"}
+          note={graph.pathMode === "escalation" ? "Pending human review" : "No configured urgent rule matched"}
+          tone={graph.pathMode === "escalation" ? "urgent" : "protective"}
+        />
+      </section>
+
       <section className="decision-proof-strip" aria-label="Technical credibility">
         <div>
           <BarChart3 size={19} />
-          <span>Edge ML</span>
-          <strong>Monotonic {edgeRisk.artifact.features.length}-feature model / exact local decomposition</strong>
+          <span>Local model</span>
+          <strong>Monotonic {edgeRisk.artifact.features.length}-feature score with exact decomposition</strong>
         </div>
         <div>
           <Network size={19} />
-          <span>Evidence map</span>
-          <strong>{graph.nodes.length} nodes / source labels + four inspection views</strong>
+          <span>Evidence graph</span>
+          <strong>{graph.nodes.length} nodes / typed sources / four inspection views</strong>
         </div>
         <div>
           <ShieldCheck size={19} />
@@ -1362,7 +1527,7 @@ function KnowledgeGraphView({
         <summary>
           <span>
             <strong>Supporting evidence</strong>
-            <small>Care path, synthetic comparison, map diagnostics, and route assumptions</small>
+            <small>Care path, synthetic comparison, map diagnostics, and tested-action assumptions</small>
           </span>
           <ChevronDown size={19} />
         </summary>
@@ -1436,8 +1601,8 @@ function KnowledgeGraphView({
         <article className="panel route-ranking-evidence">
           <div className="panel-heading">
             <div>
-              <p className="section-kicker">Route comparison</p>
-              <h2>{graph.pathMode === "escalation" ? "Simulations suppressed by safety" : "Why this route won"}</h2>
+              <p className="section-kicker">Tested action comparison</p>
+              <h2>{graph.pathMode === "escalation" ? "Tested actions suppressed by safety" : "Why this action ranked first"}</h2>
             </div>
             <TrendingDown size={22} />
           </div>
@@ -1454,7 +1619,7 @@ function KnowledgeGraphView({
                 </div>
                 <div className="route-result">
                   <strong>{route.absoluteReduction === null ? "Not ranked" : `-${formatPercentagePoints(route.absoluteReduction)}`}</strong>
-                  <small>{route.newRisk === null ? "Outside support" : `to ${formatPercent(route.newRisk)}`}</small>
+                  <small>{route.newRisk === null ? "Outside bounds" : `to ${formatPercent(route.newRisk)}`}</small>
                 </div>
                 <span className="route-status">
                   {route.status === "blocked-by-safety"
@@ -1469,7 +1634,7 @@ function KnowledgeGraphView({
             ))}
           </div>
           <p className="route-ranking-note">
-            Supported routes are ordered by scenario-score change. They are planning comparisons, not causal treatment-effect estimates.
+            Supported tested actions are ordered by scenario-score change. They are planning comparisons, not causal treatment-effect estimates.
           </p>
         </article>
         </section>
@@ -1512,14 +1677,21 @@ function GraphNodeInspector({
   onNavigate: (view: View) => void;
 }) {
   const centrality = graph.centrality.find((item) => item.nodeId === node.id)?.score ?? 0;
-  const connectedEdges = graph.edges.filter((edge) => edge.source === node.id || edge.target === node.id).slice(0, 3);
+  const connectedEdges = graph.edges
+    .filter(
+      (edge) =>
+        (edge.source === node.id || edge.target === node.id) &&
+        (graph.pathMode !== "escalation" || edge.status !== "action")
+    )
+    .slice(0, 3);
   const decisionBrief = getGraphDecisionBrief(graph, node, centrality);
   const explanation = graph.nodeExplanations.find((item) => item.nodeId === node.id);
+  const modelAttributionWithheld = explanation?.source === "model" && explanation.contribution === null;
   const bestIntervention = edgeRisk.interventions.find((intervention) => intervention.rankable) ?? edgeRisk.interventions[0];
   const primaryView: View = carePlan.escalation.needed ? "clinician" : "patient";
 
   return (
-    <aside className={`graph-inspector decision-panel ${node.status}`}>
+    <aside className={`graph-inspector decision-panel ${node.status}`} id="graph-node-inspector">
       <header className="decision-panel-head">
         <div>
           <p className="section-kicker">Decision summary</p>
@@ -1527,13 +1699,13 @@ function GraphNodeInspector({
         </div>
         <div className={`decision-risk-score ${edgeRisk.support.status === "supported" ? "" : "abstained"}`}>
           <strong>{edgeRisk.support.status === "supported" ? formatPercent(edgeRisk.risk) : "Abstained"}</strong>
-          <span>{edgeRisk.support.status === "supported" ? "Adherence risk" : "Outside support"}</span>
+          <span>{edgeRisk.support.status === "supported" ? "Adherence risk" : "Outside marginal bounds"}</span>
         </div>
       </header>
 
       <section className={`recommended-action ${carePlan.escalation.needed ? "urgent" : ""}`}>
-        <span>Next safe move</span>
-        <strong>{carePlan.escalation.needed ? "Prepare urgent clinical review" : bestIntervention.label}</strong>
+        <span>{carePlan.escalation.needed ? "Urgent action now" : "Next action"}</span>
+        <strong>{carePlan.escalation.needed ? carePlan.headline : bestIntervention.label}</strong>
         <p>{carePlan.patientAction}</p>
       </section>
 
@@ -1544,7 +1716,7 @@ function GraphNodeInspector({
           <ArrowRight size={17} />
         </button>
         <button className="secondary-action" onClick={() => onNavigate("model")}>
-          <BarChart3 size={17} /> Model evidence
+          <BarChart3 size={17} /> Model record
         </button>
       </div>
 
@@ -1575,21 +1747,30 @@ function GraphNodeInspector({
             </div>
             <span className={`provenance-badge ${explanation.direction}`}>{explanation.direction}</span>
           </div>
-          <div className="graph-provenance-metrics">
-            <div>
-              <span>{explanation.contributionUnit === "log-odds" ? "Net attribution" : explanation.contributionUnit === "absolute-risk" ? "What-if delta" : "Model contribution"}</span>
-              <strong>{formatGraphContribution(explanation)}</strong>
+          {modelAttributionWithheld ? (
+            <div className="graph-provenance-withheld">
+              <strong>Patient-specific attribution withheld</strong>
+              <p>{explanation.summary}</p>
             </div>
-            <div>
-              <span>{explanation.source === "model" ? "Attribution share" : "Evidence links"}</span>
-              <strong>{explanation.source === "model" ? formatPercent(explanation.impactShare) : String(explanation.evidenceEdgeCount)}</strong>
-            </div>
-          </div>
-          <p>{explanation.summary}</p>
-          {explanation.featureLabels.length > 0 && (
-            <div className="provenance-features">
-              {explanation.featureLabels.map((label) => <span key={`${node.id}-${label}`}>{label}</span>)}
-            </div>
+          ) : (
+            <>
+              <div className="graph-provenance-metrics">
+                <div>
+                  <span>{explanation.contributionUnit === "log-odds" ? "Net attribution" : explanation.contributionUnit === "absolute-risk" ? "What-if delta" : "Model contribution"}</span>
+                  <strong>{formatGraphContribution(explanation)}</strong>
+                </div>
+                <div>
+                  <span>{explanation.source === "model" ? "Attribution share" : "Evidence links"}</span>
+                  <strong>{explanation.source === "model" ? formatPercent(explanation.impactShare) : String(explanation.evidenceEdgeCount)}</strong>
+                </div>
+              </div>
+              <p>{explanation.summary}</p>
+              {explanation.featureLabels.length > 0 && (
+                <div className="provenance-features">
+                  {explanation.featureLabels.map((label) => <span key={`${node.id}-${label}`}>{label}</span>)}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
@@ -1607,7 +1788,7 @@ function GraphNodeInspector({
             <strong>{decisionBrief.signal}</strong>
           </div>
           <div>
-            <span>Safe next move</span>
+            <span>Next graph step</span>
             <strong>{decisionBrief.nextMove}</strong>
           </div>
         </div>
@@ -1631,7 +1812,7 @@ function getGraphDecisionBrief(graph: AdherenceKnowledgeGraph, node: KnowledgeGr
       : centrality >= 1.5
         ? "High graph score"
         : node.weight >= 0.55
-          ? "Strong driver"
+          ? "Strong context signal"
           : node.status === "protective"
             ? "Protective context"
             : "Context signal";
@@ -1645,8 +1826,8 @@ function getGraphDecisionBrief(graph: AdherenceKnowledgeGraph, node: KnowledgeGr
         rescueStepIndex === graph.rescuePath.length - 1
           ? isEscalation
             ? "Clinician review"
-            : "Track risk drop"
-          : "Follow route",
+            : "Track score change"
+          : "Follow tested action",
       safety: isEscalation
         ? "Deterministic rules suppress coaching and keep diagnosis and medication changes with clinicians."
         : "The support plan can coach behaviour, but cannot change medication or diagnose symptoms."
@@ -1665,7 +1846,7 @@ function getGraphDecisionBrief(graph: AdherenceKnowledgeGraph, node: KnowledgeGr
 
   if (node.type === "intervention") {
     return {
-      headline: "Scenario-tested action candidate",
+      headline: "Bounded tested action",
       reason: "The edge model rescores an explicit hypothetical feature change. This is a planning aid, not a causal treatment-effect estimate.",
       signal,
       nextMove: "Offer for review",
@@ -1724,9 +1905,12 @@ function KnowledgeGraphCanvas({
       .filter((edge) => activePathIds.has(edge.source) && activePathIds.has(edge.target))
       .map((edge) => edge.id)
   );
-  const connectedEdgeIds = new Set(
-    graph.edges.filter((edge) => edge.source === selectedNodeId || edge.target === selectedNodeId).map((edge) => edge.id)
+  const connectedEdges = graph.edges.filter(
+    (edge) =>
+      (edge.source === selectedNodeId || edge.target === selectedNodeId) &&
+      (graph.pathMode !== "escalation" || edge.status !== "action")
   );
+  const connectedEdgeIds = new Set(connectedEdges.map((edge) => edge.id));
   const highlightedEdgeIds = new Set(
     focusMode === "all" || focusMode === "attribution"
       ? graph.edges.map((edge) => edge.id)
@@ -1734,17 +1918,13 @@ function KnowledgeGraphCanvas({
         ? [...connectedEdgeIds]
         : [...connectedEdgeIds, ...activePathEdgeIds]
   );
-  const connectedNodeIds = new Set(
-    graph.edges
-      .filter((edge) => edge.source === selectedNodeId || edge.target === selectedNodeId)
-      .flatMap((edge) => [edge.source, edge.target])
-  );
+  const connectedNodeIds = new Set(connectedEdges.flatMap((edge) => [edge.source, edge.target]));
   const focusedNodeIds = new Set(
     focusMode === "all" || focusMode === "attribution"
       ? graph.nodes.map((node) => node.id)
       : focusMode === "neighborhood"
         ? [...connectedNodeIds, selectedNodeId]
-        : [...activePathIds, ...connectedNodeIds, selectedNodeId]
+        : [...activePathIds, ...connectedNodeIds, selectedNodeId, "patient"]
   );
 
   graph.nodes.forEach((node) => {
@@ -1758,7 +1938,7 @@ function KnowledgeGraphCanvas({
     <div className="knowledge-graph-wrap">
       <div className="graph-canvas-toolbar">
         <span className="graph-live-state">
-          <i /> Inference active
+          <i /> Evidence ready
         </span>
         <div className="graph-focus-control" role="group" aria-label="Graph focus mode">
           <button aria-label="Decision path" aria-pressed={focusMode === "decision"} className={focusMode === "decision" ? "active" : ""} onClick={() => onFocusMode("decision")}>
@@ -1789,7 +1969,7 @@ function KnowledgeGraphCanvas({
           ) : (
             <>
               <span className="legend-dot urgent" /> Escalate
-              <span className="legend-dot action" /> Intervention
+              <span className="legend-dot action" /> Tested action
               <span className="legend-dot protective" /> Protective
               <span className="legend-dot watch" /> Watch
             </>
@@ -1797,7 +1977,7 @@ function KnowledgeGraphCanvas({
         </div>
       </div>
       <div className="graph-map-frame">
-        <div className="graph-map-caption top-left">Decision evidence map</div>
+        <div className="graph-map-caption top-left">Current decision record</div>
         <div className="graph-map-caption bottom-right">{graph.nodes.length} nodes / {graph.edges.length} edges</div>
         <svg
           className="knowledge-graph-canvas"
@@ -1808,14 +1988,6 @@ function KnowledgeGraphCanvas({
         >
           <title>Interactive adherence evidence map</title>
           <defs>
-            <linearGradient id="graph-bg-wash" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor="#17201f" />
-              <stop offset="52%" stopColor="#182226" />
-              <stop offset="100%" stopColor="#111817" />
-            </linearGradient>
-            <filter id="graph-soft-glow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="1.1" stdDeviation="1.35" floodColor="#73f1cc" floodOpacity="0.3" />
-            </filter>
             <marker id="graph-arrow" markerHeight="4" markerWidth="5" orient="auto" refX="4.4" refY="2" viewBox="0 0 5 4">
               <path d="M0,0 L5,2 L0,4 Z" />
             </marker>
@@ -1836,6 +2008,12 @@ function KnowledgeGraphCanvas({
             <text x="82" y="20">Care action</text>
           </g>
           {graph.edges.map((edge) => {
+            const hideSuppressedActionEdge =
+              edge.status === "action" &&
+              graph.pathMode === "escalation" &&
+              focusMode !== "all" &&
+              focusMode !== "attribution";
+            if (hideSuppressedActionEdge) return null;
             const renderAsForwardAction = edge.status === "action";
             const source = positions.get(renderAsForwardAction ? edge.target : edge.source);
             const target = positions.get(renderAsForwardAction ? edge.source : edge.target);
@@ -1864,6 +2042,13 @@ function KnowledgeGraphCanvas({
           })}
           {rescueRoutePath && focusMode !== "neighborhood" && focusMode !== "attribution" && <path className={`graph-rescue-route ${graph.pathMode}`} d={rescueRoutePath} aria-hidden="true" />}
           {graph.nodes.map((node) => {
+            const route = graph.routeAlternatives.find((item) => item.interventionNodeId === node.id);
+            const hideSuppressedAction =
+              node.type === "intervention" &&
+              (graph.pathMode === "escalation" || route?.status === "not-ranked") &&
+              focusMode !== "all" &&
+              focusMode !== "attribution";
+            if (hideSuppressedAction) return null;
             const position = positions.get(node.id);
             if (!position) return null;
             const centrality = graph.centrality.find((item) => item.nodeId === node.id)?.score ?? 1;
@@ -1872,9 +2057,15 @@ function KnowledgeGraphCanvas({
             const isSelected = selectedNodeId === node.id;
             const isConnected = connectedNodeIds.has(node.id);
             const isFocused = focusedNodeIds.has(node.id);
+            const labelLines = wrapGraphLabel(node.label, graphLabelLength(node));
             const nodeExplanation = graph.nodeExplanations.find((item) => item.nodeId === node.id);
-            const attributionValue = nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation"
-              ? Math.max(2, Math.round(nodeExplanation.impactShare * 100))
+            const attributionWithheld =
+              (nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation") &&
+              nodeExplanation.contribution === null;
+            const attributionValue = attributionWithheld
+              ? 0
+              : nodeExplanation?.source === "model" || nodeExplanation?.source === "simulation"
+                ? Math.max(2, Math.round(nodeExplanation.impactShare * 100))
               : nodeExplanation?.source === "rule"
                 ? 100
                 : 12;
@@ -1886,9 +2077,12 @@ function KnowledgeGraphCanvas({
                 data-node-id={node.id}
                 transform={`translate(${position.x} ${position.y})`}
                 role="button"
-                tabIndex={0}
+                tabIndex={isFocused ? 0 : -1}
+                aria-hidden={!isFocused}
                 aria-label={`${node.label}: ${node.evidence}`}
-                onClick={() => onSelectNode(node.id)}
+                aria-controls="graph-node-inspector"
+                aria-pressed={isSelected}
+                onPointerUp={() => onSelectNode(node.id)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
@@ -1897,24 +2091,29 @@ function KnowledgeGraphCanvas({
                 }}
               >
                 <title>{node.evidence}</title>
+                <circle className="graph-node-hit" r={radius + 3.5} />
                 {focusMode === "attribution" && (
                   <>
                     <circle
                       className="graph-attribution-ring"
-                      r={radius + 3.25}
+                      r={radius + 2.5}
                       pathLength="100"
                       strokeDasharray={`${attributionValue} ${100 - attributionValue}`}
                       transform="rotate(-90)"
                     />
-                    <text className="graph-attribution-label" y={-radius - 4.2}>
+                    <text className="graph-attribution-label" y={-radius - 3.5}>
                       {getAttributionTag(nodeExplanation)}
                     </text>
                   </>
                 )}
-                <circle className="graph-node-halo" r={radius + 2.4} />
+                <circle className="graph-node-halo" r={radius + 1.55} />
                 <circle className="graph-node-core" r={radius} />
                 <text className="graph-node-glyph" y="0.8">{getGraphNodeGlyph(node)}</text>
-                <text className="graph-node-label" y={radius + 5.2}>{shortGraphLabel(node.label, graphLabelLength(node))}</text>
+                <text className="graph-node-label" y={radius + 4.3}>
+                  {labelLines.map((line, index) => (
+                    <tspan dy={index === 0 ? 0 : 2.6} key={`${node.id}-${line}`} x="0">{line}</tspan>
+                  ))}
+                </text>
               </g>
             );
           })}
@@ -2042,7 +2241,7 @@ function ScriptsView() {
           <li>Point to one next action, trend context, and the inspectable decision trace.</li>
         </ol>
         <p className="talk-track">
-          "This is the boring middle of chronic care. Maya is not in crisis, but the system keeps her adherent by catching friction while it is still small."
+          "This is the quiet middle of chronic care. Maya's configured rules do not activate a handoff, so the system keeps support lightweight while tracking friction."
         </p>
       </section>
 
@@ -2058,7 +2257,7 @@ function ScriptsView() {
           <li>Select Maya and load the escalation scenario.</li>
           <li>Show missed medication, high nausea, low hydration, and worsening pain.</li>
           <li>Review the care plan.</li>
-          <li>Switch to the clinician inbox and show the prioritised handoff plus audit trail.</li>
+          <li>Open Review drafts and show the local, unsent handoff plus audit trail.</li>
         </ol>
         <p className="talk-track">
           "The system does not pretend to be a doctor. Deterministic safety rules recognise that coaching is the wrong mode and prepare a review draft."
@@ -2263,6 +2462,7 @@ function formatThresholdDistance(value: number) {
 function getAttributionTag(explanation: AdherenceKnowledgeGraph["nodeExplanations"][number] | undefined) {
   if (!explanation || explanation.source === "context") return "CTX";
   if (explanation.source === "rule") return "RULE";
+  if (explanation.contribution === null) return "N/A";
   if (explanation.source === "simulation") return "SIM";
   return `${Math.round(explanation.impactShare * 100)}%`;
 }
@@ -2283,18 +2483,20 @@ function getGenerationNotice(reason: CarePlanResponse["fallbackReason"], meta?: 
     return `OpenAI is not configured. The deterministic local safety engine produced this result.${timing}`;
   }
   if (reason === "invalid-openai-output") {
-    return `OpenAI returned an invalid result. The deterministic local safety engine took over safely.${timing}`;
+    return `OpenAI returned an invalid result. The deterministic local safety engine produced the displayed result.${timing}`;
   }
   if (reason === "openai-error") {
-    return `OpenAI was unavailable. The deterministic local safety engine took over safely.${timing}`;
+    return `OpenAI was unavailable. The deterministic local safety engine produced the displayed result.${timing}`;
   }
   return meta?.providerAttempted
-    ? `Provider output was schema-valid in ${meta.durationMs} ms. The complete deterministic care plan was recomputed before display.`
+    ? `Provider output was schema-valid in ${meta.durationMs} ms. The complete rules-owned plan was recomputed before display.`
     : null;
 }
 
 function buildCarePlanAnnouncement(plan: CarePlan) {
-  const nextStep = plan.escalation.needed ? "A clinician handoff draft is ready for review." : "Coaching can continue.";
+  const nextStep = plan.escalation.needed
+    ? `Next action: ${plan.patientAction}`
+    : "No clinician handoff is active; follow the displayed adherence action.";
   return `Care plan updated. ${plan.headline} Risk level: ${riskLabels[plan.riskLevel]}. ${nextStep}`;
 }
 
@@ -2371,8 +2573,8 @@ function isGraphPoint(point: { x: number; y: number } | undefined): point is { x
 }
 
 function getGraphNodeRadius(node: KnowledgeGraphNode, centrality: number) {
-  const base = node.type === "patient" ? 5.8 : node.type === "risk" ? 5.7 : node.type === "clinician" ? 5 : 4.55;
-  return Math.min(7.1, base + centrality * 0.16);
+  const base = node.type === "patient" ? 4.7 : node.type === "risk" ? 4.6 : node.type === "clinician" ? 3.9 : 3.65;
+  return Math.min(5.5, base + centrality * 0.12);
 }
 
 function graphLabelLength(node: KnowledgeGraphNode) {
@@ -2399,6 +2601,23 @@ function nodeLabelById(graph: AdherenceKnowledgeGraph, nodeId: string) {
 
 function shortGraphLabel(label: string, maxLength: number) {
   return label.length > maxLength ? `${label.slice(0, maxLength - 1)}...` : label;
+}
+
+function wrapGraphLabel(label: string, maxLineLength: number) {
+  if (label.length <= maxLineLength) return [label];
+
+  const lines: string[] = [];
+  label.split(" ").forEach((word) => {
+    const currentLine = lines.at(-1);
+    if (!currentLine || currentLine.length + word.length + 1 > maxLineLength) {
+      lines.push(word);
+      return;
+    }
+    lines[lines.length - 1] = `${currentLine} ${word}`;
+  });
+
+  if (lines.length <= 2) return lines;
+  return [lines[0], shortGraphLabel(lines.slice(1).join(" "), maxLineLength)];
 }
 
 function TrendChart({

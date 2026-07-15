@@ -15,6 +15,8 @@ Adherence OS is a synthetic-data hackathon prototype. The safest judged-demo con
 
 Use Node.js 22+ and the pnpm version declared in `package.json`.
 
+Development and production output are isolated in this repository: `pnpm dev` writes to `.next-dev`, while `pnpm build` and `pnpm start` use `.next`. A production build therefore cannot overwrite files used by the development server. Stop any existing production server before rebuilding because production build and start intentionally share `.next`.
+
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
@@ -22,7 +24,11 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm check:bundle
+pnpm exec playwright install chromium
+pnpm test:browser
 ```
+
+Before the event-day build, confirm that no production server is still running on the intended port. A development server may remain available on another port without sharing build output, although stopping it reduces CPU and memory pressure during judging.
 
 Start the production build in one terminal:
 
@@ -45,7 +51,7 @@ Smoke must confirm `/`, `/api/health`, the patient directory and record, a norma
 | `OPENAI_API_KEY` | No | Keyless deterministic mode | Leave unset for public demos. Never commit it. |
 | `OPENAI_MODEL` | No | `gpt-5.5` | Used only when an API key is configured. |
 | `NEXT_PUBLIC_SITE_URL` | No | `http://localhost:3000` | Set to the public preview origin so social image links are absolute. |
-| `APP_URL` | No | `http://localhost:3000` | Override only when smoke targets another port or host. |
+| `APP_URL` | No | Browser test: `http://127.0.0.1:3100`; smoke: `http://localhost:3000` | Point browser and smoke checks at an already-running local or hosted build. |
 
 Copy `.env.example` to `.env.local` only for local provider testing. Local environment files are ignored by Git.
 
@@ -53,11 +59,11 @@ Copy `.env.example` to `.env.local` only for local provider testing. Local envir
 
 1. Ensure `OPENAI_API_KEY` is absent from the shell and `.env.local`.
 2. Run the release gate and start the production build.
-3. Open `http://localhost:3000` and confirm Live twin is the first view.
+3. Open `http://localhost:3000` and confirm Decision map is the first view.
 4. Run `pnpm smoke` immediately before presenting.
 5. Keep the checked-in video and deck available as visual fallback assets.
 
-The UI labels fallback mode. It is not a reduced experience: risk scoring, graph analytics, support-route comparison, safety rules, rescue planning, and clinician handoff all run locally.
+The UI labels fallback mode. It is not a reduced experience: risk scoring, graph analytics, tested-action comparison, safety rules, rescue planning, and clinician handoff all run locally.
 
 ## Hosted Preview
 
@@ -67,9 +73,10 @@ After deployment:
 
 ```bash
 APP_URL=https://your-preview.example pnpm smoke
+APP_URL=https://your-preview.example pnpm test:browser
 ```
 
-The preview is ready only when the expanded smoke command passes. The current CI workflow runs the equivalent keyless production gate on pushes and pull requests.
+The preview is ready only when smoke and browser contracts pass. The current CI workflow runs the equivalent keyless production gate on pushes and pull requests.
 
 ## Health And Observability
 
@@ -104,6 +111,8 @@ Regardless of provider mode:
 |---|---|
 | Generate remains pending | Refresh, remove the provider key, and use deterministic mode. |
 | Port 3000 is occupied | Stop the old process or run `pnpm exec next start -p 3001` and `APP_URL=http://localhost:3001 pnpm smoke`. |
+| Development server is running during a build | Supported: development uses `.next-dev` and production uses `.next`. Stop development anyway if the laptop needs the extra CPU or memory. |
+| Production server is running during a rebuild | Stop it first, run `pnpm build`, then restart `pnpm start`; both intentionally use `.next`. |
 | Health check fails | Read the server terminal, restart the production process, and rerun smoke. |
 | Hosted preview fails | Switch to the locally validated production build. |
 | Live browser fails | Play `outputs/adherence-os-demo.mp4` and narrate from `docs/demo_script.md`. |

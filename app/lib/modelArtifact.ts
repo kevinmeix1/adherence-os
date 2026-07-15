@@ -1,4 +1,5 @@
 import rawModelData from "@/data/adherence-model.json";
+import { MODEL_FEATURE_CONTRACT_VERSION } from "./modelFeatureContract";
 
 type JsonObject = Record<string, unknown>;
 type NumberRules = { min?: number; max?: number; integer?: boolean; exclusiveMin?: number };
@@ -20,7 +21,7 @@ export const MODEL_FEATURE_NAMES = [
   "mood_anxious"
 ] as const;
 
-type ModelFeatureName = (typeof MODEL_FEATURE_NAMES)[number];
+export type ModelFeatureName = (typeof MODEL_FEATURE_NAMES)[number];
 type FeatureDirection = "increases risk" | "decreases risk";
 
 export type ModelFeature = {
@@ -53,6 +54,12 @@ export type ModelArtifact = {
     rows: number;
     generationSeed: number;
     description: string;
+  };
+  featureContract: {
+    version: typeof MODEL_FEATURE_CONTRACT_VERSION;
+    historyWindow: string;
+    predictionPoint: string;
+    missingInputPolicy: string;
   };
   features: ModelFeature[];
   intercept: number;
@@ -90,6 +97,40 @@ export type ModelArtifact = {
       validationReviewRate: number;
     };
     claimStatus: "synthetic-skill-demonstrated" | "no-demonstrated-skill";
+    challengerBenchmark: {
+      name: string;
+      featureNames: ModelFeatureName[];
+      comparison: string;
+      threshold: number;
+      testAuprc: number;
+      precisionAtThreshold: number;
+      recallAtThreshold: number;
+      reviewRateAtThreshold: number;
+      confusionMatrix: { tp: number; fp: number; fn: number; tn: number };
+      thresholdSelection: {
+        method: string;
+        targetRecall: number;
+        validationPrecision: number;
+        validationRecall: number;
+        validationReviewRate: number;
+      };
+    };
+    supportEvaluation: {
+      method: string;
+      testRows: number;
+      supportedRows: number;
+      abstainedRows: number;
+      coverage: number;
+      abstentionRate: number;
+      supportedEventCoverage: number;
+      abstainedEvents: number;
+      abstainedEventRate: number;
+      testAuprc: number;
+      precisionAtThreshold: number;
+      recallAtThreshold: number;
+      reviewRateAtThreshold: number;
+      confusionMatrix: { tp: number; fp: number; fn: number; tn: number };
+    };
     calibration: Array<{ bin: string; count: number; predicted: number; observed: number }>;
   };
   modelCard: {
@@ -109,7 +150,6 @@ export type ModelArtifact = {
 
 export type ModelData = {
   artifact: ModelArtifact;
-  sampleRows: Array<Record<string, number>>;
 };
 
 export class ModelArtifactValidationError extends Error {
@@ -257,8 +297,7 @@ function parseFeatureDirections(value: unknown, features: ModelFeature[]): Recor
   return parsed;
 }
 
-function parseConfusionMatrix(value: unknown) {
-  const path = "artifact.metrics.confusionMatrix";
+function parseConfusionMatrix(value: unknown, path = "artifact.metrics.confusionMatrix") {
   const matrix = expectObject(value, path);
   const rules = { min: 0, integer: true } as const;
   return {
@@ -290,7 +329,7 @@ function parseStringArray(value: unknown, path: string): string[] {
   return value.map((item, index) => expectString(item, `${path}[${index}]`));
 }
 
-function parseSampleRows(value: unknown): Array<Record<string, number>> {
+export function parseModelSampleRows(value: unknown): Array<Record<string, number>> {
   if (!Array.isArray(value) || value.length === 0) fail("sampleRows", "expected at least one sample row");
   const requiredNames = [
     "patient_id",
@@ -331,10 +370,20 @@ export function parseModelData(value: unknown): ModelData {
   const root = expectObject(value, "modelData");
   const source = expectObject(root.artifact, "artifact");
   const cohortSource = expectObject(source.cohort, "artifact.cohort");
+  const featureContractSource = expectObject(source.featureContract, "artifact.featureContract");
   const features = parseFeatures(source.features);
   const constraintsSource = expectObject(source.constraints, "artifact.constraints");
   const metricsSource = expectObject(source.metrics, "artifact.metrics");
   const matrix = parseConfusionMatrix(metricsSource.confusionMatrix);
+  const challengerPath = "artifact.metrics.challengerBenchmark";
+  const challengerSource = expectObject(metricsSource.challengerBenchmark, challengerPath);
+  const challengerMatrix = parseConfusionMatrix(
+    challengerSource.confusionMatrix,
+    `${challengerPath}.confusionMatrix`
+  );
+  const supportPath = "artifact.metrics.supportEvaluation";
+  const supportSource = expectObject(metricsSource.supportEvaluation, supportPath);
+  const supportMatrix = parseConfusionMatrix(supportSource.confusionMatrix, `${supportPath}.confusionMatrix`);
   const calibration = parseCalibration(metricsSource.calibration);
   const modelCardSource = expectObject(source.modelCard, "artifact.modelCard");
   const trainingRuntimeSource = expectObject(source.trainingRuntime, "artifact.trainingRuntime");
@@ -355,6 +404,26 @@ export function parseModelData(value: unknown): ModelData {
   if (cohort.rows !== cohort.patients * cohort.weeksPerPatient) {
     fail("artifact.cohort.rows", "must equal patients multiplied by weeksPerPatient");
   }
+
+  const featureContractVersion = expectString(
+    featureContractSource.version,
+    "artifact.featureContract.version"
+  );
+  if (featureContractVersion !== MODEL_FEATURE_CONTRACT_VERSION) {
+    fail(
+      "artifact.featureContract.version",
+      `expected ${MODEL_FEATURE_CONTRACT_VERSION}`
+    );
+  }
+  const featureContract = {
+    version: MODEL_FEATURE_CONTRACT_VERSION,
+    historyWindow: expectString(featureContractSource.historyWindow, "artifact.featureContract.historyWindow"),
+    predictionPoint: expectString(featureContractSource.predictionPoint, "artifact.featureContract.predictionPoint"),
+    missingInputPolicy: expectString(
+      featureContractSource.missingInputPolicy,
+      "artifact.featureContract.missingInputPolicy"
+    )
+  };
 
   const metrics = {
     samples: expectNumber(metricsSource.samples, "artifact.metrics.samples", { min: 1, integer: true }),
@@ -402,6 +471,78 @@ export function parseModelData(value: unknown): ModelData {
       }
       return status as ModelArtifact["metrics"]["claimStatus"];
     })(),
+    challengerBenchmark: (() => {
+      const featureNames = parseStringArray(challengerSource.featureNames, `${challengerPath}.featureNames`);
+      if (featureNames.length !== 1 || featureNames[0] !== "adherence_last_2wk") {
+        fail(`${challengerPath}.featureNames`, 'expected only "adherence_last_2wk"');
+      }
+      const selectionPath = `${challengerPath}.thresholdSelection`;
+      const selection = expectObject(challengerSource.thresholdSelection, selectionPath);
+      return {
+        name: expectString(challengerSource.name, `${challengerPath}.name`),
+        featureNames: featureNames as ModelFeatureName[],
+        comparison: expectString(challengerSource.comparison, `${challengerPath}.comparison`),
+        threshold: expectProbability(challengerSource.threshold, `${challengerPath}.threshold`),
+        testAuprc: expectProbability(challengerSource.testAuprc, `${challengerPath}.testAuprc`),
+        precisionAtThreshold: expectProbability(
+          challengerSource.precisionAtThreshold,
+          `${challengerPath}.precisionAtThreshold`
+        ),
+        recallAtThreshold: expectProbability(
+          challengerSource.recallAtThreshold,
+          `${challengerPath}.recallAtThreshold`
+        ),
+        reviewRateAtThreshold: expectProbability(
+          challengerSource.reviewRateAtThreshold,
+          `${challengerPath}.reviewRateAtThreshold`
+        ),
+        confusionMatrix: challengerMatrix,
+        thresholdSelection: {
+          method: expectString(selection.method, `${selectionPath}.method`),
+          targetRecall: expectProbability(selection.targetRecall, `${selectionPath}.targetRecall`),
+          validationPrecision: expectProbability(selection.validationPrecision, `${selectionPath}.validationPrecision`),
+          validationRecall: expectProbability(selection.validationRecall, `${selectionPath}.validationRecall`),
+          validationReviewRate: expectProbability(
+            selection.validationReviewRate,
+            `${selectionPath}.validationReviewRate`
+          )
+        }
+      };
+    })(),
+    supportEvaluation: {
+      method: expectString(supportSource.method, `${supportPath}.method`),
+      testRows: expectNumber(supportSource.testRows, `${supportPath}.testRows`, { min: 1, integer: true }),
+      supportedRows: expectNumber(supportSource.supportedRows, `${supportPath}.supportedRows`, {
+        min: 0,
+        integer: true
+      }),
+      abstainedRows: expectNumber(supportSource.abstainedRows, `${supportPath}.abstainedRows`, {
+        min: 0,
+        integer: true
+      }),
+      coverage: expectProbability(supportSource.coverage, `${supportPath}.coverage`),
+      abstentionRate: expectProbability(supportSource.abstentionRate, `${supportPath}.abstentionRate`),
+      supportedEventCoverage: expectProbability(
+        supportSource.supportedEventCoverage,
+        `${supportPath}.supportedEventCoverage`
+      ),
+      abstainedEvents: expectNumber(supportSource.abstainedEvents, `${supportPath}.abstainedEvents`, {
+        min: 0,
+        integer: true
+      }),
+      abstainedEventRate: expectProbability(supportSource.abstainedEventRate, `${supportPath}.abstainedEventRate`),
+      testAuprc: expectProbability(supportSource.testAuprc, `${supportPath}.testAuprc`),
+      precisionAtThreshold: expectProbability(
+        supportSource.precisionAtThreshold,
+        `${supportPath}.precisionAtThreshold`
+      ),
+      recallAtThreshold: expectProbability(supportSource.recallAtThreshold, `${supportPath}.recallAtThreshold`),
+      reviewRateAtThreshold: expectProbability(
+        supportSource.reviewRateAtThreshold,
+        `${supportPath}.reviewRateAtThreshold`
+      ),
+      confusionMatrix: supportMatrix
+    },
     calibration
   };
 
@@ -414,6 +555,35 @@ export function parseModelData(value: unknown): ModelData {
   const testRows = metrics.testPatients * cohort.weeksPerPatient;
   const classifiedRows = matrix.tp + matrix.fp + matrix.fn + matrix.tn;
   if (classifiedRows !== testRows) fail("artifact.metrics.confusionMatrix", `expected ${testRows} classified test rows`);
+  const challengerRows = Object.values(metrics.challengerBenchmark.confusionMatrix).reduce((sum, value) => sum + value, 0);
+  if (challengerRows !== testRows) {
+    fail(`${challengerPath}.confusionMatrix`, `expected ${testRows} classified test rows`);
+  }
+  if (metrics.challengerBenchmark.thresholdSelection.targetRecall !== metrics.thresholdSelection.targetRecall) {
+    fail(`${challengerPath}.thresholdSelection.targetRecall`, "must match the primary validation recall target");
+  }
+  if (
+    metrics.challengerBenchmark.thresholdSelection.validationRecall <
+    metrics.challengerBenchmark.thresholdSelection.targetRecall
+  ) {
+    fail(`${challengerPath}.thresholdSelection.validationRecall`, "must meet the challenger recall target");
+  }
+  if (metrics.supportEvaluation.testRows !== testRows) {
+    fail(`${supportPath}.testRows`, `must equal ${testRows} held-out rows`);
+  }
+  if (metrics.supportEvaluation.supportedRows + metrics.supportEvaluation.abstainedRows !== testRows) {
+    fail(`${supportPath}.supportedRows`, "supported and abstained rows must sum to all held-out rows");
+  }
+  const supportedClassifiedRows = Object.values(metrics.supportEvaluation.confusionMatrix).reduce(
+    (sum, value) => sum + value,
+    0
+  );
+  if (supportedClassifiedRows !== metrics.supportEvaluation.supportedRows) {
+    fail(`${supportPath}.confusionMatrix`, "must classify exactly the supported held-out rows");
+  }
+  if (metrics.supportEvaluation.abstainedEvents > metrics.supportEvaluation.abstainedRows) {
+    fail(`${supportPath}.abstainedEvents`, "cannot exceed abstained rows");
+  }
 
   const calibratedRows = calibration.reduce((total, bin) => total + bin.count, 0);
   if (calibratedRows !== testRows) fail("artifact.metrics.calibration", `expected ${testRows} calibrated test rows`);
@@ -425,6 +595,7 @@ export function parseModelData(value: unknown): ModelData {
       target: expectString(source.target, "artifact.target"),
       trainedAt: expectDate(source.trainedAt, "artifact.trainedAt"),
       cohort,
+      featureContract,
       features,
       intercept: expectNumber(source.intercept, "artifact.intercept"),
       constraints: {
@@ -449,8 +620,7 @@ export function parseModelData(value: unknown): ModelData {
           integer: true
         })
       }
-    },
-    sampleRows: parseSampleRows(root.sampleRows)
+    }
   };
 }
 

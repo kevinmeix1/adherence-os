@@ -71,6 +71,16 @@ test("evidence map exposes sorted graph scores and transparent diagnostics", () 
 
   assert.deepEqual(centralityScores, sortedScores);
   assert.ok(["symptom", "routine", "biomarker"].includes(graph.topDriver.type));
+  assert.equal(
+    graph.nodeExplanations.find((item) => item.nodeId === graph.topDriver.nodeId)?.direction,
+    "raises risk"
+  );
+  for (const nodeId of ["nausea", "hydration", "appetite-energy", "routine", "biomarkers"]) {
+    const explanation = graph.nodeExplanations.find((item) => item.nodeId === nodeId);
+    const edge = graph.edges.find((item) => item.source === nodeId && item.target === "risk");
+    if (explanation?.direction === "raises risk") assert.match(edge?.label ?? "", /raises model risk/);
+    if (explanation?.direction === "lowers risk") assert.match(edge?.label ?? "", /lowers model risk/);
+  }
   assert.deepEqual(featureIds, [
     "top_driver_graph_score",
     "safety_route_state",
@@ -93,10 +103,72 @@ test("evidence map exposes sorted graph scores and transparent diagnostics", () 
 test("escalation explanation keeps the safety override outside the adherence model", () => {
   const graph = buildGraph("escalation");
   const safety = graph.nodeExplanations.find((item) => item.nodeId === "safety-guardrail");
+  const modelExplanations = graph.nodeExplanations.filter((item) => item.source === "model");
+  const simulationExplanations = graph.nodeExplanations.filter((item) => item.source === "simulation");
 
   assert.equal(safety.source, "rule");
   assert.equal(safety.direction, "override");
   assert.equal(safety.contribution, null);
   assert.match(safety.summary, /outside the ML score/i);
   assert.ok(graph.routeAlternatives.every((route) => route.status === "blocked-by-safety"));
+  assert.ok(modelExplanations.length > 0);
+  assert.ok(modelExplanations.every((item) => item.contribution === null && item.impactShare === 0));
+  assert.ok(modelExplanations.every((item) => /attribution is withheld/i.test(item.summary)));
+  assert.ok(simulationExplanations.every((item) => item.contribution === null && item.impactShare === 0));
+});
+
+test("model support and deterministic safety remain independent in all four states", () => {
+  const cases = [
+    {
+      name: "supported and clear",
+      checkIn: buildCheckIn("normal"),
+      expectedSupport: "supported",
+      expectedPath: "coaching",
+      expectedRoutes: "ranked"
+    },
+    {
+      name: "unsupported and clear",
+      checkIn: { ...buildCheckIn("normal"), hydrationScore: 10, scenario: "custom" },
+      expectedSupport: "out-of-support",
+      expectedPath: "coaching",
+      expectedRoutes: "not-ranked"
+    },
+    {
+      name: "supported and safety-active",
+      checkIn: { ...buildCheckIn("normal"), safetyFlags: ["thoughts-of-self-harm"], scenario: "custom" },
+      expectedSupport: "supported",
+      expectedPath: "escalation",
+      expectedRoutes: "blocked-by-safety"
+    },
+    {
+      name: "unsupported and safety-active",
+      checkIn: buildCheckIn("escalation"),
+      expectedSupport: "out-of-support",
+      expectedPath: "escalation",
+      expectedRoutes: "blocked-by-safety"
+    }
+  ];
+
+  for (const item of cases) {
+    const carePlan = evaluateCheckIn(patient, item.checkIn);
+    const edgeRisk = scorePatientRisk(patient, item.checkIn);
+    const graph = buildAdherenceKnowledgeGraph({ patient, checkIn: item.checkIn, carePlan, edgeRisk, cohort: patients });
+
+    assert.equal(edgeRisk.support.status, item.expectedSupport, `${item.name}: support`);
+    assert.equal(graph.pathMode, item.expectedPath, `${item.name}: path`);
+    if (item.expectedRoutes === "ranked") {
+      assert.equal(graph.routeAlternatives[0].status, "recommended", `${item.name}: first route`);
+      assert.ok(
+        graph.routeAlternatives.every((route) => route.status === "recommended" || route.status === "alternative"),
+        `${item.name}: ranked routes`
+      );
+    } else {
+      assert.ok(graph.routeAlternatives.every((route) => route.status === item.expectedRoutes), `${item.name}: routes`);
+    }
+    if (item.expectedSupport === "out-of-support" && item.expectedPath === "coaching") {
+      assert.deepEqual(graph.rescuePath.map((step) => step.label), [graph.topDriver.label, "Model abstained", "Rules remain active"]);
+      assert.ok(graph.rescuePath.every((step) => !/lower adherence risk/i.test(step.label)));
+      assert.equal(graph.edges.filter((edge) => edge.source.startsWith("intervention-")).length, 0);
+    }
+  }
 });

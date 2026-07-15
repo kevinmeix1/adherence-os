@@ -36,7 +36,7 @@ export default function PatientsPage() {
           <div>
             <p className="directory-kicker">Synthetic care cohort</p>
             <h1>Patient overview</h1>
-            <p>Adherence, engagement, risk and the next safe action in one operational view.</p>
+            <p>Adherence, engagement, rule state and the next bounded action in one operational view.</p>
           </div>
           <span className="directory-data-badge">
             <ClipboardCheck size={16} /> Synthetic data only

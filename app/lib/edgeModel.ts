@@ -1,5 +1,5 @@
-import { getPatientInsights } from "./careEngine";
 import { adherenceModelData, type ModelArtifact } from "./modelArtifact";
+import { extractModelFeatures } from "./modelFeatures";
 import type { CheckInInput, Patient } from "./types";
 
 export type FeatureContribution = {
@@ -69,9 +69,10 @@ export type InterventionSimulation = {
 export type SupportViolation = {
   name: string;
   label: string;
-  value: number;
+  value: number | null;
   low: number;
   high: number;
+  reason: "missing" | "non-finite" | "outside-bounds" | "invalid-binary";
 };
 
 export type FeatureVectorScore = {
@@ -103,17 +104,13 @@ export function getModelArtifact() {
   return adherenceModelData.artifact;
 }
 
-export function getModelSampleRows() {
-  return adherenceModelData.sampleRows;
-}
-
 export function scorePatientRisk(patient: Patient, checkIn: CheckInInput): EdgeRiskResult {
   const artifact = adherenceModelData.artifact;
-  const features = extractFeatures(patient, checkIn);
+  const features = extractModelFeatures(patient, checkIn);
   const baseScore = scoreFeatureVector(features, artifact);
   const contributions = artifact.features
     .map((feature) => {
-      const rawValue = features[feature.name] ?? feature.mean;
+      const rawValue = resolveFeatureValue(features, feature);
       const z = (rawValue - feature.mean) / feature.std;
       const contribution = z * feature.weight;
       return {
@@ -147,14 +144,35 @@ export function scoreFeatureVector(
   const memberScores = artifact.ensemble.members
     .map((member) => {
       const logit = artifact.features.reduce((sum, feature, index) => {
-        const rawValue = features[feature.name] ?? feature.mean;
+        const rawValue = resolveFeatureValue(features, feature);
         return sum + ((rawValue - feature.mean) / feature.std) * member.weights[index];
       }, member.intercept);
       return sigmoid(logit);
     })
     .sort((a, b) => a - b);
-  const violations = artifact.features.flatMap((feature) => {
-    const value = features[feature.name] ?? feature.mean;
+  const violations = artifact.features.flatMap<SupportViolation>((feature) => {
+    const hasValue = Object.prototype.hasOwnProperty.call(features, feature.name);
+    const value = features[feature.name];
+    if (!hasValue || typeof value !== "number") {
+      return [{
+        name: feature.name,
+        label: feature.label,
+        value: null,
+        low: feature.support.low,
+        high: feature.support.high,
+        reason: "missing" as const
+      }];
+    }
+    if (!Number.isFinite(value)) {
+      return [{
+        name: feature.name,
+        label: feature.label,
+        value: null,
+        low: feature.support.low,
+        high: feature.support.high,
+        reason: "non-finite" as const
+      }];
+    }
     const outsideRange = value < feature.support.low || value > feature.support.high;
     const outsideBinarySet = feature.support.kind === "binary" && value !== 0 && value !== 1;
     return outsideRange || outsideBinarySet
@@ -164,7 +182,8 @@ export function scoreFeatureVector(
             label: feature.label,
             value,
             low: feature.support.low,
-            high: feature.support.high
+            high: feature.support.high,
+            reason: outsideBinarySet ? ("invalid-binary" as const) : ("outside-bounds" as const)
           }
         ]
       : [];
@@ -184,7 +203,9 @@ export function scoreFeatureVector(
   };
 }
 
-export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskExplanation {
+export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskExplanation | null {
+  if (result.support.status !== "supported") return null;
+
   const ranked = result.contributions;
   const top = ranked.slice(0, Math.max(1, maxFeatures));
   const remaining = ranked.slice(top.length);
@@ -240,18 +261,22 @@ export function explainRiskScore(result: EdgeRiskResult, maxFeatures = 6): RiskE
 export function analyzeRiskSensitivity(
   result: EdgeRiskResult,
   perturbationStd = 0.5
-): RiskSensitivityAnalysis {
+): RiskSensitivityAnalysis | null {
+  if (result.support.status !== "supported") return null;
+
   const features = result.artifact.features
     .map((feature) => {
       const currentValue = result.features[feature.name] ?? feature.mean;
       const bounds = featureBounds(feature.name);
       const isBinary = feature.support.kind === "binary";
+      const supportedLow = Math.max(bounds[0], feature.support.low);
+      const supportedHigh = Math.min(bounds[1], feature.support.high);
       const lowValue = isBinary
         ? 0
-        : clamp(currentValue - feature.std * perturbationStd, bounds[0], bounds[1]);
+        : clamp(currentValue - feature.std * perturbationStd, supportedLow, supportedHigh);
       const highValue = isBinary
         ? 1
-        : clamp(currentValue + feature.std * perturbationStd, bounds[0], bounds[1]);
+        : clamp(currentValue + feature.std * perturbationStd, supportedLow, supportedHigh);
       const lowRisk = scoreFeatures({ ...result.features, [feature.name]: lowValue }, result.artifact).risk;
       const highRisk = scoreFeatures({ ...result.features, [feature.name]: highValue }, result.artifact).risk;
       const minRisk = Math.min(result.risk, lowRisk, highRisk);
@@ -295,51 +320,18 @@ export function analyzeRiskSensitivity(
   };
 }
 
-function extractFeatures(patient: Patient, checkIn: CheckInInput): Record<string, number> {
-  const insights = getPatientInsights(patient);
-  const latest = insights.latest;
-  const priorWeek = insights.previous;
-  const text = `${checkIn.freeText} ${checkIn.sideEffects}`.toLowerCase();
-  const routineDisruption =
-    Number(/work|shift|travel|busy|hectic|forgot|missed/.test(text)) * 0.44 +
-    Number(patient.riskFactors.some((factor) => /shift|travel/i.test(factor))) * 0.22 +
-    Number(!checkIn.medicationTaken) * 0.28;
-  const moodAnxious = Number(/anxious|discouraged|worried|frustrated|tired/.test(checkIn.mood.toLowerCase() + text));
-  const weightLossPct = Math.max(0, (-insights.weightDelta / patient.baseline.weightKg) * 100);
-  const hba1cDelta =
-    typeof insights.hba1cDelta === "number"
-      ? insights.hba1cDelta
-      : typeof patient.latestBiomarkers.hba1cPct === "number" && typeof patient.baseline.hba1cPct === "number"
-        ? patient.latestBiomarkers.hba1cPct - patient.baseline.hba1cPct
-        : -0.1;
-
-  return {
-    week: patient.currentWeek,
-    adherence_last_2wk: insights.lastTwoAdherence,
-    missed_doses_2wk:
-      Math.max(0, latest.dosesExpected - latest.dosesTaken + priorWeek.dosesExpected - priorWeek.dosesTaken) +
-      Number(!checkIn.medicationTaken),
-    nausea_score: checkIn.nauseaScore,
-    hydration_risk: Math.max(0, 10 - checkIn.hydrationScore),
-    energy_risk: Math.max(0, 10 - checkIn.energyScore),
-    appetite_suppression: Math.max(0, 10 - checkIn.appetiteScore),
-    weight_loss_pct: weightLossPct,
-    hba1c_delta: hba1cDelta,
-    systolic_bp: patient.latestBiomarkers.systolicBp ?? patient.baseline.systolicBp ?? 130,
-    routine_disruption: Math.min(1, routineDisruption + Number(/vomit|lightheaded|pain|worse/.test(text)) * 0.18),
-    side_effect_spike: Math.max(0, checkIn.nauseaScore - priorWeek.nauseaScore + Number(/vomit|lightheaded|pain|worse/.test(text)) * 0.8),
-    prior_failure: insights.lastTwoAdherence < 90 ? 1 : 0,
-    mood_anxious: moodAnxious
-  };
-}
-
 function scoreFeatures(features: Record<string, number>, artifact: ModelArtifact) {
   const logit = artifact.features.reduce((sum, feature) => {
-    const rawValue = features[feature.name] ?? feature.mean;
+    const rawValue = resolveFeatureValue(features, feature);
     return sum + ((rawValue - feature.mean) / feature.std) * feature.weight;
   }, artifact.intercept);
 
   return { logit, risk: sigmoid(logit) };
+}
+
+function resolveFeatureValue(features: Record<string, number>, feature: ModelArtifact["features"][number]) {
+  const value = features[feature.name];
+  return typeof value === "number" && Number.isFinite(value) ? value : feature.mean;
 }
 
 function simulateInterventions(
@@ -404,7 +396,7 @@ function simulateInterventions(
         rankable,
         note: rankable
           ? intervention.note
-          : `${intervention.note} Not ranked outside the synthetic training support.`
+          : `${intervention.note} Not ranked outside the configured marginal feature bounds.`
       };
     })
     .sort((a, b) => (b.absoluteReduction ?? -1) - (a.absoluteReduction ?? -1));
